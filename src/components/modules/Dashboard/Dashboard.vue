@@ -383,8 +383,8 @@
     </div>
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-auto lg:ml-64 ml-0">
-      <div class="p-4 lg:p-6 pt-16 lg:pt-6">
+    <main class="flex-1 lg:ml-64 ml-0 h-screen overflow-auto">
+            <div class="p-4 lg:p-6 pt-16 lg:pt-6">
         <!-- Kartu Stok Page -->
         <div v-if="route.name === 'kartu-stok'">
           <!-- Stats bar -->

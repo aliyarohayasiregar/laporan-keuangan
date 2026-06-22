@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 lg:p-6">
     <!-- Header Section -->
-    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky top-0 z-10 bg-white pb-4 pt-4 px-4 lg:px-6 -mx-4 lg:-mx-6">      
       <div>
         <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Kelompok Akun</h1>
         <p class="text-gray-600 mt-1 text-sm sm:text-base">Manajemen kelompok akun perusahaan</p>
@@ -16,8 +16,8 @@
     </header>
 
     <!-- Tab Navigation -->
-    <nav class="border-b border-gray-200 mb-6">
-      <div class="flex space-x-4 sm:space-x-8">
+    <nav class="border-b border-gray-200 mb-6 sticky top-[76px] z-10 bg-white -mx-4 lg:-mx-6 px-4 lg:px-6">
+          <div class="flex space-x-4 sm:space-x-8">
         <button @click="activeTab = 'table'" :class="tabClasses('table')">
           Table View
         </button>
