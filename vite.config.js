@@ -6,6 +6,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/laporan-keuangan/',   // <-- tambah ini
   plugins: [
     vue(),
     vueDevTools(),
