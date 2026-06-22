@@ -68,9 +68,8 @@
           <table class="w-full min-w-max">
             <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  No</th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Kode</th>
@@ -98,9 +97,9 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="kelompok in paginatedKelompokAkun" :key="kelompok.id" class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ kelompok.id }}</td>
-                <td class="px-6 py-4 whitespace-nowrap">
+              <tr v-for="(kelompok, index) in paginatedKelompokAkun" :key="kelompok.id" class="hover:bg-gray-50">                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+  {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+</td>                <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">{{ kelompok.kode }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -370,8 +369,8 @@
     </main>
 
     <!-- Form Modal -->
-    <FormKelompokAkun :show-modal="showFormModal" :edit-item="editingItem"
-      @close="handleCloseForm" @save="handleSaveForm" />
+    <FormKelompokAkun :show-modal="showFormModal" :edit-item="editingItem" @close="handleCloseForm"
+      @save="handleSaveForm" />
   </div>
 </template>
 

@@ -41,14 +41,17 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Kelompok Akun *</label>
-            <select v-model.number="formData.kelompok_akun_id" required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <select v-model.number="formData.kelompok_akun_id" required :disabled="loadingKelompokOptions"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100">
               <option value="">Pilih Kelompok Akun</option>
-              <option v-for="kelompok in kelompokOptions" :key="kelompok.id" :value="kelompok.id">
-                {{ kelompok.kode }} - {{ kelompok.nama_kelompok_akun }}
+              <option v-for="kelompok in filteredKelompokOptions" :key="kelompok?.id || kelompok?.ID || Math.random()"
+                :value="kelompok?.id">
+                {{ (kelompok?.kode || '') }} - {{ (kelompok?.nama_kelompok_akun || '') }}
               </option>
             </select>
-            <p class="text-xs text-gray-500 mt-1">Pilih kelompok akun untuk akun ini</p>
+            <p class="text-xs text-gray-500 mt-1">
+              {{ loadingKelompokOptions ? 'Memuat kelompok akun...' : ((formData.kode || '').trim() ? 'Kelompok akun yang sesuai dengan kode Anda' : 'Pilih kelompok akun untuk akun ini') }}
+            </p>
           </div>
 
           <div>
@@ -86,6 +89,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import api from '../../../services/api.js'
 
 const props = defineProps({
   showModal: {
@@ -95,10 +99,6 @@ const props = defineProps({
   editItem: {
     type: Object,
     default: null
-  },
-  kelompokOptions: {
-    type: Array,
-    default: () => []
   },
   formError: {
     type: String,
@@ -111,6 +111,8 @@ const emit = defineEmits(['close', 'save'])
 const isEdit = computed(() => !!props.editItem)
 const loading = ref(false)
 const errorMessage = ref('')
+const kelompokOptions = ref([])
+const loadingKelompokOptions = ref(false)
 
 const formData = ref({
   kode: '',
@@ -120,14 +122,54 @@ const formData = ref({
   is_active: true
 })
 
+const loadKelompokOptions = async () => {
+  try {
+    loadingKelompokOptions.value = true
+    const response = await api.getAllKelompokAkunAkun()
+    kelompokOptions.value = response.data || []
+  } catch (error) {
+    console.error('Error loading kelompok akun:', error)
+    kelompokOptions.value = []
+  } finally {
+    loadingKelompokOptions.value = false
+  }
+}
+
+const filteredKelompokOptions = computed(() => {
+  if (!kelompokOptions.value || !Array.isArray(kelompokOptions.value)) return []
+
+  let filtered = [...kelompokOptions.value].filter(k => k && typeof k === 'object' && k.kode)
+  const currentKode = (formData.value.kode || '').trim()
+
+  if (currentKode) {
+    // Ambil bagian prefix dari input (tanpa segmen terakhir)
+    // Contoh: "1 10 10 0001" → prefix = "1 10 10"
+    // Contoh: "1 10" → prefix = "1 10"
+    const segments = currentKode.split(' ').filter(s => s !== '')
+    
+    filtered = filtered.filter(k => {
+      const kelompokSegments = k.kode.split(' ').filter(s => s !== '')
+      // Cocokkan sejumlah segmen yang ada di input (max 3 segmen pertama)
+      const matchCount = Math.min(segments.length, kelompokSegments.length - 1)
+      for (let i = 0; i < matchCount; i++) {
+        if (segments[i] !== kelompokSegments[i]) return false
+      }
+      return true
+    })
+  }
+
+  return filtered.sort((a, b) => a.kode.localeCompare(b.kode))
+})
+
+
 watch(() => props.editItem, (newItem) => {
   if (newItem) {
     formData.value = {
-      kode: newItem.Kode,
-      nama_akun: newItem.NamaAkun,
-      kelompok_akun_id: newItem.KelompokAkunID,
-      deskripsi: newItem.Deskripsi || '',
-      is_active: newItem.IsActive !== undefined ? newItem.IsActive : true
+      kode: newItem.Kode || newItem.kode || '',
+      nama_akun: newItem.NamaAkun || newItem.nama_akun || '',
+      kelompok_akun_id: newItem.KelompokAkunID || newItem.kelompok_akun_id || '',
+      deskripsi: newItem.Deskripsi || newItem.deskripsi || '',
+      is_active: newItem.IsActive !== undefined ? newItem.IsActive : (newItem.is_active !== undefined ? newItem.is_active : true)
     }
   } else {
     resetForm()
@@ -142,7 +184,9 @@ watch(() => props.formError, (newError) => {
 })
 
 watch(() => props.showModal, (show) => {
-  if (!show) {
+  if (show) {
+    loadKelompokOptions()
+  } else {
     resetForm()
   }
 })
@@ -158,24 +202,24 @@ const resetForm = () => {
 }
 
 const handleKodeInput = (e) => {
-  let val = e.target.value.replace(/\s/g, '').replace(/\D/g, '') // Remove spaces and non-digits
+  let val = (e.target.value || '').replace(/\s/g, '').replace(/\D/g, '') // Remove spaces and non-digits
   val = val.substring(0, 9) // Batasi total maks 9 digit (1+2+2+4)
   let formatted = ''
 
   if (val.length > 0) {
     // Kelompok pertama: max 1 digit
     formatted += val.substring(0, 1)
-    
+
     // Kelompok kedua: max 2 digit
     if (val.length > 1) {
       formatted += ' ' + val.substring(1, 3)
     }
-    
+
     // Kelompok ketiga: max 2 digit
     if (val.length > 3) {
       formatted += ' ' + val.substring(3, 5)
     }
-    
+
     // Kelompok keempat: max 4 digit
     if (val.length > 5) {
       formatted += ' ' + val.substring(5, 9)

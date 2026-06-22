@@ -55,7 +55,7 @@
             <tr>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                ID</th>
+                No</th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                 Kode</th>
@@ -80,8 +80,10 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="akun in paginatedNamaAkun" :key="akun.id" class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ akun.id }}</td>
+            <tr v-for="(akun, index) in paginatedNamaAkun" :key="akun.id" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+              </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-gray-900">{{ akun.kode }}</div>
               </td>
@@ -136,8 +138,8 @@
     </div>
 
     <!-- Nama Akun Form Modal -->
-    <FormNamaAkun :show-modal="showFormModal" :edit-item="editingItem" :kelompok-options="kelompokAkun"
-      :form-error="formError" @close="handleCloseForm" @save="handleSaveForm" />
+    <FormNamaAkun :show-modal="showFormModal" :edit-item="editingItem" :form-error="formError" @close="handleCloseForm"
+      @save="handleSaveForm" />
   </div>
 </template>
 

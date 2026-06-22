@@ -41,8 +41,8 @@
             <select v-model.number="formData.parent_id" :disabled="loadingParentOptions"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed">
               <option :value="null">Tidak ada (Akun Utama)</option>
-              <option v-for="parent in filteredParentOptions" :key="parent.id" :value="parent.id">
-                {{ parent.kode }} - {{ parent.nama_kelompok_akun }}
+              <option v-for="parent in filteredParentOptions" :key="parent?.id || Math.random()" :value="parent?.id">
+                {{ (parent?.kode || '') }} - {{ (parent?.nama_kelompok_akun || '') }}
               </option>
             </select>
             <p class="text-xs text-gray-500 mt-1">
@@ -99,11 +99,31 @@ const parentOptions = ref([])
 const loadingParentOptions = ref(false)
 
 const filteredParentOptions = computed(() => {
-  if (!parentOptions.value || !props.editItem) return parentOptions.value || []
+  if (!parentOptions.value || !Array.isArray(parentOptions.value)) return []
 
-  // Filter out current item from parent options to prevent circular references
-  return parentOptions.value.filter(parent => parent.id !== props.editItem.id)
+  let filtered = [...parentOptions.value].filter(p => p && typeof p === 'object' && p.kode)
+
+  if (props.editItem) {
+    filtered = filtered.filter(p => p.id !== props.editItem.id)
+  }
+
+  const currentKode = (formData.value.kode || '').trim()
+  const currentLevel = formData.value.level
+
+  if (currentLevel <= 0) return []
+
+  // Filter level tepat 1 di atas
+  filtered = filtered.filter(p => p.level === currentLevel - 1)
+
+  // Filter kode_group dari karakter pertama kode yang diinput
+  if (currentKode) {
+    const kodeGroup = currentKode.charAt(0)
+    filtered = filtered.filter(p => p.kode_group === kodeGroup)
+  }
+
+  return filtered.sort((a, b) => a.kode.localeCompare(b.kode))
 })
+
 
 const formData = ref({
   kode: '',
@@ -156,7 +176,7 @@ const resetForm = () => {
 }
 
 const handleKodeInput = (e) => {
-  let val = e.target.value.replace(/\s/g, '').replace(/\D/g, '') // Remove spaces and non-digits
+  let val = (e.target.value || '').replace(/\s/g, '').replace(/\D/g, '') // Remove spaces and non-digits
   val = val.substring(0, 9) // Batasi total maks 9 digit (1+2+2+4)
   let formatted = ''
 
@@ -185,7 +205,7 @@ const handleKodeInput = (e) => {
 
 const handleSubmit = () => {
   // Validate required fields
-  if (!formData.value.kode.trim() || !formData.value.nama_kelompok_akun.trim()) {
+  if (!(formData.value.kode || '').trim() || !(formData.value.nama_kelompok_akun || '').trim()) {
     alert('Mohon lengkapi semua field yang wajib diisi')
     return
   }
@@ -194,7 +214,7 @@ const handleSubmit = () => {
   if (isEdit.value) {
     // Edit mode - send only fields that can be updated
     const submitData = {
-      nama_kelompok_akun: formData.value.nama_kelompok_akun.trim(),
+      nama_kelompok_akun: (formData.value.nama_kelompok_akun || '').trim(),
       saldo_normal: formData.value.saldo_normal
     }
     console.log('Edit data:', submitData)
@@ -202,8 +222,8 @@ const handleSubmit = () => {
   } else {
     // Create mode - send all required fields
     const submitData = {
-      kode: formData.value.kode.trim(),
-      nama_kelompok_akun: formData.value.nama_kelompok_akun.trim(),
+      kode: (formData.value.kode || '').trim(),
+      nama_kelompok_akun: (formData.value.nama_kelompok_akun || '').trim(),
       level: formData.value.level,
       parent_id: formData.value.parent_id,
       // saldo_normal: formData.value.saldo_normal
