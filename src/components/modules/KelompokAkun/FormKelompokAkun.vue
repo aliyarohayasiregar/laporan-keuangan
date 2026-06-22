@@ -38,14 +38,16 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Parent ID</label>
-            <select v-model.number="formData.parent_id"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <select v-model.number="formData.parent_id" :disabled="loadingParentOptions"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed">
               <option :value="null">Tidak ada (Akun Utama)</option>
               <option v-for="parent in filteredParentOptions" :key="parent.id" :value="parent.id">
                 {{ parent.kode }} - {{ parent.nama_kelompok_akun }}
               </option>
             </select>
-            <p class="text-xs text-gray-500 mt-1">Pilih parent akun jika ini adalah sub-akun</p>
+            <p class="text-xs text-gray-500 mt-1">
+              {{ loadingParentOptions ? 'Memuat data parent...' : 'Pilih parent akun jika ini adalah sub-akun' }}
+            </p>
           </div>
 
           <!-- <div>
@@ -75,7 +77,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import api from '../../../services/api.js'
 
 const props = defineProps({
   showModal: {
@@ -85,10 +88,6 @@ const props = defineProps({
   editItem: {
     type: Object,
     default: null
-  },
-  parentOptions: {
-    type: Array,
-    default: () => []
   }
 })
 
@@ -96,11 +95,14 @@ const emit = defineEmits(['close', 'save'])
 
 const isEdit = computed(() => !!props.editItem)
 
+const parentOptions = ref([])
+const loadingParentOptions = ref(false)
+
 const filteredParentOptions = computed(() => {
-  if (!props.parentOptions || !props.editItem) return props.parentOptions || []
+  if (!parentOptions.value || !props.editItem) return parentOptions.value || []
 
   // Filter out current item from parent options to prevent circular references
-  return props.parentOptions.filter(parent => parent.id !== props.editItem.id)
+  return parentOptions.value.filter(parent => parent.id !== props.editItem.id)
 })
 
 const formData = ref({
@@ -110,6 +112,19 @@ const formData = ref({
   parent_id: null,
   saldo_normal: 'D'
 })
+
+const loadParentOptions = async () => {
+  try {
+    loadingParentOptions.value = true
+    const response = await api.getParentKelompokAkun()
+    parentOptions.value = response.data || []
+  } catch (error) {
+    console.error('Error loading parent kelompok akun:', error)
+    parentOptions.value = []
+  } finally {
+    loadingParentOptions.value = false
+  }
+}
 
 watch(() => props.editItem, (newItem) => {
   if (newItem) {
@@ -124,7 +139,9 @@ watch(() => props.editItem, (newItem) => {
 })
 
 watch(() => props.showModal, (show) => {
-  if (!show) {
+  if (show) {
+    loadParentOptions()
+  } else {
     resetForm()
   }
 })

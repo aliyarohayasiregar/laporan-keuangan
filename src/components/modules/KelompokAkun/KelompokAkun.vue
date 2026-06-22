@@ -370,7 +370,7 @@
     </main>
 
     <!-- Form Modal -->
-    <FormKelompokAkun :show-modal="showFormModal" :edit-item="editingItem" :parent-options="kelompokAkun"
+    <FormKelompokAkun :show-modal="showFormModal" :edit-item="editingItem"
       @close="handleCloseForm" @save="handleSaveForm" />
   </div>
 </template>

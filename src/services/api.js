@@ -182,6 +182,10 @@ class KartuStokAPI {
     return this.request('/getAllKelompokAkun', {}, 'pb')
   }
 
+  async getParentKelompokAkun() {
+    return this.request('/getParentKelompokAkun', {}, 'pb')
+  }
+
   async createKelompokAkun(kelompokData) {
     return this.request('/createKelompokAkun', {
       method: 'POST',
