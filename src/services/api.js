@@ -179,7 +179,7 @@ class KartuStokAPI {
 
   // Kelompok Akun API Methods
   async getAllKelompokAkun() {
-    return this.request('/getAllKelompokAkun', {}, 'pb')
+    return this.request('/getParentKelompokAkun', {}, 'pb')
   }
 
   async getParentKelompokAkun() {

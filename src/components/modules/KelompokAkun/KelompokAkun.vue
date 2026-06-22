@@ -89,9 +89,9 @@
                 <!-- <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Saldo Normal</th> -->
-                <th
+                <!-- <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  Created At</th>
+                  Created At</th> -->
                 <th
                   class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Aksi</th>
@@ -131,11 +131,11 @@
                     {{ kelompok.saldo_normal === 'D' ? 'Debit' : 'Kredit' }}
                   </span>
                 </td> -->
-                <td class="px-6 py-4 whitespace-nowrap">
+                <!-- <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-500">
                     {{ formatDate(kelompok.created_at) }}
                   </div>
-                </td>
+                </td> -->
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button v-if="hasPermission('kelompok akun', 'edit')" @click="handleEdit(kelompok)"
                     class="text-blue-600 hover:text-blue-900 mr-3">
