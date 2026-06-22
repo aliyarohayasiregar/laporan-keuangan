@@ -100,12 +100,12 @@
             Nomor Voucher
           </router-link>
 
-          
 
 
-          <router-link v-if="hasPermission('jurnal umum ')" to="/jurnal-umum" :class="[
+
+          <router-link v-if="hasPermission('jurnal umum')" to="/jurnal-umum" :class="[
             'w-full text-left px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-3',
-            route.name === 'jurnal-penyesuaian'
+            ['jurnal-umum', 'jurnal-penyesuaian', 'jurnal-pembalik'].includes(route.name)
               ? 'bg-blue-600 text-white'
               : 'text-gray-700 hover:bg-gray-100'
           ]">
@@ -172,18 +172,18 @@
             <div v-show="laporanMenuOpen" class="ml-8 space-y-1">
 
               <router-link v-if="hasPermission('posting entry')" to="/posting-jurnal" :class="[
-            'w-full text-left px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-3',
-            route.name === 'posting-jurnal'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-700 hover:bg-gray-100'
-          ]">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-              </path>
-            </svg>
-            Buku Besar
-          </router-link>
+                'w-full text-left px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-3',
+                route.name === 'posting-jurnal'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
+              ]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                  </path>
+                </svg>
+                Buku Besar
+              </router-link>
 
 
               <router-link v-if="hasPermission('neraca saldo')" to="/neraca-saldo-tabs" :class="[
@@ -213,8 +213,8 @@
                 Laporan Laba Rugi
               </router-link>
 
-                            <!-- Placeholder for future reports -->
-                            <router-link v-if="hasPermission('neraca')" to="/laporan-posisi-keuangan" :class="[
+              <!-- Placeholder for future reports -->
+              <router-link v-if="hasPermission('neraca')" to="/laporan-posisi-keuangan" :class="[
                 'w-full text-left px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-3 text-sm',
                 route.name === 'laporan-posisi-keuangan'
                   ? 'bg-blue-100 text-blue-700'
