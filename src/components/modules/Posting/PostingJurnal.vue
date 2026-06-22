@@ -524,8 +524,8 @@ const formatNumber = (num) => {
   let isNegative = false
 
   if (typeof num === 'string') {
-    // Handle (123.456) format
-    if (num.startsWith('(') && num.endsWith(')')) {
+    // Handle (123.456) format - with safety check!
+    if (num && num.startsWith('(') && num.endsWith(')')) {
       isNegative = true
       numericValue = parseFloat(num.slice(1, -1).replace(/,/g, ''))
     } else {

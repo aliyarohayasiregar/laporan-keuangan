@@ -2,8 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { isAuthenticated } from '../utils/auth.js'
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes: [
+  history: createWebHistory('/laporan-keuangan/'),
+    routes: [
     {
       path: '/',
       name: 'home',
