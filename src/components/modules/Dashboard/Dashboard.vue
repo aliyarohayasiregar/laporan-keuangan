@@ -160,7 +160,7 @@
                 </path>
               </svg>
               <span class="flex-1">Laporan</span>
-              <svg :class="['w-4 h-4 transition-transform duration-200', laporanMenuOpen ? 'rotate-180' : '']"
+              <svg :class="['w-5 h-5 transition-transform duration-200', laporanMenuOpen ? 'rotate-180' : '']"
                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
@@ -172,12 +172,12 @@
             <div v-show="laporanMenuOpen" class="ml-8 space-y-1">
 
               <router-link v-if="hasPermission('posting entry')" to="/posting-jurnal" :class="[
-                'w-full text-left px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-3',
+                'w-full text-left px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-3 text-sm',
                 route.name === 'posting-jurnal'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-700 hover:bg-gray-100'
               ]">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
                   </path>
@@ -187,9 +187,9 @@
 
 
               <router-link v-if="hasPermission('neraca saldo')" to="/neraca-saldo-tabs" :class="[
-                'w-full text-left px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-3',
+                'w-full text-left px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-3 text-sm',
                 route.name === 'neraca-saldo-tabs'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-700 hover:bg-gray-100'
               ]">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,7 +205,7 @@
                   ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-600 hover:bg-gray-100'
               ]">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M9 17v1a3 3 0 006 0v-3a3 3 0 00-6 0v-1m6 0v3a3 3 0 006 0v-1m-6 0v3a3 3 0 006 0v-1m-6 0v3a3 3 0 006 0v-1">
                   </path>
@@ -220,7 +220,7 @@
                   ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-600 hover:bg-gray-100'
               ]">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M9 17v1a3 3 0 006 0v-3a3 3 0 00-6 0v-1m6 0v3a3 3 0 006 0v-1m-6 0v3a3 3 0 006 0v-1m-6 0v3a3 3 0 006 0v-1">
                   </path>
@@ -384,7 +384,7 @@
 
     <!-- Main Content -->
     <main class="flex-1 lg:ml-64 ml-0 h-screen overflow-auto">
-            <div class="p-4 lg:p-6 pt-16 lg:pt-6">
+      <div class="p-4 lg:p-6 pt-16 lg:pt-6">
         <!-- Kartu Stok Page -->
         <div v-if="route.name === 'kartu-stok'">
           <!-- Stats bar -->

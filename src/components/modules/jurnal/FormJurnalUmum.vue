@@ -695,17 +695,17 @@ const shouldDisableDebit = (index, prefix = '') => {
   if (selectedJenisJurnal.value != 6) {
     const key = prefix === '' ? index : `${prefix}${index}`
     const selectedAccount = selectedAkun.value[key]
-    
+
     // Untuk baris default (index 0), cek posisi akun dari API
     if (index === 0 && showAkunDefaultRow.value) {
       return akunDefault.value?.posisi_akun === 'kredit'
     }
-    
+
     // Untuk baris lain, cek posisi akun dari selected account
     if (selectedAccount) {
       return selectedAccount.posisi_akun === 'kredit'
     }
-    
+
     return false
   }
   // Untuk jenis jurnal 6:
@@ -721,17 +721,17 @@ const shouldDisableKredit = (index, prefix = '') => {
   if (selectedJenisJurnal.value != 6) {
     const key = prefix === '' ? index : `${prefix}${index}`
     const selectedAccount = selectedAkun.value[key]
-    
+
     // Untuk baris default (index 0), cek posisi akun dari API
     if (index === 0 && showAkunDefaultRow.value) {
       return akunDefault.value?.posisi_akun === 'debet'
     }
-    
+
     // Untuk baris lain, cek posisi akun dari selected account
     if (selectedAccount) {
       return selectedAccount.posisi_akun === 'debet'
     }
-    
+
     return false
   }
   // Untuk jenis jurnal 6:
@@ -1036,15 +1036,33 @@ const openVoucherPreview = async () => {
       allVoucherTemplates.value = res.data
     }
 
-    // 1. Selalu gunakan kategori "umum"
+    // 1. Map jenis jurnal ke category template
     let category = 'umum'
-    console.log('✅ Menggunakan template kategori: UMUM')
+    const jenis = Number(selectedJenisJurnal.value)
+    if (jenis === 1) category = 'kas_masuk'
+    else if (jenis === 2) category = 'kas_keluar'
+    else if (jenis === 3) category = 'bank_masuk'
+    else if (jenis === 4) category = 'bank_keluar'
+    else if (jenis === 5) category = 'adjustment'
+    else if (jenis === 6) category = 'ayat_silang'
+
+    console.log('✅ Menggunakan template kategori:', category.toUpperCase(), 'untuk jenis jurnal:', jenis)
 
     // 2. Cari template sesuai kategori (prioritas yang is_default = true)
     let template = allVoucherTemplates.value.find(t => t.category === category && t.is_default)
 
     if (!template) {
       template = allVoucherTemplates.value.find(t => t.category === category)
+    }
+
+    // Fallback ke kategori umum jika template spesifik tidak ditemukan
+    if (!template) {
+      console.log('⚠️ Template kategori', category, 'tidak ditemukan, fallback ke UMUM')
+      category = 'umum'
+      template = allVoucherTemplates.value.find(t => t.category === category && t.is_default)
+      if (!template) {
+        template = allVoucherTemplates.value.find(t => t.category === category)
+      }
     }
 
     if (!template) {

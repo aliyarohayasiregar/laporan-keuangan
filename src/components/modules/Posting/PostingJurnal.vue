@@ -28,45 +28,49 @@
                   </label>
 
                   <!-- Custom Searchable Dropdown -->
+                  <!-- Custom Searchable Dropdown -->
                   <div class="relative">
-                    <button type="button" @click="showAkunDropdown = !showAkunDropdown"
+                    <button type="button" @click="toggleDropdown"
                       class="w-full flex justify-between items-center px-4 py-3 text-sm bg-white/90 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm transition-all duration-200 text-left"
-                      :disabled="loadingAkun">
+                      :disabled="loadingAkun" ref="dropdownButton">
                       <span :class="selectedAkun ? 'text-gray-900' : 'text-gray-500'">
                         {{ selectedAkunText }}
                       </span>
-                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                       </svg>
                     </button>
 
-                    <!-- Dropdown Panel -->
-                    <div v-if="showAkunDropdown"
-                      class="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div class="p-2 border-b border-gray-50">
-                        <div class="relative">
-                          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                          </svg>
-                          <input v-model="searchAkun" type="text" placeholder="Cari kode atau nama akun..."
-                            class="w-full pl-9 pr-4 py-2 text-sm border border-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            @click.stop />
+                    <!-- Dropdown Panel - Fixed position -->
+                    <Teleport to="body">
+                      <div v-if="showAkunDropdown" :style="dropdownStyle"
+                        class="fixed z-[9999] bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden"
+                        @click.stop>
+                        <div class="p-2 border-b border-gray-50">
+                          <div class="relative">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none"
+                              stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <input v-model="searchAkun" type="text" placeholder="Cari kode atau nama akun..."
+                              class="w-full pl-9 pr-4 py-2 text-sm border border-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              @click.stop />
+                          </div>
+                        </div>
+                        <div class="max-h-[250px] overflow-y-auto">
+                          <div v-if="filteredAkunList.length === 0" class="px-4 py-3 text-sm text-gray-500 text-center">
+                            Tidak ada akun ditemukan
+                          </div>
+                          <button v-for="akun in filteredAkunList" :key="akun.id" @click="selectAkun(akun)"
+                            class="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 transition-colors duration-150 flex flex-col border-b border-gray-50 last:border-0">
+                            <span class="font-semibold text-blue-600">{{ akun.kode }}</span>
+                            <span class="text-gray-600">{{ akun.nama_akun }}</span>
+                          </button>
                         </div>
                       </div>
-
-                      <div class="max-h-[250px] overflow-y-auto">
-                        <div v-if="filteredAkunList.length === 0" class="px-4 py-3 text-sm text-gray-500 text-center">
-                          Tidak ada akun ditemukan
-                        </div>
-                        <button v-for="akun in filteredAkunList" :key="akun.id" @click="selectAkun(akun)"
-                          class="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 transition-colors duration-150 flex flex-col border-b border-gray-50 last:border-0">
-                          <span class="font-semibold text-blue-600">{{ akun.kode }}</span>
-                          <span class="text-gray-600">{{ akun.nama_akun }}</span>
-                        </button>
-                      </div>
-                    </div>
+                    </Teleport>
                   </div>
 
                   <p class="text-blue-200 text-xs mt-2">
@@ -365,7 +369,7 @@
                         <div class="flex items-center justify-end gap-2">
                           <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
                           <span class="text-sm font-bold text-gray-900">{{ formatNumber(transaksi.saldo_debit)
-                            }}</span>
+                          }}</span>
                         </div>
                       </td>
                       <!-- <td class="px-6 py-4 whitespace-nowrap">
@@ -405,6 +409,35 @@ const error = ref(null)
 const postingData = ref(null)
 const namaAkunList = ref([])
 const dropdownContainer = ref(null)
+
+const dropdownButton = ref(null)
+const dropdownStyle = ref({})
+
+const toggleDropdown = () => {
+  if (!showAkunDropdown.value) {
+    // Hitung posisi sebelum buka
+    const rect = dropdownButton.value.getBoundingClientRect()
+    const dropdownHeight = 320 // estimasi tinggi dropdown
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+
+    let top
+    if (spaceBelow >= dropdownHeight || spaceBelow >= spaceAbove) {
+      // Buka ke bawah
+      top = rect.bottom + 4
+    } else {
+      // Buka ke atas
+      top = rect.top - dropdownHeight - 4
+    }
+
+    dropdownStyle.value = {
+      top: `${top}px`,
+      left: `${rect.left}px`,
+      width: `${rect.width}px`,
+    }
+  }
+  showAkunDropdown.value = !showAkunDropdown.value
+}
 
 // Options
 const bulanOptions = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
