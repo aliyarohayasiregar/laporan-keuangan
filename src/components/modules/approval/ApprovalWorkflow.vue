@@ -99,13 +99,13 @@
                     ? 'text-yellow-600 hover:text-yellow-900'
                     : 'text-green-600 hover:text-green-900'
                 ]">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <!-- <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
                     </path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  </svg>
+                  </svg> -->
                 </button>
                 <button v-if="hasPermission('approval workflow', 'delete')" @click="deleteProcess(process)"
                   class="text-red-600 hover:text-red-900">
@@ -262,6 +262,7 @@ const hasPermission = inject('hasPermission', () => true)
 import ApprovalProcessForm from './ApprovalProcessForm.vue'
 import ApprovalStepForm from './ApprovalStepForm.vue'
 import api from '../../../services/api.js'
+import { showSuccess, showError, showConfirm, showWarning } from '@/composables/useModal.js'
 
 const searchQuery = ref('')
 const statusFilter = ref('')
@@ -335,7 +336,7 @@ const loadData = async () => {
       roles.value = roleResponse.data
     }
   } catch (err) {
-    alert('Gagal memuat data workflow approval')
+    await showError('Gagal memuat data workflow approval')
     console.error('Error loading workflow data:', err)
   } finally {
     loading.value = false
@@ -360,15 +361,31 @@ const addStepToProcess = (process) => {
 const handleSaveProcess = async (formData) => {
   try {
     if (editingProcess.value) {
-      await api.updateApprovalProcess(editingProcess.value.id, formData)
+      await api.updateApprovalProcess(
+        editingProcess.value.id,
+        formData
+      )
+
+      await showSuccess(
+        'Proses approval berhasil diperbarui'
+      )
     } else {
       await api.createApprovalProcess(formData)
+
+      await showSuccess(
+        'Proses approval berhasil ditambahkan'
+      )
     }
+
     await loadData()
+
     showProcessForm.value = false
     editingProcess.value = null
   } catch (err) {
-    alert('Gagal menyimpan data proses approval')
+    await showError(
+      'Gagal menyimpan data proses approval'
+    )
+
     console.error('Error saving approval process:', err)
   }
 }
@@ -376,94 +393,228 @@ const handleSaveProcess = async (formData) => {
 const handleSaveStep = async (formData) => {
   try {
     if (editingStep.value && editingStep.value.id) {
-      await api.updateApprovalStep(editingStep.value.id, formData)
+      await api.updateApprovalStep(
+        editingStep.value.id,
+        formData
+      )
+
+      await showSuccess(
+        'Step approval berhasil diperbarui'
+      )
     } else {
       await api.createApprovalStep(formData)
+
+      await showSuccess(
+        'Step approval berhasil ditambahkan'
+      )
     }
+
     await loadData()
+
     showStepForm.value = false
     editingStep.value = null
   } catch (err) {
-    alert('Gagal menyimpan data step approval')
+    await showError(
+      'Gagal menyimpan data step approval'
+    )
+
     console.error('Error saving approval step:', err)
   }
 }
 
 const toggleProcessStatus = async (process) => {
-  if (confirm(`Apakah Anda yakin ingin ${process.IsActive !== undefined ? (process.IsActive ? 'menon-aktifkan' : 'mengaktifkan') : (process.is_active !== undefined ? (process.is_active ? 'menon-aktifkan' : 'mengaktifkan') : 'menon-aktifkan')} proses "${process.nama_proses || process.NamaProses}"?`)) {
-    try {
-      const currentStatus = process.IsActive !== undefined ? process.IsActive : (process.is_active !== undefined ? process.is_active : true)
-      await api.updateApprovalProcess(process.id, {
-        nama_proses: process.nama_proses || process.NamaProses,
-        is_active: !currentStatus
-      })
-      await loadData()
-    } catch (err) {
-      alert('Gagal mengubah status proses approval')
-      console.error('Error toggling process status:', err)
-    }
+  const currentStatus =
+    process.IsActive !== undefined
+      ? process.IsActive
+      : (
+        process.is_active !== undefined
+          ? process.is_active
+          : true
+      )
+
+  const ok = await showConfirm({
+    type: 'warning',
+    title: currentStatus
+      ? 'Nonaktifkan Proses'
+      : 'Aktifkan Proses',
+    message: `Apakah Anda yakin ingin ${
+      currentStatus
+        ? 'menonaktifkan'
+        : 'mengaktifkan'
+    } proses <strong>${
+      process.nama_proses || process.NamaProses
+    }</strong>?`,
+    confirmLabel: 'Ya',
+    cancelLabel: 'Batal'
+  })
+
+  if (!ok) return
+
+  try {
+    await api.updateApprovalProcess(process.id, {
+      nama_proses:
+        process.nama_proses ||
+        process.NamaProses,
+      is_active: !currentStatus
+    })
+
+    await showSuccess(
+      `Proses berhasil ${
+        currentStatus
+          ? 'dinonaktifkan'
+          : 'diaktifkan'
+      }`
+    )
+
+    await loadData()
+  } catch (err) {
+    await showError(
+      'Gagal mengubah status proses approval'
+    )
+
+    console.error(
+      'Error toggling process status:',
+      err
+    )
   }
 }
 
 const toggleStepStatus = async (step) => {
-  if (confirm(`Apakah Anda yakin ingin ${step.is_active ? 'menon-aktifkan' : 'mengaktifkan'} step "${step.nama_step}"?`)) {
-    try {
-      await api.updateApprovalStep(step.id, {
-        approval_proses_id: step.approval_proses_id,
-        nama_step: step.nama_step,
-        role_id: step.role_id,
-        is_active: !step.is_active
-      })
-      await loadData()
-    } catch (err) {
-      alert('Gagal mengubah status step approval')
-      console.error('Error toggling step status:', err)
-    }
+  const ok = await showConfirm({
+    type: 'warning',
+    title: step.is_active
+      ? 'Nonaktifkan Step'
+      : 'Aktifkan Step',
+    message: `Apakah Anda yakin ingin ${
+      step.is_active
+        ? 'menonaktifkan'
+        : 'mengaktifkan'
+    } step <strong>${step.nama_step}</strong>?`,
+    confirmLabel: 'Ya',
+    cancelLabel: 'Batal'
+  })
+
+  if (!ok) return
+
+  try {
+    await api.updateApprovalStep(step.id, {
+      approval_proses_id:
+        step.approval_proses_id,
+      nama_step: step.nama_step,
+      role_id: step.role_id,
+      is_active: !step.is_active
+    })
+
+    await showSuccess(
+      `Step berhasil ${
+        step.is_active
+          ? 'dinonaktifkan'
+          : 'diaktifkan'
+      }`
+    )
+
+    await loadData()
+  } catch (err) {
+    await showError(
+      'Gagal mengubah status step approval'
+    )
+
+    console.error(
+      'Error toggling step status:',
+      err
+    )
   }
 }
 
 const deleteProcess = async (process) => {
-  const processName = process.nama_proses || process.NamaProses
-  const steps = getProcessSteps(process.id)
+  const processName =
+    process.nama_proses ||
+    process.NamaProses
+
+  const steps =
+    getProcessSteps(process.id)
+
   const stepCount = steps.length
 
-  let confirmMessage = `Apakah Anda yakin ingin menghapus proses "${processName}"?`
-  if (stepCount > 0) {
-    confirmMessage += `\n\nPeringatan: Proses ini memiliki ${stepCount} step approval yang akan ikut terhapus!`
-  }
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Proses Approval',
+    message:
+      stepCount > 0
+        ? `Proses <strong>${processName}</strong> memiliki <strong>${stepCount} step</strong> yang akan ikut terhapus. Lanjutkan?`
+        : `Apakah Anda yakin ingin menghapus proses <strong>${processName}</strong>?`,
+    confirmLabel: 'Hapus',
+    cancelLabel: 'Batal'
+  })
 
-  if (confirm(confirmMessage)) {
-    try {
-      // If there are steps, try to delete them first
-      if (stepCount > 0) {
-        for (const step of steps) {
-          await api.deleteApprovalStep(step.id)
-        }
+  if (!ok) return
+
+  try {
+    if (stepCount > 0) {
+      for (const step of steps) {
+        await api.deleteApprovalStep(step.id)
       }
-      // Then delete the process
-      await api.deleteApprovalProcess(process.id)
-      await loadData()
-    } catch (err) {
-      // Handle constraint error
-      if (err.message && err.message.includes('400')) {
-        alert(`Tidak dapat menghapus proses "${processName}" karena masih memiliki step terkait. Silakan hapus step secara manual terlebih dahulu.`)
-      } else {
-        alert('Gagal menghapus data proses approval')
-      }
-      console.error('Error deleting approval process:', err)
     }
+
+    await api.deleteApprovalProcess(
+      process.id
+    )
+
+    await showSuccess(
+      'Proses approval berhasil dihapus'
+    )
+
+    await loadData()
+  } catch (err) {
+    if (
+      err.message &&
+      err.message.includes('400')
+    ) {
+      await showWarning(
+        `Tidak dapat menghapus proses "${processName}" karena masih memiliki step terkait.`,
+        'Peringatan'
+      )
+    } else {
+      await showError(
+        'Gagal menghapus data proses approval'
+      )
+    }
+
+    console.error(
+      'Error deleting approval process:',
+      err
+    )
   }
 }
 
 const deleteStep = async (step) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus step "${step.nama_step}"?`)) {
-    try {
-      await api.deleteApprovalStep(step.id)
-      await loadData()
-    } catch (err) {
-      alert('Gagal menghapus data step approval')
-      console.error('Error deleting approval step:', err)
-    }
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Step Approval',
+    message: `Apakah Anda yakin ingin menghapus step <strong>${step.nama_step}</strong>?`,
+    confirmLabel: 'Hapus',
+    cancelLabel: 'Batal'
+  })
+
+  if (!ok) return
+
+  try {
+    await api.deleteApprovalStep(step.id)
+
+    await showSuccess(
+      'Step approval berhasil dihapus'
+    )
+
+    await loadData()
+  } catch (err) {
+    await showError(
+      'Gagal menghapus data step approval'
+    )
+
+    console.error(
+      'Error deleting approval step:',
+      err
+    )
   }
 }
 

@@ -39,16 +39,6 @@
               </option>
             </select>
           </div>
-
-          <!-- <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-            <select v-model="formData.status"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <option value="aktif">Aktif</option>
-              <option value="nonaktif">Nonaktif</option>
-            </select>
-            <p class="text-xs text-gray-500 mt-1">Status nomor voucher</p>
-          </div> -->
         </div>
 
         <!-- Form Actions -->
@@ -78,17 +68,12 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { showError } from '@/composables/useModal.js'
 import nomorVoucherService from '../../../services/nomorVoucherService.js'
 
 const props = defineProps({
-  showModal: {
-    type: Boolean,
-    required: true
-  },
-  editItem: {
-    type: Object,
-    default: null
-  }
+  showModal: { type: Boolean, required: true },
+  editItem: { type: Object, default: null }
 })
 
 const emit = defineEmits(['close', 'save'])
@@ -120,10 +105,8 @@ const resetForm = () => {
   }
 }
 
-// Watch for editItem changes
 watch(() => props.editItem, (newEditItem) => {
   if (newEditItem) {
-    // Load edit data
     formData.value = {
       kode: newEditItem.kode || '',
       tahun: newEditItem.tahun || new Date().getFullYear(),
@@ -131,7 +114,6 @@ watch(() => props.editItem, (newEditItem) => {
       status: newEditItem.status || 'aktif'
     }
   } else {
-    // Reset form for new item
     resetForm()
   }
 }, { immediate: true })
@@ -143,7 +125,6 @@ const handleClose = () => {
 const handleSubmit = async () => {
   isSubmitting.value = true
   try {
-    // Construct the payload in the format expected by the API
     const payload = {
       kode: formData.value.kode,
       tahun: parseInt(formData.value.tahun),
@@ -154,10 +135,8 @@ const handleSubmit = async () => {
 
     let response
     if (props.editItem) {
-      // Update existing item
       response = await nomorVoucherService.updateNoBukti(props.editItem.id, payload)
     } else {
-      // Create new item
       response = await nomorVoucherService.createNoBukti(payload)
     }
 
@@ -166,11 +145,15 @@ const handleSubmit = async () => {
       emit('close')
       resetForm()
     } else {
-      alert(props.editItem ? 'Gagal mengupdate nomor voucher' : 'Gagal menyimpan nomor voucher')
+      await showError(
+        props.editItem ? 'Gagal mengupdate nomor voucher.' : 'Gagal menyimpan nomor voucher.'
+      )
     }
   } catch (error) {
     console.error('Error saving nomor voucher:', error)
-    alert(props.editItem ? 'Gagal mengupdate nomor voucher' : 'Gagal menyimpan nomor voucher')
+    await showError(
+      props.editItem ? 'Gagal mengupdate nomor voucher.' : 'Gagal menyimpan nomor voucher.'
+    )
   } finally {
     isSubmitting.value = false
   }

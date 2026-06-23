@@ -81,6 +81,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { showError, showAlert } from '@/composables/useModal.js'
 
 const props = defineProps({
   showModal: {
@@ -169,21 +170,21 @@ const formatDateForInput = (dateStr) => {
   return `${year}-${month}-${day}`
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   // Validation based on transaction type
   if (transactionType.value === 'none') {
-    alert('Qty Masuk atau Qty Keluar harus diisi (salah satu saja)')
+    await showError('Qty Masuk atau Qty Keluar harus diisi (salah satu saja)')
     return
   }
 
   if (transactionType.value === 'invalid') {
-    alert('Tidak bisa mengisi Qty Masuk dan Qty Keluar bersamaan. Pilih salah satu.')
+    await showError('Tidak bisa mengisi Qty Masuk dan Qty Keluar bersamaan. Pilih salah satu.')
     return
   }
 
   // Validation: if qty_masuk > 0, harga_per_unit must be > 0
   if (transactionType.value === 'masuk' && formData.value.harga_per_unit === 0) {
-    alert('Harga per Unit harus diisi untuk barang masuk')
+    await showError('Harga per Unit harus diisi untuk barang masuk')
     return
   }
 
@@ -202,6 +203,11 @@ const handleSubmit = () => {
   }
 
   emit('save', submitData)
-  alert(isEdit.value ? 'Transaksi berhasil diperbarui!' : 'Transaksi berhasil ditambahkan!')
+  await showAlert({
+    type: 'success',
+    title: 'Berhasil',
+    message: isEdit.value ? 'Transaksi berhasil diperbarui!' : 'Transaksi berhasil ditambahkan!',
+    confirmLabel: 'OK',
+  })
 }
 </script>

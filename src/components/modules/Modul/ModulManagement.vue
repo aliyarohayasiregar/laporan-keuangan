@@ -142,6 +142,8 @@ import { ref, computed, onMounted, inject } from 'vue'
 
 const hasPermission = inject('hasPermission', () => true)
 import api from '../../../services/api.js'
+import { showSuccess, showError, showConfirm, showWarning } from '@/composables/useModal.js'
+
 
 // State
 const moduls = ref([])
@@ -177,10 +179,14 @@ const loadModuls = async () => {
     if (response.success) {
       moduls.value = response.data
     } else {
-      alert('Gagal memuat data modul: ' + (response.message || 'Unknown error'))
+      await showError(
+        'Gagal memuat data modul: ' + (response.message || 'Unknown error')
+      )
     }
   } catch (err) {
-    alert('Gagal memuat data modul: ' + err.message)
+    await showError(
+      'Gagal memuat data modul: ' + err.message
+    )
   } finally {
     loading.value = false
   }
@@ -188,30 +194,46 @@ const loadModuls = async () => {
 
 const handleSubmit = async () => {
   submitting.value = true
+
   try {
     if (showEditModal.value) {
-      // Edit existing modul
-      const response = await api.updateModul(editingModul.value.id, formData.value)
+      const response = await api.updateModul(
+        editingModul.value.id,
+        formData.value
+      )
+
       if (response.success) {
-        alert('Modul berhasil diupdate!')
+        await showSuccess('Modul berhasil diupdate!')
+
         await loadModuls()
         closeModal()
       } else {
-        alert('Gagal mengupdate modul: ' + (response.message || 'Unknown error'))
+        await showError(
+          'Gagal mengupdate modul: ' +
+          (response.message || 'Unknown error')
+        )
       }
     } else {
-      // Add new modul
       const response = await api.createModul(formData.value)
+
       if (response.success) {
-        alert('Modul berhasil ditambahkan!')
+        await showSuccess('Modul berhasil ditambahkan!')
+
         await loadModuls()
         closeModal()
       } else {
-        alert('Gagal menambah modul: ' + (response.message || 'Unknown error'))
+        await showError(
+          'Gagal menambah modul: ' +
+          (response.message || 'Unknown error')
+        )
       }
     }
   } catch (err) {
-    alert(showEditModal.value ? 'Gagal mengupdate modul: ' + err.message : 'Gagal menambah modul: ' + err.message)
+    await showError(
+      showEditModal.value
+        ? 'Gagal mengupdate modul: ' + err.message
+        : 'Gagal menambah modul: ' + err.message
+    )
   } finally {
     submitting.value = false
   }
@@ -224,18 +246,33 @@ const editModul = (modul) => {
 }
 
 const deleteModul = async (modul) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus modul "${modul.nama_modul}"?`)) {
-    try {
-      const response = await api.deleteModul(modul.id)
-      if (response.success) {
-        alert('Modul berhasil dihapus!')
-        await loadModuls()
-      } else {
-        alert('Gagal menghapus modul: ' + (response.message || 'Unknown error'))
-      }
-    } catch (err) {
-      alert('Gagal menghapus modul: ' + err.message)
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Modul',
+    message: `Apakah Anda yakin ingin menghapus modul <strong>${modul.nama_modul}</strong>?`,
+    confirmLabel: 'Hapus',
+    cancelLabel: 'Batal'
+  })
+
+  if (!ok) return
+
+  try {
+    const response = await api.deleteModul(modul.id)
+
+    if (response.success) {
+      await showSuccess('Modul berhasil dihapus!')
+
+      await loadModuls()
+    } else {
+      await showError(
+        'Gagal menghapus modul: ' +
+        (response.message || 'Unknown error')
+      )
     }
+  } catch (err) {
+    await showError(
+      'Gagal menghapus modul: ' + err.message
+    )
   }
 }
 

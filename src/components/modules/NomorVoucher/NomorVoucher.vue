@@ -111,21 +111,17 @@
               <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">No</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kode
-                    Voucher</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Tahun
-                  </th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status
-                  </th>
-                  <!-- <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions
-                  </th> -->
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kode Voucher</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Tahun</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr v-for="(item, index) in paginatedData" :key="item.id"
                   class="hover:bg-gray-50 transition-colors duration-150">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ (currentPage - 1) *
-                    itemsPerPage + index + 1 }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+                  </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     <button @click="handleView(item)" class="text-purple-600 hover:text-purple-900 hover:underline">
                       {{ item.kode }}
@@ -204,13 +200,6 @@
             </div>
             <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada data nomor voucher</h3>
             <p class="text-gray-500 mb-6">Belum ada nomor voucher yang terdaftar</p>
-            <!-- <button v-if="hasPermission('nomor voucher', 'create')" @click="handleAdd"
-              class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-              Tambah Nomor Voucher
-            </button> -->
           </div>
         </div>
       </div>
@@ -226,11 +215,12 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, inject } from 'vue'
-
-const hasPermission = inject('hasPermission', () => true)
+import { showConfirm, showError } from '@/composables/useModal.js'
 import nomorVoucherService from '../../../services/nomorVoucherService.js'
 import FormNomorVoucher from './FormNomorVoucher.vue'
 import ViewNomorVoucher from './ViewNomorVoucher.vue'
+
+const hasPermission = inject('hasPermission', () => true)
 
 const loading = ref(false)
 const error = ref(null)
@@ -250,19 +240,16 @@ const selectedItem = ref(null)
 const filteredData = computed(() => {
   let filtered = nomorVouchers.value || []
 
-  // Filter by search query
   if (searchQuery.value) {
     filtered = filtered.filter(item =>
       item.kode.toLowerCase().includes(searchQuery.value.toLowerCase())
     )
   }
 
-  // Filter by tahun
   if (filterTahun.value) {
     filtered = filtered.filter(item => item.tahun.toString() === filterTahun.value)
   }
 
-  // Filter by status
   if (filterStatus.value) {
     filtered = filtered.filter(item => item.status === filterStatus.value)
   }
@@ -301,38 +288,19 @@ const fetchData = async () => {
     }
   } catch (err) {
     console.error('Error fetching nomor vouchers:', err)
-    // Extract specific error message from API response
     let errorMessage = 'Terjadi kesalahan saat memuat data'
     if (err.response && err.response.data && err.response.data.message) {
       errorMessage = err.response.data.message
     } else if (err.message) {
       errorMessage = 'Terjadi kesalahan saat memuat data: ' + err.message
     }
-    alert(errorMessage)
+    error.value = errorMessage
 
     // Fallback data for demonstration
     nomorVouchers.value = [
-      {
-        id: 1,
-        kode: 'JV001',
-        tahun: 2026,
-        status: 'aktif',
-        created_at: '2026-01-01T00:00:00Z'
-      },
-      {
-        id: 2,
-        kode: 'JV002',
-        tahun: 2026,
-        status: 'aktif',
-        created_at: '2026-01-02T00:00:00Z'
-      },
-      {
-        id: 3,
-        kode: 'JV003',
-        tahun: 2025,
-        status: 'nonaktif',
-        created_at: '2025-12-31T00:00:00Z'
-      }
+      { id: 1, kode: 'JV001', tahun: 2026, status: 'aktif', created_at: '2026-01-01T00:00:00Z' },
+      { id: 2, kode: 'JV002', tahun: 2026, status: 'aktif', created_at: '2026-01-02T00:00:00Z' },
+      { id: 3, kode: 'JV003', tahun: 2025, status: 'nonaktif', created_at: '2025-12-31T00:00:00Z' }
     ]
   } finally {
     loading.value = false
@@ -355,25 +323,31 @@ const handleView = (item) => {
 }
 
 const handleDelete = async (item) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus nomor voucher "${item.kode}"?`)) {
-    try {
-      const response = await nomorVoucherService.deleteNoBukti(item.id)
-      if (response.success) {
-        await fetchData()
-      } else {
-        alert('Gagal menghapus nomor voucher')
-      }
-    } catch (error) {
-      console.error('Error deleting nomor voucher:', error)
-      // Extract specific error message from API response
-      let errorMessage = 'Gagal menghapus nomor voucher'
-      if (error.response && error.response.data && error.response.data.message) {
-        errorMessage = error.response.data.message
-      } else if (error.message) {
-        errorMessage = 'Terjadi kesalahan saat menghapus nomor voucher: ' + error.message
-      }
-      alert(errorMessage)
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Nomor Voucher',
+    message: `Apakah Anda yakin ingin menghapus nomor voucher <strong>${item.kode}</strong>? Data yang dihapus tidak dapat dikembalikan.`,
+    confirmLabel: 'Ya, Hapus',
+    cancelLabel: 'Batal',
+  })
+  if (!ok) return
+
+  try {
+    const response = await nomorVoucherService.deleteNoBukti(item.id)
+    if (response.success) {
+      await fetchData()
+    } else {
+      await showError('Gagal menghapus nomor voucher.')
     }
+  } catch (err) {
+    console.error('Error deleting nomor voucher:', err)
+    let errorMessage = 'Gagal menghapus nomor voucher'
+    if (err.response && err.response.data && err.response.data.message) {
+      errorMessage = err.response.data.message
+    } else if (err.message) {
+      errorMessage = 'Terjadi kesalahan saat menghapus nomor voucher: ' + err.message
+    }
+    await showError(errorMessage)
   }
 }
 
@@ -392,12 +366,10 @@ const closeViewModal = () => {
   selectedItem.value = null
 }
 
-// Reset pagination when filters change
 const resetPagination = () => {
   currentPage.value = 1
 }
 
-// Watch for filter changes
 watch([searchQuery, filterTahun, filterStatus], () => {
   resetPagination()
 })
@@ -417,7 +389,6 @@ onMounted(() => {
     opacity: 0;
     transform: translateY(10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);

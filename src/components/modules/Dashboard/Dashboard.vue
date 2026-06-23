@@ -577,6 +577,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, provide } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { showConfirm, showError } from '@/composables/useModal.js'
 import { logout, getAuthData } from '../../../utils/auth.js'
 import KartuStok from '../KartuStok/KartuStok.vue'
 import FormStok from '../KartuStok/FormStok.vue'
@@ -738,21 +739,28 @@ const handleCloseDetail = () => {
 }
 
 const handleDelete = async (item) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus ${item.nama_barang}?`)) {
-    try {
-      await kartuStokAPI.deleteKartuStok(item.id)
-      await loadKartuStok()
-    } catch (err) {
-      // Extract specific error message from API response
-      let errorMessage = 'Gagal menghapus data'
-      if (err.response && err.response.data && err.response.data.message) {
-        errorMessage = err.response.data.message
-      } else if (err.message) {
-        errorMessage = err.message
-      }
-      alert(errorMessage)
-      console.error('Error deleting kartu stok:', err)
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Barang',
+    message: `Apakah Anda yakin ingin menghapus <strong>${item.nama_barang}</strong>? Data yang dihapus tidak dapat dikembalikan.`,
+    confirmLabel: 'Ya, Hapus',
+    cancelLabel: 'Batal',
+  })
+  if (!ok) return
+
+  try {
+    await kartuStokAPI.deleteKartuStok(item.id)
+    await loadKartuStok()
+  } catch (err) {
+    // Extract specific error message from API response
+    let errorMessage = 'Gagal menghapus data'
+    if (err.response && err.response.data && err.response.data.message) {
+      errorMessage = err.response.data.message
+    } else if (err.message) {
+      errorMessage = err.message
     }
+    await showError(errorMessage)
+    console.error('Error deleting kartu stok:', err)
   }
 }
 
@@ -782,7 +790,7 @@ const handleSaveForm = async (formData) => {
     } else if (err.message) {
       errorMessage = err.message
     }
-    alert(errorMessage)
+    await showError(errorMessage)
     console.error('Error saving kartu stok:', err)
   }
 }

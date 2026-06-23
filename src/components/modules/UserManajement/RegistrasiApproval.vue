@@ -164,7 +164,7 @@
 import { ref, onMounted } from 'vue'
 import api from '../../../services/api.js'
 import { getAuthData } from '../../../utils/auth.js'
-
+import { showSuccess, showError } from '@/composables/useModal.js'
 const requests = ref([])
 const loading = ref(false)
 const error = ref(null)
@@ -219,6 +219,7 @@ const submitApproval = async () => {
   if (!selectedRequest.value) return
 
   submitting.value = true
+
   try {
     const payload = {
       id_user_pendaftar: selectedRequest.value.id_user_pendaftar,
@@ -229,19 +230,24 @@ const submitApproval = async () => {
 
     await api.prosesApprovalRegistrasi(payload)
 
-    // Show success message
-    alert('Persetujuan berhasil diproses!')
+    await showSuccess(
+      'Persetujuan berhasil diproses!'
+    )
 
-    // Refresh list
     await fetchRequests()
     closeModal()
   } catch (err) {
-    alert('Gagal memproses persetujuan: ' + (err.message || 'Terjadi kesalahan'))
+    await showError(
+      'Gagal memproses persetujuan: ' +
+      (err.message || 'Terjadi kesalahan')
+    )
+
     console.error(err)
   } finally {
     submitting.value = false
   }
 }
+
 
 onMounted(() => {
   fetchRequests()

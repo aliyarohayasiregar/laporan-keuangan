@@ -112,8 +112,7 @@
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bulan</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal
-                  Posting</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Posting</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -156,8 +155,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, inject } from 'vue'
+import { ref, onMounted, watch, inject } from 'vue'
 import api from '../../../services/api.js'
+import { showSuccess, showError, showConfirm, showWarning } from '@/composables/useModal.js'
 
 // Inject hasPermission from Dashboard
 const hasPermission = inject('hasPermission', () => true)
@@ -219,88 +219,114 @@ const formatDate = (dateString) => {
 
 // Handle posting
 const handlePosting = async () => {
-  if (confirm(`Apakah Anda yakin ingin melakukan posting entry untuk periode ${bulanOptions[selectedMonth.value - 1]} ${selectedYear.value}?`)) {
-    loading.value = true
-    try {
-      const postingDataRequest = {
-        bulan: selectedMonth.value,
-        tahun: selectedYear.value
-      }
-      console.log('Request payload:', postingDataRequest)
-      const res = await api.request('/postingJurnal', {
-        method: 'POST',
-        body: JSON.stringify(postingDataRequest)
-      }, 'ap')
-      console.log('Response:', res)
-      if (res.success) {
-        alert(res.message || 'Posting entry berhasil dilakukan')
-        loadDaftarPosting()
-      } else {
-        alert('Gagal: ' + (res.message || 'Gagal melakukan posting entry'))
-      }
-    } catch (err) {
-      console.error('Error posting:', err)
-      alert('Error: ' + (err.message || 'Terjadi kesalahan sistem'))
-    } finally {
-      loading.value = false
+  const ok = await showConfirm({
+    type: 'info',
+    title: 'Konfirmasi Posting Entry',
+    message: `Apakah Anda yakin ingin melakukan posting entry untuk periode <strong>${bulanOptions[selectedMonth.value - 1]} ${selectedYear.value}</strong>?`,
+    confirmLabel: 'Ya, Posting',
+    cancelLabel: 'Batal',
+  })
+  if (!ok) return
+
+  loading.value = true
+  try {
+    const postingDataRequest = {
+      bulan: selectedMonth.value,
+      tahun: selectedYear.value
     }
+    console.log('Request payload:', postingDataRequest)
+    const res = await api.request('/postingJurnal', {
+      method: 'POST',
+      body: JSON.stringify(postingDataRequest)
+    }, 'ap')
+    console.log('Response:', res)
+
+    if (res.success) {
+      await showSuccess(res.message || 'Posting entry berhasil dilakukan.')
+      loadDaftarPosting()
+    } else {
+      await showError(res.message || 'Gagal melakukan posting entry.')
+    }
+  } catch (err) {
+    console.error('Error posting:', err)
+    await showError(err.message || 'Terjadi kesalahan sistem.')
+  } finally {
+    loading.value = false
   }
 }
 
 const handleCancelPosting = async () => {
-  if (confirm(`Apakah Anda yakin ingin membatalkan posting entry untuk periode ${bulanOptions[selectedMonth.value - 1]} ${selectedYear.value}? Semua data yang sudah diposting akan dikembalikan.`)) {
-    loading.value = true
-    try {
-      const cancelDataRequest = {
-        bulan: selectedMonth.value,
-        tahun: selectedYear.value
-      }
-      const res = await api.request('/batalPostingJurnal', {
-        method: 'POST',
-        body: JSON.stringify(cancelDataRequest)
-      }, 'ap')
-      if (res.success) {
-        alert(res.message || 'Posting entry berhasil dibatalkan')
-        loadDaftarPosting()
-      } else {
-        alert('Gagal: ' + (res.message || 'Gagal membatalkan posting entry'))
-      }
-    } catch (err) {
-      console.error('Error cancelling posting:', err)
-      alert('Error: ' + (err.message || 'Terjadi kesalahan sistem'))
-    } finally {
-      loading.value = false
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Batalkan Posting Entry',
+    message: `Apakah Anda yakin ingin membatalkan posting entry untuk periode <strong>${bulanOptions[selectedMonth.value - 1]} ${selectedYear.value}</strong>? Semua data yang sudah diposting akan dikembalikan.`,
+    confirmLabel: 'Ya, Batalkan',
+    cancelLabel: 'Tidak',
+  })
+  if (!ok) return
+
+  loading.value = true
+  try {
+    const cancelDataRequest = {
+      bulan: selectedMonth.value,
+      tahun: selectedYear.value
     }
+    const res = await api.request('/batalPostingJurnal', {
+      method: 'POST',
+      body: JSON.stringify(cancelDataRequest)
+    }, 'ap')
+
+    if (res.success) {
+      await showSuccess(res.message || 'Posting entry berhasil dibatalkan.')
+      loadDaftarPosting()
+    } else {
+      await showError(res.message || 'Gagal membatalkan posting entry.')
+    }
+  } catch (err) {
+    console.error('Error cancelling posting:', err)
+    await showError(err.message || 'Terjadi kesalahan sistem.')
+  } finally {
+    loading.value = false
   }
 }
 
 // Handle posting final
 const handlePostingFinal = async () => {
   if (isFinalPosted.value) {
-    alert('Posting final sudah dilakukan untuk tahun ini. Tidak dapat melakukan posting ulang.')
+    await showWarning(
+      'Posting final sudah dilakukan untuk tahun ini. Tidak dapat melakukan posting ulang.',
+      'Posting Final Sudah Dilakukan'
+    )
     return
   }
 
-  if (confirm(`Apakah Anda yakin ingin melakukan posting final untuk tahun ${selectedYear.value}?\n\nPERHATIAN: Setelah posting final, tidak dapat melakukan posting atau revisi lagi untuk tahun ini.`)) {
-    loading.value = true
-    try {
-      const res = await api.request(`/postingFinalJurnal?tahun=${selectedYear.value}`, {
-        method: 'POST'
-      }, 'ap')
+  const ok = await showConfirm({
+    type: 'warning',
+    title: 'Konfirmasi Posting Final',
+    message: `Apakah Anda yakin ingin melakukan posting final untuk tahun <strong>${selectedYear.value}</strong>?<br><br>Setelah posting final, tidak dapat melakukan posting atau revisi lagi untuk tahun ini.`,
+    confirmLabel: 'Ya, Posting Final',
+    cancelLabel: 'Batal',
+  })
+  if (!ok) return
 
-      if (res.success) {
-        alert('Posting final berhasil! Tidak dapat melakukan posting atau revisi lagi untuk tahun ini.')
-        isFinalPosted.value = true
-        await loadDaftarPosting()
-      } else {
-        alert('Gagal: ' + (res.message || 'Gagal melakukan posting final'))
-      }
-    } catch (err) {
-      console.error('Error posting final:', err)
-      alert('Error: ' + (err.message || 'Terjadi kesalahan sistem'))
-    } finally {
-      loading.value = false
+  loading.value = true
+  try {
+    const res = await api.request(`/postingFinalJurnal?tahun=${selectedYear.value}`, {
+      method: 'POST'
+    }, 'ap')
+
+    if (res.success) {
+      await showSuccess('Posting final berhasil! Tidak dapat melakukan posting atau revisi lagi untuk tahun ini.', 'Posting Final Berhasil')
+      isFinalPosted.value = true
+      await loadDaftarPosting()
+    } else {
+      await showError(res.message || 'Gagal melakukan posting final.')
     }
+  } catch (err) {
+    console.error('Error posting final:', err)
+    await showError(err.message || 'Terjadi kesalahan sistem.')
+  } finally {
+    loading.value = false
   }
 }
 

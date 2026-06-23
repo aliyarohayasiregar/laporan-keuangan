@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 lg:p-6">
     <!-- Header Section -->
-    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky top-0 z-10 bg-white pb-4 pt-4 px-4 lg:px-6 -mx-4 lg:-mx-6">      
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky top-0 z-10 bg-white pb-4 pt-4 px-4 lg:px-6 -mx-4 lg:-mx-6">
       <div>
         <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Kelompok Akun</h1>
         <p class="text-gray-600 mt-1 text-sm sm:text-base">Manajemen kelompok akun perusahaan</p>
@@ -17,13 +17,9 @@
 
     <!-- Tab Navigation -->
     <nav class="border-b border-gray-200 mb-6 sticky top-[76px] z-10 bg-white -mx-4 lg:-mx-6 px-4 lg:px-6">
-          <div class="flex space-x-4 sm:space-x-8">
-        <button @click="activeTab = 'table'" :class="tabClasses('table')">
-          Table View
-        </button>
-        <button @click="activeTab = 'tree'" :class="tabClasses('tree')">
-          Tree View
-        </button>
+      <div class="flex space-x-4 sm:space-x-8">
+        <button @click="activeTab = 'table'" :class="tabClasses('table')">Table View</button>
+        <button @click="activeTab = 'tree'" :class="tabClasses('tree')">Tree View</button>
       </div>
     </nav>
 
@@ -63,78 +59,37 @@
 
       <!-- Table -->
       <div v-else class="bg-white shadow-lg rounded-lg overflow-hidden">
-        <!-- Horizontal scroll wrapper -->
         <div class="overflow-x-auto">
           <table class="w-full min-w-max">
             <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  No</th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  Kode</th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  Nama Kelompok Akun</th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  Level</th>
-                <!-- <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  Parent</th> -->
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  Kode Group</th>
-                <!-- <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  Saldo Normal</th> -->
-                <!-- <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  Created At</th> -->
-                <th
-                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  Aksi</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">No</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Kode</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Nama Kelompok Akun</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Level</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Kode Group</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Aksi</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="(kelompok, index) in paginatedKelompokAkun" :key="kelompok.id" class="hover:bg-gray-50">                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-  {{ (currentPage - 1) * itemsPerPage + index + 1 }}
-</td>                <td class="px-6 py-4 whitespace-nowrap">
+              <tr v-for="(kelompok, index) in paginatedKelompokAkun" :key="kelompok.id" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">{{ kelompok.kode }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">{{ kelompok.nama_kelompok_akun }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     Level {{ kelompok.level }}
                   </span>
                 </td>
-                <!-- <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">
-                    {{ kelompok.parent ? kelompok.parent.nama_kelompok_akun : '-' }}
-                  </div>
-                  <div v-if="kelompok.parent_id" class="text-xs text-gray-500">
-                    ID: {{ kelompok.parent_id }}
-                  </div>
-                </td> -->
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900">{{ kelompok.kode_group }}</div>
                 </td>
-                <!-- <td class="px-6 py-4 whitespace-nowrap">
-                  <span :class="[
-                    'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full',
-                    kelompok.saldo_normal === 'D' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                  ]">
-                    {{ kelompok.saldo_normal === 'D' ? 'Debit' : 'Kredit' }}
-                  </span>
-                </td> -->
-                <!-- <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-500">
-                    {{ formatDate(kelompok.created_at) }}
-                  </div>
-                </td> -->
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button v-if="hasPermission('kelompok akun', 'edit')" @click="handleEdit(kelompok)"
                     class="text-blue-600 hover:text-blue-900 mr-3">
@@ -194,8 +149,7 @@
             <div v-for="node in filteredTreeData" :key="node.id" class="mb-4">
               <!-- Level 0: Root Kelompok Akun -->
               <div class="border border-gray-200 rounded-lg overflow-hidden">
-                <div
-                  class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                <div class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
                   <div class="flex items-center gap-3">
                     <button @click="toggleNode(node.id)"
                       class="flex items-center gap-2 text-left hover:bg-gray-100 px-2 py-1 rounded transition-colors duration-200">
@@ -211,26 +165,14 @@
                         <div class="text-sm text-gray-600">{{ node.nama_kelompok_akun }}</div>
                       </div>
                     </button>
-                    <!-- <span :class="[
-                      'px-2 py-1 text-xs rounded-full font-medium',
-                      node.saldo_normal === 'D' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                    ]">
-                      {{ node.saldo_normal === 'D' ? 'Debit' : 'Kredit' }}
-                    </span> -->
                     <span class="text-gray-500 text-xs">Level {{ node.level }}</span>
-                  </div>
-                  <div class="flex gap-2">
-                    <!-- <button @click="handleEdit(node)" class="text-blue-600 hover:text-blue-900 text-sm">
-                      Edit
-                    </button> -->
                   </div>
                 </div>
 
                 <!-- Level 1: Child Kelompok Akun -->
                 <div v-if="expandedNodes.has(node.id) && node.children" class="border-t border-gray-200">
                   <div v-for="child in node.children" :key="child.id" class="border-l-2 border-gray-200 ml-4">
-                    <div
-                      class="flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors duration-200">
+                    <div class="flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors duration-200">
                       <div class="flex items-center gap-3">
                         <button @click="toggleNode(child.id)"
                           class="flex items-center gap-2 text-left hover:bg-gray-100 px-2 py-1 rounded transition-colors duration-200">
@@ -238,8 +180,7 @@
                             class="w-4 h-4 transition-transform duration-200"
                             :class="{ 'rotate-90': expandedNodes.has(child.id) }" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
-                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                           </svg>
                           <span v-else class="w-4 h-4"></span>
                           <div>
@@ -247,27 +188,14 @@
                             <div class="text-sm text-gray-600">{{ child.nama_kelompok_akun }}</div>
                           </div>
                         </button>
-                        <!-- <span :class="[
-                          'px-2 py-1 text-xs rounded-full font-medium',
-                          child.saldo_normal === 'D' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                        ]">
-                          {{ child.saldo_normal === 'D' ? 'Debit' : 'Kredit' }}
-                        </span> -->
                         <span class="text-gray-500 text-xs">Level {{ child.level }}</span>
-                      </div>
-                      <div class="flex gap-2">
-                        <!-- <button @click="handleEdit(child)" class="text-blue-600 hover:text-blue-900 text-sm">
-                          Edit
-                        </button> -->
                       </div>
                     </div>
 
                     <!-- Level 2: Sub Child Kelompok Akun dengan Accounts -->
                     <div v-if="expandedNodes.has(child.id) && child.children" class="border-t border-gray-200">
-                      <div v-for="subChild in child.children" :key="subChild.id"
-                        class="border-l-2 border-gray-200 ml-4">
-                        <div
-                          class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                      <div v-for="subChild in child.children" :key="subChild.id" class="border-l-2 border-gray-200 ml-4">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
                           <div class="flex items-center gap-3">
                             <button @click="toggleNode(subChild.id)"
                               class="flex items-center gap-2 text-left hover:bg-gray-100 px-2 py-1 rounded transition-colors duration-200">
@@ -275,8 +203,7 @@
                                 class="w-4 h-4 transition-transform duration-200"
                                 :class="{ 'rotate-90': expandedNodes.has(subChild.id) }" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
-                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                               </svg>
                               <span v-else class="w-4 h-4"></span>
                               <div>
@@ -284,20 +211,8 @@
                                 <div class="text-sm text-gray-600">{{ subChild.nama_kelompok_akun }}</div>
                               </div>
                             </button>
-                            <!-- <span :class="[
-                              'px-2 py-1 text-xs rounded-full font-medium',
-                              subChild.saldo_normal === 'D' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                            ]">
-                              {{ subChild.saldo_normal === 'D' ? 'Debit' : 'Kredit' }}
-                            </span> -->
                             <span class="text-gray-500 text-xs">Level {{ subChild.level }}</span>
-                            <span class="text-gray-500 text-xs">{{ subChild.accounts ? subChild.accounts.length : 0 }}
-                              akun</span>
-                          </div>
-                          <div class="flex gap-2">
-                            <!-- <button @click="handleEdit(subChild)" class="text-blue-600 hover:text-blue-900 text-sm">
-                              Edit
-                            </button> -->
+                            <span class="text-gray-500 text-xs">{{ subChild.accounts ? subChild.accounts.length : 0 }} akun</span>
                           </div>
                         </div>
 
@@ -305,8 +220,7 @@
                         <div v-if="expandedNodes.has(subChild.id) && subChild.accounts"
                           class="border-t border-gray-200 bg-blue-50">
                           <div class="p-4">
-                            <h4 class="text-sm font-medium text-gray-700 mb-3">Nama Akun dalam {{
-                              subChild.nama_kelompok_akun }}</h4>
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Nama Akun dalam {{ subChild.nama_kelompok_akun }}</h4>
                             <div class="space-y-2">
                               <div v-for="account in subChild.accounts" :key="account.id"
                                 class="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-shadow duration-200">
@@ -316,12 +230,6 @@
                                     <div class="font-medium text-gray-900">{{ account.nama_akun }}</div>
                                     <div class="text-sm text-gray-600">{{ account.kode }}</div>
                                   </div>
-                                  <!-- <span :class="[
-                                    'px-2 py-1 text-xs rounded-full font-medium',
-                                    account.normal_balance === 'D' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'
-                                  ]">
-                                    {{ account.normal_balance === 'D' ? 'Debit' : 'Kredit' }}
-                                  </span> -->
                                   <span :class="[
                                     'px-2 py-1 text-xs rounded-full font-medium',
                                     account.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -376,11 +284,12 @@
 
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
-
-const hasPermission = inject('hasPermission', () => true)
+import { showConfirm, showError, showAlert } from '@/composables/useModal.js'
 import FormKelompokAkun from './FormKelompokAkun.vue'
 import Pagination from '../../Pagination.vue'
 import api from '../../../services/api.js'
+
+const hasPermission = inject('hasPermission', () => true)
 
 // State Management
 const activeTab = ref('table')
@@ -405,10 +314,6 @@ const treeLoading = ref(false)
 const treeError = ref(null)
 const treeSearchQuery = ref('')
 const expandedNodes = ref(new Set())
-
-
-
-
 
 // Computed Properties
 const filteredKelompokAkun = computed(() => {
@@ -557,15 +462,13 @@ const handleSaveForm = async (formData) => {
     await Promise.all([loadTableData(), loadTreeData()])
     handleCloseForm()
   } catch (err) {
-    const error = activeTab.value === 'table' ? tableError : treeError
-    // Extract specific error message from API response
     let errorMessage = 'Gagal menyimpan data kelompok akun'
     if (err.response && err.response.data && err.response.data.message) {
       errorMessage = err.response.data.message
     } else if (err.message) {
       errorMessage = err.message
     }
-    alert(errorMessage)
+    await showError(errorMessage)
     console.error('Error saving kelompok akun:', err)
   }
 }
@@ -576,52 +479,77 @@ const handleCloseForm = () => {
 }
 
 const handleDelete = async (item) => {
-  const name = item.nama_kelompok_akun
-  if (confirm(`Apakah Anda yakin ingin menghapus kelompok akun "${name}"?`)) {
-    try {
-      const id = item.id
-      await api.deleteKelompokAkun(id)
-      await Promise.all([loadTableData(), loadTreeData()])
-    } catch (err) {
-      alert('Gagal menghapus data kelompok akun')
-      console.error('Error deleting kelompok akun:', err)
-    }
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Kelompok Akun',
+    message: `Apakah Anda yakin ingin menghapus kelompok akun <strong>${item.nama_kelompok_akun}</strong>? Data yang dihapus tidak dapat dikembalikan.`,
+    confirmLabel: 'Ya, Hapus',
+    cancelLabel: 'Batal',
+  })
+  if (!ok) return
+
+  try {
+    await api.deleteKelompokAkun(item.id)
+    await Promise.all([loadTableData(), loadTreeData()])
+  } catch (err) {
+    await showError('Gagal menghapus data kelompok akun.')
+    console.error('Error deleting kelompok akun:', err)
   }
 }
 
 // Account Management Methods
-const handleEditAccount = (account) => {
-  alert(`Edit akun: ${account.nama_akun}\n(ID: ${account.id})\n\nFitur ini akan redirect ke halaman Nama Akun dengan mode edit.`)
+const handleEditAccount = async (account) => {
+  await showAlert({
+    type: 'info',
+    title: 'Info',
+    message: `Fitur edit akun <strong>${account.nama_akun}</strong> akan redirect ke halaman Nama Akun dengan mode edit.`,
+    confirmLabel: 'OK',
+  })
 }
 
 const handleToggleAccountStatus = async (account) => {
-  if (confirm(`Apakah Anda yakin ingin ${account.is_active ? 'menon-aktifkan' : 'mengaktifkan'} akun "${account.nama_akun}"?`)) {
-    try {
-      await api.updateNamaAkun(account.id, {
-        kode: account.kode,
-        nama_akun: account.nama_akun,
-        kelompok_akun_id: account.kelompok_akun_id,
-        normal_balance: account.normal_balance,
-        is_active: !account.is_active,
-        deskripsi: account.deskripsi
-      })
-      await loadTreeData()
-    } catch (err) {
-      treeError.value = 'Gagal mengubah status nama akun'
-      console.error('Error toggling account status:', err)
-    }
+  const action = account.is_active ? 'menon-aktifkan' : 'mengaktifkan'
+  const ok = await showConfirm({
+    type: 'warning',
+    title: account.is_active ? 'Non-aktifkan Akun' : 'Aktifkan Akun',
+    message: `Apakah Anda yakin ingin ${action} akun <strong>${account.nama_akun}</strong>?`,
+    confirmLabel: 'Ya, Lanjutkan',
+    cancelLabel: 'Batal',
+  })
+  if (!ok) return
+
+  try {
+    await api.updateNamaAkun(account.id, {
+      kode: account.kode,
+      nama_akun: account.nama_akun,
+      kelompok_akun_id: account.kelompok_akun_id,
+      normal_balance: account.normal_balance,
+      is_active: !account.is_active,
+      deskripsi: account.deskripsi
+    })
+    await loadTreeData()
+  } catch (err) {
+    treeError.value = 'Gagal mengubah status nama akun'
+    console.error('Error toggling account status:', err)
   }
 }
 
 const handleDeleteAccount = async (account) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus akun "${account.nama_akun}"?`)) {
-    try {
-      await api.deleteNamaAkun(account.id)
-      await loadTreeData()
-    } catch (err) {
-      treeError.value = 'Gagal menghapus data nama akun'
-      console.error('Error deleting account:', err)
-    }
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Akun',
+    message: `Apakah Anda yakin ingin menghapus akun <strong>${account.nama_akun}</strong>? Data yang dihapus tidak dapat dikembalikan.`,
+    confirmLabel: 'Ya, Hapus',
+    cancelLabel: 'Batal',
+  })
+  if (!ok) return
+
+  try {
+    await api.deleteNamaAkun(account.id)
+    await loadTreeData()
+  } catch (err) {
+    treeError.value = 'Gagal menghapus data nama akun'
+    console.error('Error deleting account:', err)
   }
 }
 

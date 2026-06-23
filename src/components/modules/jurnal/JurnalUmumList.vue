@@ -33,11 +33,8 @@
             class="bg-white border border-gray-200 rounded-xl p-6 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 relative group">
             <div class="flex flex-col h-full">
               <div class="flex justify-between items-start mb-2">
-                <h4 class="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors">{{ jenis.label
-                }}
-                </h4>
-                <span class="text-3xl font-black text-blue-100 group-hover:text-blue-500 transition-colors">{{
-                  jenis.value }}</span>
+                <h4 class="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors">{{ jenis.label }}</h4>
+                <span class="text-3xl font-black text-blue-100 group-hover:text-blue-500 transition-colors">{{ jenis.value }}</span>
               </div>
               <p class="text-sm text-gray-500 mb-6 flex-grow">{{ jenis.description }}</p>
               <button
@@ -82,37 +79,19 @@
         <table class="w-full min-w-max divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Kode</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Tanggal</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                No. Voucher</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Keterangan</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Status</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Dibuat Oleh</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Total Debit</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Total Kredit</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Kode</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Tanggal</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">No. Voucher</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Keterangan</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Dibuat Oleh</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Total Debit</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Total Kredit</th>
               <th v-if="hasPermission('jurnal umum ', 'edit') || hasPermission('jurnal umum ', 'delete')"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Actions</th>
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <!-- Debug: Check if data is available -->
             <tr v-if="!paginatedJurnals || paginatedJurnals.length === 0">
               <td colspan="10" class="px-6 py-8 text-center text-gray-500">
                 <div class="flex flex-col items-center">
@@ -122,8 +101,7 @@
                     </path>
                   </svg>
                   <p class="text-lg font-medium">Tidak ada jurnal umum</p>
-                  <p class="text-sm text-gray-400">Debug: paginatedJurnals.length = {{ paginatedJurnals?.length || 0 }}
-                  </p>
+                  <p class="text-sm text-gray-400">Debug: paginatedJurnals.length = {{ paginatedJurnals?.length || 0 }}</p>
                   <p class="text-sm text-gray-400">Debug: jurnals.length = {{ jurnals?.length || 0 }}</p>
                 </div>
               </td>
@@ -224,15 +202,16 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, inject } from 'vue'
-
-const hasPermission = inject('hasPermission', () => true)
 import { useRoute, useRouter } from 'vue-router'
 import api from '../../../services/api.js'
 import jurnalUmumService from '../../../services/jurnalUmumService.js'
+import { showConfirm, showError } from '@/composables/useModal.js'
 import Pagination from '../../Pagination.vue'
 import FormJurnalUmum from './FormJurnalUmum.vue'
 import ViewJurnalUmum from './ViewJurnalUmum.vue'
 import ViewKeteranganJurnal from './ViewKeteranganJurnal.vue'
+
+const hasPermission = inject('hasPermission', () => true)
 
 const jurnals = ref([])
 const namaAkunOptions = ref([])
@@ -275,11 +254,8 @@ const jenisJurnalOptions = computed(() => {
 const filteredJurnals = computed(() => {
   let filtered = jurnals.value || []
 
-  // Apply ref filter if present in URL
   if (refFilter.value && Array.isArray(filtered)) {
-    filtered = filtered.filter(jurnal =>
-      jurnal.no_bukti === refFilter.value
-    )
+    filtered = filtered.filter(jurnal => jurnal.no_bukti === refFilter.value)
   }
 
   if (searchQuery.value && Array.isArray(filtered)) {
@@ -344,7 +320,6 @@ const formatNumber = (num) => {
   }).replace('.', ',')
 }
 
-// Function to fetch nomor bukti list
 const fetchNomorBuktiList = async () => {
   try {
     isLoadingNomorBukti.value = true
@@ -352,32 +327,26 @@ const fetchNomorBuktiList = async () => {
     if (response.success) {
       nomorBuktiList.value = response.data
     }
-  } catch (error) {
-    console.error('Error fetching nomor bukti:', error)
+  } catch (err) {
+    console.error('Error fetching nomor bukti:', err)
   } finally {
     isLoadingNomorBukti.value = false
   }
 }
 
-// Handle no bukti change
 const handleNoBuktiChange = () => {
-  // Reset jenis jurnal and akun default
   selectedJenisJurnal.value = ''
   akunDefault.value = null
 }
 
-// Handle jenis jurnal card selection
 const handleSelectJenisJurnal = async (jenis) => {
   try {
-    // Open modal with preselected data (create mode)
-    editingItem.value = null // Explicitly null for create mode
-    preselectedData.value = {
-      jenis_jurnal: jenis.value
-    }
+    editingItem.value = null
+    preselectedData.value = { jenis_jurnal: jenis.value }
     showFormModal.value = true
-  } catch (error) {
-    console.error('Error selecting jenis jurnal:', error)
-    alert('Terjadi kesalahan saat memilih jenis jurnal')
+  } catch (err) {
+    console.error('Error selecting jenis jurnal:', err)
+    await showError('Terjadi kesalahan saat memilih jenis jurnal.')
   }
 }
 
@@ -393,11 +362,11 @@ const loadData = async () => {
       console.log('Jurnal umum loaded:', response.data)
     } else {
       console.error('API returned error:', response)
-      alert('Gagal memuat data jurnal umum: ' + (response.message || 'Unknown error'))
+      error.value = response.message || 'Gagal memuat data jurnal umum'
     }
   } catch (err) {
     console.error('Error loading jurnal umum:', err)
-    alert('Gagal memuat data jurnal umum: ' + err.message)
+    error.value = 'Gagal memuat data jurnal umum: ' + err.message
   } finally {
     loading.value = false
   }
@@ -417,31 +386,17 @@ const loadNamaAkunOptions = async () => {
 const handleView = async (jurnal) => {
   console.log('Button View clicked! Jurnal:', jurnal)
   try {
-    console.log('Fetching complete jurnal data for view, ID:', jurnal.id)
-
-    // Fetch complete data from API using authenticated service
     const result = await api.getJurnalUmumById(jurnal.id)
     console.log('View Jurnal Umum API Response:', result)
-
-    if (result.success && result.data) {
-      viewingItem.value = result.data
-      console.log('Complete jurnal data loaded for view:', result.data)
-    } else {
-      console.error('Failed to fetch complete jurnal data:', result.message)
-      // Fallback to existing data
-      viewingItem.value = jurnal
-    }
-  } catch (error) {
-    console.error('Error fetching complete jurnal data:', error)
-    // Fallback to existing data
+    viewingItem.value = result.success && result.data ? result.data : jurnal
+  } catch (err) {
+    console.error('Error fetching complete jurnal data:', err)
     viewingItem.value = jurnal
   }
-
   showViewModal.value = true
 }
 
 const handleKeterangan = (jurnal) => {
-  console.log('Button Keterangan clicked! Jurnal:', jurnal)
   viewingItem.value = jurnal
   showKeteranganModal.value = true
 }
@@ -462,26 +417,33 @@ const handleEdit = (jurnal) => {
 }
 
 const handleDelete = async (jurnal) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus jurnal umum "${jurnal.kode}"?`)) {
-    try {
-      console.log('Deleting jurnal umum ID:', jurnal.id)
-      const response = await fetch(`http://139.162.41.197:8001/api/ju/deleteJurnalUmum/${jurnal.id}`, {
-        method: 'DELETE'
-      })
-      const result = await response.json()
-      console.log('Delete API Response:', result)
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Jurnal Umum',
+    message: `Apakah Anda yakin ingin menghapus jurnal umum <strong>${jurnal.kode}</strong>? Data yang dihapus tidak dapat dikembalikan.`,
+    confirmLabel: 'Ya, Hapus',
+    cancelLabel: 'Batal',
+  })
+  if (!ok) return
 
-      if (result.success) {
-        console.log('Jurnal umum deleted successfully')
-        await loadData()
-      } else {
-        console.error('Failed to delete jurnal umum:', result.message)
-        alert('Gagal menghapus jurnal umum: ' + (result.message || 'Unknown error'))
-      }
-    } catch (error) {
-      console.error('Error deleting jurnal umum:', error)
-      alert('Gagal menghapus jurnal umum: ' + error.message)
+  try {
+    console.log('Deleting jurnal umum ID:', jurnal.id)
+    const response = await fetch(`http://139.162.41.197:8001/api/ju/deleteJurnalUmum/${jurnal.id}`, {
+      method: 'DELETE'
+    })
+    const result = await response.json()
+    console.log('Delete API Response:', result)
+
+    if (result.success) {
+      console.log('Jurnal umum deleted successfully')
+      await loadData()
+    } else {
+      console.error('Failed to delete jurnal umum:', result.message)
+      await showError(result.message || 'Gagal menghapus jurnal umum.')
     }
+  } catch (err) {
+    console.error('Error deleting jurnal umum:', err)
+    await showError(err.message || 'Terjadi kesalahan saat menghapus jurnal umum.')
   }
 }
 
@@ -504,12 +466,10 @@ const handleOpenForm = () => {
 
 const clearRefFilter = () => {
   refFilter.value = ''
-  // Update URL to remove ref parameter
   router.push({ path: '/jurnal-umum' })
 }
 
 onMounted(() => {
-  // Check for ref parameter in URL
   if (route.query.ref) {
     refFilter.value = route.query.ref
     console.log('Ref filter detected:', refFilter.value)
@@ -519,11 +479,9 @@ onMounted(() => {
   loadNamaAkunOptions()
   fetchNomorBuktiList()
 
-  // Add event listener for opening form
   window.addEventListener('openJurnalUmumForm', handleOpenForm)
 })
 
-// Watch for route changes to update ref filter
 watch(() => route.query.ref, (newRef) => {
   refFilter.value = newRef || ''
   if (newRef) {
@@ -531,7 +489,6 @@ watch(() => route.query.ref, (newRef) => {
   }
 })
 
-// Clean up event listener
 onUnmounted(() => {
   window.removeEventListener('openJurnalUmumForm', handleOpenForm)
 })

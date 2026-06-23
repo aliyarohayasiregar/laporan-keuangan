@@ -384,6 +384,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, inject, nextTick } from 'vue'
+import { showSuccess, showError, showConfirm, showWarning } from '@/composables/useModal.js'
 import { useRouter } from 'vue-router'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
@@ -483,10 +484,25 @@ const textStyle = (props = {}) => ({
 })
 
 // Main Methods
-const resetToDefault = () => {
-  if (!confirm('Reset template ke layout default?')) return
+const resetToDefault = async () => {
+  const ok = await showConfirm({
+    type: 'warning',
+    title: 'Reset Template',
+    message: 'Apakah Anda yakin ingin mengembalikan template ke layout default?',
+    confirmLabel: 'Ya',
+    cancelLabel: 'Batal'
+  })
+
+  if (!ok) return
+
   const saved = { ...template.value }
-  template.value = { ...createDefaultTemplate(), id: saved.id, template_name: saved.template_name }
+  template.value = {
+    ...createDefaultTemplate(),
+    id: saved.id,
+    template_name: saved.template_name
+  }
+
+  await showSuccess('Template berhasil direset')
 }
 
 const handleLoadAllTemplates = async () => {
@@ -498,7 +514,7 @@ const handleLoadAllTemplates = async () => {
     }
   } catch (err) {
     console.error('Error loading templates:', err)
-    alert('Gagal memuat daftar template')
+    await showError('Gagal membaca file logo!')
   } finally {
     loadingTemplates.value = false
   }
@@ -515,13 +531,24 @@ const loadSelectedTemplate = () => {
   }
 }
 
-const deleteSelected = () => {
-  if (confirm('Hapus elemen yang dipilih?')) {
-    template.value.components = template.value.components.filter(el => el.id !== selectedId.value)
-    selectedId.value = null
-  }
-}
+const deleteSelected = async () => {
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Elemen',
+    message: 'Apakah Anda yakin ingin menghapus elemen ini?',
+    confirmLabel: 'Hapus',
+    cancelLabel: 'Batal'
+  })
 
+  if (!ok) return
+
+  template.value.components =
+    template.value.components.filter(el => el.id !== selectedId.value)
+
+  selectedId.value = null
+
+  await showSuccess('Elemen berhasil dihapus')
+}
 const handleLogoUpload = async (event) => {
   const file = event.target.files?.[0]
   if (!file) return
@@ -535,9 +562,9 @@ const handleLogoUpload = async (event) => {
     saveMessage.value = 'Logo berhasil dipilih! Silakan simpan template.'
     setTimeout(() => saveMessage.value = '', 3000)
   }
-  reader.onerror = (e) => {
+  reader.onerror = async(e) => {
     console.error('Gagal baca file:', e)
-    alert('Gagal membaca file logo!')
+    await showError('Gagal membaca file logo!')
   }
   reader.readAsDataURL(file)
   event.target.value = ''
@@ -563,7 +590,7 @@ const handleSave = async () => {
     setTimeout(() => { saveMessage.value = '' }, 3000)
   } catch (err) {
     saveMessage.value = 'Gagal menyimpan template'
-    alert(err.message)
+    await showError(err.message || 'Gagal menyimpan template')
   } finally {
     saving.value = false
   }
@@ -571,13 +598,22 @@ const handleSave = async () => {
 
 const handleDelete = async () => {
   if (!template.value.id) {
-    alert('Tidak ada template yang dipilih untuk dihapus!')
+    await showWarning(
+      'Tidak ada template yang dipilih untuk dihapus!',
+      'Peringatan'
+    )
     return
   }
 
-  if (!confirm(`Anda yakin ingin menghapus template "${template.value.template_name}"?`)) {
-    return
-  }
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Template',
+    message: `Apakah Anda yakin ingin menghapus template <strong>${template.value.template_name}</strong>?`,
+    confirmLabel: 'Hapus',
+    cancelLabel: 'Batal'
+  })
+
+  if (!ok) return
 
   saving.value = true
   try {
@@ -591,7 +627,7 @@ const handleDelete = async () => {
     setTimeout(() => { saveMessage.value = '' }, 3000)
   } catch (err) {
     saveMessage.value = 'Gagal menghapus template'
-    alert(err.message)
+    await showError(err.message || 'Gagal menyimpan template')
   } finally {
     saving.value = false
   }
@@ -623,7 +659,7 @@ const handleDownloadPDF = async () => {
       // Dapatkan elemen print area
       const element = document.getElementById('print-area')
       if (!element) {
-        alert('Tidak dapat menemukan area voucher untuk di-download')
+        await showError('Tidak dapat menemukan area voucher untuk di-download')
         showPreview.value = false
         return
       }
@@ -681,7 +717,9 @@ const handleDownloadPDF = async () => {
       pdf.save(`voucher-template-${template.value.template_name || 'default'}.pdf`)
     } catch (error) {
       console.error('Error downloading PDF:', error)
-      alert('Gagal mendownload PDF, silakan coba lagi')
+      await showError(
+        'Gagal mendownload PDF, silakan coba lagi'
+      )
     } finally {
       // Tutup modal preview
       showPreview.value = false
@@ -758,9 +796,12 @@ const onMouseUp = () => {
 }
 
 // Permission Check
-const checkPermissions = () => {
+const checkPermissions = async () => {
   if (!hasPermission('template voucher')) {
-    alert('Anda tidak memiliki izin untuk mengakses halaman ini.')
+    await showWarning(
+      'Anda tidak memiliki izin untuk mengakses halaman ini.',
+      'Akses Ditolak'
+    )
     router.push('/dashboard')
     return false
   }
@@ -768,13 +809,15 @@ const checkPermissions = () => {
 }
 
 // Lifecycle
-onMounted(() => {
-  if (!checkPermissions()) return
+onMounted(async () => {
+  const allowed = await checkPermissions()
+  if (!allowed) return
+
   handleLoadAllTemplates()
+
   window.addEventListener('mousemove', onMouseMove)
   window.addEventListener('mouseup', onMouseUp)
 })
-
 onUnmounted(() => {
   window.removeEventListener('mousemove', onMouseMove)
   window.removeEventListener('mouseup', onMouseUp)

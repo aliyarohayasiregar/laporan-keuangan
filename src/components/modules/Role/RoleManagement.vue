@@ -85,14 +85,14 @@
                 class="text-purple-600 hover:text-purple-900 mr-3">
                 Permission
               </button>
-              <button v-if="hasPermission('role management', 'edit')" @click="handleToggleStatus(role)" :class="[
+              <!-- <button v-if="hasPermission('role management', 'edit')" @click="handleToggleStatus(role)" :class="[
                 (role.IsActive !== undefined ? role.IsActive : (role.is_active !== undefined ? role.is_active : true))
                   ? 'text-yellow-600 hover:text-yellow-900'
                   : 'text-green-600 hover:text-green-900'
               ]">
                 {{ (role.IsActive !== undefined ? role.IsActive : (role.is_active !== undefined ? role.is_active :
                   true)) ? 'Non-aktifkan' : 'Aktifkan' }}
-              </button>
+              </button> -->
               <button v-if="hasPermission('role management', 'delete')" @click="handleDelete(role)"
                 class="text-red-600 hover:text-red-900 ml-3">
                 Hapus
@@ -120,7 +120,7 @@
 
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
-
+import { showSuccess, showError, showConfirm, showWarning } from '@/composables/useModal.js'
 const hasPermission = inject('hasPermission', () => true)
 import RoleForm from './RoleForm.vue'
 import RolePermissionModal from './RolePermissionModal.vue'
@@ -165,11 +165,11 @@ const loadRoles = async () => {
     if (response.success) {
       roles.value = response.data
     } else {
-      error.value = 'Gagal memuat data role'
-    }
+      await showError('Gagal memuat data role')
+        }
   } catch (err) {
-    error.value = 'Gagal memuat data role'
-    console.error('Error loading roles:', err)
+    await showError('Gagal memuat data role')
+        console.error('Error loading roles:', err)
   } finally {
     loading.value = false
   }
@@ -189,13 +189,18 @@ const handleSaveForm = async (formData) => {
   try {
     if (editingItem.value) {
       await api.updateRole(editingItem.value.id, formData)
+
+      await showSuccess('Role berhasil diperbarui')
     } else {
       await api.createRole(formData)
+
+      await showSuccess('Role berhasil ditambahkan')
     }
+
     await loadRoles()
     handleCloseForm()
   } catch (err) {
-    error.value = 'Gagal menyimpan data role'
+    await showError('Gagal menyimpan data role')
     console.error('Error saving role:', err)
   }
 }
@@ -206,30 +211,60 @@ const handleCloseForm = () => {
 }
 
 const handleToggleStatus = async (role) => {
-  if (confirm(`Apakah Anda yakin ingin ${role.IsActive !== undefined ? (role.IsActive ? 'menon-aktifkan' : 'mengaktifkan') : (role.is_active !== false ? 'menon-aktifkan' : 'mengaktifkan')} role "${role.nama_role || role.NamaRole}"?`)) {
-    try {
-      const currentStatus = role.IsActive !== undefined ? role.IsActive : role.is_active !== false
-      await api.updateRole(role.id, {
-        nama_role: role.nama_role || role.NamaRole,
-        is_active: !currentStatus
-      })
-      await loadRoles()
-    } catch (err) {
-      error.value = 'Gagal mengubah status role'
-      console.error('Error toggling role status:', err)
-    }
+  const currentStatus =
+    role.IsActive !== undefined
+      ? role.IsActive
+      : role.is_active !== false
+
+  const ok = await showConfirm({
+    type: 'warning',
+    title: currentStatus ? 'Nonaktifkan Role' : 'Aktifkan Role',
+    message: `Apakah Anda yakin ingin ${
+      currentStatus ? 'menonaktifkan' : 'mengaktifkan'
+    } role <strong>${role.nama_role || role.NamaRole}</strong>?`,
+    confirmLabel: 'Ya',
+    cancelLabel: 'Batal'
+  })
+
+  if (!ok) return
+
+  try {
+    await api.updateRole(role.id, {
+      nama_role: role.nama_role || role.NamaRole,
+      is_active: !currentStatus
+    })
+
+    await showSuccess(
+      `Role berhasil ${currentStatus ? 'dinonaktifkan' : 'diaktifkan'}`
+    )
+
+    await loadRoles()
+  } catch (err) {
+    await showError('Gagal mengubah status role')
+    console.error('Error toggling role status:', err)
   }
 }
 
 const handleDelete = async (role) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus role "${role.nama_role || role.NamaRole}"?`)) {
-    try {
-      await api.deleteRole(role.id)
-      await loadRoles()
-    } catch (err) {
-      error.value = 'Gagal menghapus data role'
-      console.error('Error deleting role:', err)
-    }
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Role',
+    message: `Apakah Anda yakin ingin menghapus role <strong>${role.nama_role || role.NamaRole}</strong>?`,
+    confirmLabel: 'Hapus',
+    cancelLabel: 'Batal'
+  })
+
+  if (!ok) return
+
+  try {
+    await api.deleteRole(role.id)
+
+    await showSuccess('Role berhasil dihapus')
+
+    await loadRoles()
+  } catch (err) {
+    await showError('Gagal menghapus data role')
+    console.error('Error deleting role:', err)
   }
 }
 
@@ -249,12 +284,14 @@ const handleSavePermissions = async (permissionData) => {
     showPermissionModal.value = false
     selectedRole.value = null
     // Optional: Show success message
+    await showSuccess('Permission berhasil disimpan')
   } catch (err) {
     if (err.message.includes('Failed to fetch') || err.message.includes('ERR_CONNECTION_REFUSED')) {
       // Handle connection error gracefully
       console.warn('API connection failed, but permission modal will close for demo')
       showPermissionModal.value = false
       selectedRole.value = null
+      await showError('Gagal menyimpan permission')
     } else {
       error.value = 'Gagal menyimpan permission'
       console.error('Error saving permissions:', err)

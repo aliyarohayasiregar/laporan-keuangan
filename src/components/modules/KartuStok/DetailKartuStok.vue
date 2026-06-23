@@ -251,6 +251,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { showConfirm, showError } from '@/composables/useModal.js'
 import kartuStokAPI from '../../../services/api.js'
 import FormDetailStok from './FormDetailStok.vue'
 
@@ -314,13 +315,21 @@ const editDetail = (detail) => {
 }
 
 const deleteDetail = async (detail) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus transaksi ini?`)) {
-    try {
-      await kartuStokAPI.deleteKartuStokDetail(detail.kartu_stok_detail_id)
-      await loadDetails()
-    } catch (error) {
-      console.error('Error deleting detail:', error)
-    }
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Transaksi',
+    message: 'Apakah Anda yakin ingin menghapus transaksi ini? Data yang dihapus tidak dapat dikembalikan.',
+    confirmLabel: 'Ya, Hapus',
+    cancelLabel: 'Batal',
+  })
+  if (!ok) return
+
+  try {
+    await kartuStokAPI.deleteKartuStokDetail(detail.kartu_stok_detail_id)
+    await loadDetails()
+  } catch (error) {
+    await showError('Gagal menghapus transaksi.')
+    console.error('Error deleting detail:', error)
   }
 }
 
@@ -334,6 +343,13 @@ const saveDetailForm = async (formData) => {
     await loadDetails()
     closeDetailForm()
   } catch (error) {
+    let errorMessage = 'Gagal menyimpan transaksi'
+    if (error.response && error.response.data && error.response.data.message) {
+      errorMessage = error.response.data.message
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+    await showError(errorMessage)
     console.error('Error saving detail:', error)
   }
 }
@@ -353,9 +369,9 @@ const formatDate = (dateStr) => {
   return date.toLocaleDateString('id-ID')
 }
 
-const exportToPDF = () => {
+const exportToPDF = async () => {
   if (details.value.length === 0) {
-    alert('Tidak ada data untuk diekspor')
+    await showError('Tidak ada data untuk diekspor')
     return
   }
 
@@ -443,9 +459,9 @@ const exportToPDF = () => {
   printWindow.print()
 }
 
-const exportToExcel = () => {
+const exportToExcel = async () => {
   if (details.value.length === 0) {
-    alert('Tidak ada data untuk diekspor')
+    await showError('Tidak ada data untuk diekspor')
     return
   }
 

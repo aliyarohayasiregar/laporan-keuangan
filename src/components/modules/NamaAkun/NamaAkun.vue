@@ -145,6 +145,7 @@
 
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
+import { showConfirm, showError, showAlert } from '@/composables/useModal.js'
 
 const hasPermission = inject('hasPermission', () => true)
 import FormNamaAkun from './FormNamaAkun.vue'
@@ -254,8 +255,7 @@ const handleSaveForm = async (formData) => {
     } else if (err.message) {
       errorMessage = err.message
     }
-    // Show error as alert
-    alert(errorMessage)
+    await showError(errorMessage)
     console.error('Error saving nama akun:', err)
   }
 }
@@ -267,47 +267,62 @@ const handleCloseForm = () => {
 }
 
 const handleToggleStatus = async (akun) => {
-  if (confirm(`Apakah Anda yakin ingin ${akun.is_active ? 'menon-aktifkan' : 'mengaktifkan'} akun "${akun.nama_akun}"?`)) {
-    try {
-      await api.updateNamaAkun(akun.id, {
-        kode: akun.kode,
-        nama_akun: akun.nama_akun,
-        kelompok_akun_id: akun.kelompok_akun_id,
-        normal_balance: akun.normal_balance,
-        is_active: !akun.is_active,
-        deskripsi: akun.deskripsi
-      })
-      await loadNamaAkun()
-    } catch (err) {
-      // Extract specific error message from API response
-      let errorMessage = 'Gagal mengubah status nama akun'
-      if (err.response && err.response.data && err.response.data.message) {
-        errorMessage = err.response.data.message
-      } else if (err.message) {
-        errorMessage = err.message
-      }
-      alert(errorMessage)
-      console.error('Error toggling nama akun status:', err)
+  const action = akun.is_active ? 'menon-aktifkan' : 'mengaktifkan'
+  const ok = await showConfirm({
+    type: 'warning',
+    title: akun.is_active ? 'Non-aktifkan Akun' : 'Aktifkan Akun',
+    message: `Apakah Anda yakin ingin ${action} akun <strong>${akun.nama_akun}</strong>?`,
+    confirmLabel: 'Ya, Lanjutkan',
+    cancelLabel: 'Batal',
+  })
+  if (!ok) return
+
+  try {
+    await api.updateNamaAkun(akun.id, {
+      kode: akun.kode,
+      nama_akun: akun.nama_akun,
+      kelompok_akun_id: akun.kelompok_akun_id,
+      normal_balance: akun.normal_balance,
+      is_active: !akun.is_active,
+      deskripsi: akun.deskripsi
+    })
+    await loadNamaAkun()
+  } catch (err) {
+    // Extract specific error message from API response
+    let errorMessage = 'Gagal mengubah status nama akun'
+    if (err.response && err.response.data && err.response.data.message) {
+      errorMessage = err.response.data.message
+    } else if (err.message) {
+      errorMessage = err.message
     }
+    await showError(errorMessage)
+    console.error('Error toggling nama akun status:', err)
   }
 }
 
 const handleDelete = async (akun) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus akun "${akun.nama_akun}"?`)) {
-    try {
-      await api.deleteNamaAkun(akun.id)
-      await loadNamaAkun()
-    } catch (err) {
-      // Extract specific error message from API response
-      let errorMessage = 'Gagal menghapus data nama akun'
-      if (err.response && err.response.data && err.response.data.message) {
-        errorMessage = err.response.data.message
-      } else if (err.message) {
-        errorMessage = err.message
-      }
-      alert(errorMessage)
-      console.error('Error deleting nama akun:', err)
+  const ok = await showConfirm({
+    type: 'danger',
+    title: 'Hapus Akun',
+    message: `Apakah Anda yakin ingin menghapus akun <strong>${akun.nama_akun}</strong>? Data yang dihapus tidak dapat dikembalikan.`,
+    confirmLabel: 'Ya, Hapus',
+    cancelLabel: 'Batal',
+  })
+  if (!ok) return
+
+  try {
+    await api.deleteNamaAkun(akun.id)
+    await loadNamaAkun()
+  } catch (err) {
+    // Extract specific error message from API response
+    let errorMessage = 'Gagal menghapus data nama akun'
+    if (err.response && err.response.data && err.response.data.message) {
+      errorMessage = err.response.data.message
+    } else if (err.message) {
+      errorMessage = err.message
     }
+    await showError(errorMessage)
+    console.error('Error deleting nama akun:', err)
   }
 }
 

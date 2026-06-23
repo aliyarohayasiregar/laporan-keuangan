@@ -49,16 +49,6 @@
               {{ loadingParentOptions ? 'Memuat data parent...' : 'Pilih parent akun jika ini adalah sub-akun' }}
             </p>
           </div>
-
-          <!-- <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Saldo Normal *</label>
-            <select v-model="formData.saldo_normal" required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <option value="D">Debet</option>
-              <option value="K">Kredit</option>
-            </select>
-            <p class="text-xs text-gray-500 mt-1">Saldo normal untuk akun ini</p>
-          </div> -->
         </div>
 
         <div class="mt-6 flex justify-end gap-3">
@@ -77,18 +67,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { showAlert } from '@/composables/useModal.js'
 import api from '../../../services/api.js'
 
 const props = defineProps({
-  showModal: {
-    type: Boolean,
-    required: true
-  },
-  editItem: {
-    type: Object,
-    default: null
-  }
+  showModal: { type: Boolean, required: true },
+  editItem: { type: Object, default: null }
 })
 
 const emit = defineEmits(['close', 'save'])
@@ -112,10 +97,8 @@ const filteredParentOptions = computed(() => {
 
   if (currentLevel <= 0) return []
 
-  // Filter level tepat 1 di atas
   filtered = filtered.filter(p => p.level === currentLevel - 1)
 
-  // Filter kode_group dari karakter pertama kode yang diinput
   if (currentKode) {
     const kodeGroup = currentKode.charAt(0)
     filtered = filtered.filter(p => p.kode_group === kodeGroup)
@@ -123,7 +106,6 @@ const filteredParentOptions = computed(() => {
 
   return filtered.sort((a, b) => a.kode.localeCompare(b.kode))
 })
-
 
 const formData = ref({
   kode: '',
@@ -153,7 +135,6 @@ watch(() => props.editItem, (newItem) => {
       nama_kelompok_akun: newItem.nama_kelompok_akun,
       level: newItem.level,
       parent_id: newItem.parent_id,
-      // saldo_normal: newItem.saldo_normal
     }
   }
 })
@@ -176,43 +157,32 @@ const resetForm = () => {
 }
 
 const handleKodeInput = (e) => {
-  let val = (e.target.value || '').replace(/\s/g, '').replace(/\D/g, '') // Remove spaces and non-digits
-  val = val.substring(0, 9) // Batasi total maks 9 digit (1+2+2+4)
+  let val = (e.target.value || '').replace(/\s/g, '').replace(/\D/g, '')
+  val = val.substring(0, 9)
   let formatted = ''
 
   if (val.length > 0) {
-    // Kelompok pertama: max 1 digit
     formatted += val.substring(0, 1)
-
-    // Kelompok kedua: max 2 digit
-    if (val.length > 1) {
-      formatted += ' ' + val.substring(1, 3)
-    }
-
-    // Kelompok ketiga: max 2 digit
-    if (val.length > 3) {
-      formatted += ' ' + val.substring(3, 5)
-    }
-
-    // Kelompok keempat: max 4 digit
-    if (val.length > 5) {
-      formatted += ' ' + val.substring(5, 9)
-    }
+    if (val.length > 1) formatted += ' ' + val.substring(1, 3)
+    if (val.length > 3) formatted += ' ' + val.substring(3, 5)
+    if (val.length > 5) formatted += ' ' + val.substring(5, 9)
   }
 
   formData.value.kode = formatted
 }
 
-const handleSubmit = () => {
-  // Validate required fields
+const handleSubmit = async () => {
   if (!(formData.value.kode || '').trim() || !(formData.value.nama_kelompok_akun || '').trim()) {
-    alert('Mohon lengkapi semua field yang wajib diisi')
+    await showAlert({
+      type: 'warning',
+      title: 'Field Wajib Diisi',
+      message: 'Mohon lengkapi semua field yang wajib diisi.',
+      confirmLabel: 'OK',
+    })
     return
   }
 
-  // Send different data based on create vs edit mode
   if (isEdit.value) {
-    // Edit mode - send only fields that can be updated
     const submitData = {
       nama_kelompok_akun: (formData.value.nama_kelompok_akun || '').trim(),
       saldo_normal: formData.value.saldo_normal
@@ -220,13 +190,11 @@ const handleSubmit = () => {
     console.log('Edit data:', submitData)
     emit('save', submitData)
   } else {
-    // Create mode - send all required fields
     const submitData = {
       kode: (formData.value.kode || '').trim(),
       nama_kelompok_akun: (formData.value.nama_kelompok_akun || '').trim(),
       level: formData.value.level,
       parent_id: formData.value.parent_id,
-      // saldo_normal: formData.value.saldo_normal
     }
     console.log('Create data:', submitData)
     emit('save', submitData)
