@@ -133,6 +133,9 @@ router.beforeEach((to, from, next) => {
   } else if (isAuthenticated() && isPublicRoute) {
     // Redirect to home if already authenticated and trying to access public route
     next('/')
+  } else if (isAuthenticated() && (to.path === '/' || to.name === 'home' || to.name === 'dashboard')) {
+    // Redirect to default module (kelompok akun) when accessing root
+    next('/kelompok-akun')
   } else {
     // Proceed to route
     next()
