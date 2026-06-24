@@ -50,6 +50,42 @@
       </div>
     </div>
 
+    <!-- Akumulasi Total -->
+    <div v-if="filteredData.length > 0 && !loading" class="mb-8">
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-lg border border-blue-100 p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+            </path>
+          </svg>
+          Akumulasi Total {{ selectedMonth === 'all' ? 'Tahun ' + selectedYear : getMonthName(selectedMonth) + ' ' +
+          selectedYear }}
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+            <p class="text-sm text-gray-500 mb-1 font-medium">Total Pendapatan</p>
+            <p
+              :class="['text-2xl font-bold', cumulativeTotals.pendapatan_jasa >= 0 ? 'text-blue-600' : 'text-red-600']">
+              {{ formatNumber(cumulativeTotals.pendapatan_jasa) }}
+            </p>
+          </div>
+          <div class="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+            <p class="text-sm text-gray-500 mb-1 font-medium">Total Beban</p>
+            <p :class="['text-2xl font-bold', cumulativeTotals.jumlah_beban <= 0 ? 'text-blue-600' : 'text-red-600']">
+              {{ formatNumber(cumulativeTotals.jumlah_beban) }}
+            </p>
+          </div>
+          <div class="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+            <p class="text-sm text-gray-500 mb-1 font-medium">Total Laba Neto</p>
+            <p :class="['text-2xl font-bold', cumulativeTotals.laba_neto >= 0 ? 'text-green-600' : 'text-red-600']">
+              {{ formatNumber(cumulativeTotals.laba_neto) }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Content -->
     <div v-if="filteredData.length > 0 && !loading" class="space-y-6">
       <div v-for="(bulanData, bIndex) in filteredData" :key="bIndex"
@@ -208,6 +244,17 @@ const filteredData = computed(() => {
   if (!neracaData.value || !neracaData.value.data) return []
   if (selectedMonth.value === 'all') return neracaData.value.data
   return neracaData.value.data.filter(bulan => bulan.bulan === parseInt(selectedMonth.value))
+})
+
+const cumulativeTotals = computed(() => {
+  if (!filteredData.value || filteredData.value.length === 0) {
+    return { pendapatan_jasa: 0, jumlah_beban: 0, laba_neto: 0 }
+  }
+  return filteredData.value.reduce((acc, bulan) => ({
+    pendapatan_jasa: acc.pendapatan_jasa + (bulan.pendapatan_jasa || 0),
+    jumlah_beban: acc.jumlah_beban + (bulan.jumlah_beban || 0),
+    laba_neto: acc.laba_neto + (bulan.laba_neto || 0)
+  }), { pendapatan_jasa: 0, jumlah_beban: 0, laba_neto: 0 })
 })
 
 // Methods
