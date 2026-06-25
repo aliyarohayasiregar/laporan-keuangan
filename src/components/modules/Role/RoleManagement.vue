@@ -49,7 +49,7 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Role</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat</th>
+            <!-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat</th> -->
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
           </tr>
         </thead>
@@ -73,9 +73,9 @@
                   true)) ? 'Aktif' : 'Non-aktif' }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <!-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ formatDate(role.CreatedAt) }}
-            </td>
+            </td> -->
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <button v-if="hasPermission('role management', 'edit')" @click="handleEdit(role)"
                 class="text-blue-600 hover:text-blue-900 mr-3">

@@ -50,8 +50,8 @@
       </div>
     </div>
 
-    <!-- Akumulasi Total -->
-    <div v-if="filteredData.length > 0 && !loading" class="mb-8">
+    <!-- Akumulasi Total - Hanya tampil kalo pilih Semua Bulan -->
+    <div v-if="filteredData.length > 0 && !loading && selectedMonth === 'all'" class="mb-8">
       <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-lg border border-blue-100 p-6">
         <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
           <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,8 +59,7 @@
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
             </path>
           </svg>
-          Akumulasi Total {{ selectedMonth === 'all' ? 'Tahun ' + selectedYear : getMonthName(selectedMonth) + ' ' +
-          selectedYear }}
+          Akumulasi Total Tahun {{ selectedYear }}
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="bg-white rounded-lg p-4 shadow-sm border border-blue-100">

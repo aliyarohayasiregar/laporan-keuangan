@@ -80,8 +80,8 @@
                     </span>
                   </div>
                   <div class="text-sm text-gray-500 mt-1">
-                    {{ getProcessSteps(process.id).length }} step(s) &bull;
-                    Dibuat {{ formatDate(process.CreatedAt) }}
+                    {{ getProcessSteps(process.id).length }} step &bull;
+                    <!-- Dibuat {{ formatDate(process.CreatedAt) }} -->
                   </div>
                 </div>
               </div>
@@ -175,7 +175,7 @@
                               <!-- Step details -->
                               <div>
                                 <div class="font-medium text-gray-900 text-sm">{{ step.nama_step }}</div>
-                                <div class="text-xs text-gray-500">{{ step.nama_role }} (ID: {{ step.role_id }})</div>
+                                <div class="text-xs text-gray-500">{{ step.nama_role }}</div>
                               </div>
                             </div>
                           </div>
