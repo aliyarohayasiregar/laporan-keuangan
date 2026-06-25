@@ -30,10 +30,6 @@
             class="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
             Export PDF
           </button>
-          <!-- <button @click="deleteLaporan" :disabled="loading"
-            class="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
-            Delete Laporan
-          </button> -->
         </div>
       </div>
     </div>
@@ -48,85 +44,88 @@
           <p class="text-sm text-gray-600">Periode: {{ selectedYear }}</p>
         </div>
 
-        <!-- Table -->
-        <table class="w-full border-collapse table-fixed">
-          <thead>
-            <tr class="border-b-2 border-gray-300 bg-gray-50">
-              <th class="py-2 px-6 text-left text-sm font-bold text-gray-800">Nama Perkiraan</th>
-              <th class="py-2 px-6 text-right text-sm font-bold text-gray-800 w-56">Jumlah</th>
-            </tr>
-          </thead>
+        <!-- Table (3 columns: label, rincian, total) -->
+        <table class="w-full border-collapse">
+          <colgroup>
+            <col style="width: 45%">
+            <col style="width: 27.5%">
+            <col style="width: 27.5%">
+          </colgroup>
           <tbody>
-            <!-- Ekuitas Section -->
-            <tr class="bg-blue-50/50">
-              <td colspan="2" class="py-2 text-center text-sm font-bold text-blue-800 uppercase tracking-wider">EKUITAS
+
+            <!-- Ekuitas Awal -->
+            <tr class="border-b border-gray-100">
+              <td class="py-3 px-4 font-bold text-gray-800">Ekuitas Awal</td>
+              <td class="py-3 px-4 text-right"></td>
+              <td class="py-3 px-4 text-right font-mono font-bold text-gray-900">
+                {{ formatNumber(data.ekuitas_awal) }}
               </td>
             </tr>
 
-            <!-- Dynamic Fields -->
-            <template v-for="field in getFieldConfig()" :key="field.key">
-              <tr v-if="field.key !== 'ekuitas_akhir'" :class="{
-                'hover:bg-gray-50 border-b border-gray-50': !field.isMainItem && !field.isTotal,
-                'bg-gray-100/80 font-bold border-t border-gray-300': field.isTotal,
-              }">
-                <!-- Label Column -->
-                <td class="py-2 px-6" :colspan="(field.isTotal || field.key === 'ekuitas_awal') ? 1 : 2">
-                  <div class="relative flex items-center w-full">
-                    <div class="text-sm" :class="{
-                      'font-medium text-gray-700': !field.isTotal && !field.isMainItem,
-                      'italic uppercase text-gray-800': field.isTotal,
-                      'text-gray-800 font-bold': field.key === 'ekuitas_awal',
-                      'flex-1': field.isTotal || field.key === 'ekuitas_awal'
-                    }">
-                      {{ field.label }}
-                    </div>
+            <!-- Section: Kenaikan -->
+            <tr>
+              <td class="py-2 px-4 font-medium text-gray-800 pt-4" colspan="3">Kenaikan :</td>
+            </tr>
 
-                    <!-- Detail Value (Centered/Rincian) for non-total items -->
-                    <div v-if="!field.isTotal && field.key !== 'ekuitas_awal'"
-                      class="absolute left-1/2 -translate-x-1/2 text-sm font-mono font-bold" :class="{
-                        'text-red-600': field.showMinus,
-                        'text-blue-700': !field.showMinus
-                      }">
-                      <span v-if="field.showPlus">+ </span>
-                      <span v-if="field.showMinus">- </span>
-                      {{ formatNumber(field.value) }}
-                    </div>
-                  </div>
-                </td>
+            <!-- Tambahan Ekuitas -->
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+              <td class="py-3 px-4 pl-8 text-gray-700">Tambahan Ekuitas Selama Tahun Berjalan</td>
+              <td class="py-3 px-4 text-right font-mono text-blue-700">
+                {{ formatNumber(data.tambahan_ekuitas_selama_tahun_berjalan) }}
+              </td>
+              <td class="py-3 px-4"></td>
+            </tr>
 
-                <!-- Total Value Column (For Total items and Ekuitas Awal) -->
-                <td v-if="field.isTotal || field.key === 'ekuitas_awal'" class="py-2 px-6">
-                  <div class="text-right text-sm font-mono font-bold" :class="{
-                    'text-gray-900': field.key === 'ekuitas_awal',
-                    'text-blue-700': field.key === 'total_kenaikan',
-                    'text-red-600': field.key === 'kenaikan_ekuitas_pemilik'
-                  }">
-                    <span v-if="field.showPlus">+ </span>
-                    <span v-if="field.showMinus">- </span>
-                    {{ formatNumber(field.value) }}
-                  </div>
-                </td>
-              </tr>
+            <!-- Laba Neto -->
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+              <td class="py-3 px-4 pl-8 text-gray-700">Laba Neto Tahun Berjalan</td>
+              <td class="py-3 px-4 text-right font-mono text-blue-700">
+                + {{ formatNumber(data.laba_neto_tahun_berjalan) }}
+              </td>
+              <td class="py-3 px-4"></td>
+            </tr>
 
-              <!-- Special case for Ekuitas Akhir -->
-              <tr v-else class="bg-blue-600 text-white font-bold">
-                <td colspan="2" class="py-3 px-6">
-                  <div class="flex items-center justify-between">
-                    <span class="uppercase tracking-widest text-sm flex-1 text-center">{{ field.label }}</span>
-                    <div class="text-right text-base font-mono w-56">
-                      {{ formatNumber(field.value) }}
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </template>
+            <!-- Total Kenaikan - di kolom rincian, dengan garis bawah -->
+            <tr class="bg-gray-100/80 border-t border-gray-300">
+              <td class="py-3 px-4 pl-8 font-bold italic uppercase text-gray-800">Total Kenaikan</td>
+              <td class="py-3 px-4 text-right font-mono font-bold text-blue-700" style="border-bottom: 1px solid #374151;">
+                {{ formatNumber(data.total_kenaikan) }}
+              </td>
+              <td class="py-3 px-4"></td>
+            </tr>
 
-            <!-- Keterangan -->
-            <tr v-if="data.keterangan" class="hover:bg-gray-50">
-              <td colspan="2" class="py-4 text-center text-xs text-gray-500 italic uppercase tracking-tighter">
-                {{ data.keterangan }}
+            <!-- Section: Penurunan -->
+            <tr>
+              <td class="py-2 px-4 font-medium text-gray-800 pt-4" colspan="3">Penurunan</td>
+            </tr>
+
+            <!-- Penarikan Pribadi Prive -->
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+              <td class="py-3 px-4 pl-8 text-gray-700">Penarikan Pribadi Prive</td>
+              <td class="py-3 px-4 text-right font-mono text-red-600">
+                - {{ formatNumber(data.penarikan_pribadi_prive) }}
+              </td>
+              <td class="py-3 px-4"></td>
+            </tr>
+
+            <!-- Kenaikan Ekuitas Pemilik - di kolom TOTAL (kanan), dengan garis bawah -->
+            <tr class="bg-gray-100/80 border-t border-gray-300">
+              <td class="py-3 px-4 font-bold italic uppercase text-gray-800">Kenaikan Ekuitas Pemilik</td>
+              <td class="py-3 px-4"></td>
+              <td class="py-3 px-4 text-right font-mono font-bold text-blue-700" style="border-bottom: 1px solid #374151;">
+                + {{ formatNumber(data.kenaikan_ekuitas_pemilik) }}
               </td>
             </tr>
+
+            <!-- Ekuitas Akhir -->
+            <tr class="bg-blue-600 text-white font-bold">
+              <td class="py-3 px-4 uppercase tracking-widest text-sm">Ekuitas Akhir</td>
+              <td class="py-3 px-4"></td>
+              <td class="py-3 px-4 text-right font-mono" style="border-bottom: 3px double #fff;">
+                {{ formatNumber(data.ekuitas_akhir) }}
+              </td>
+            </tr>
+
           </tbody>
         </table>
       </div>
@@ -175,7 +174,6 @@ export default {
     const loading = ref(false)
     const error = ref('')
 
-    // Format number with thousand separator and ,00 suffix
     const formatNumber = (num) => {
       if (num === null || num === undefined || num === '') return '0,00'
       const numericValue = typeof num === 'string' ? parseFloat(num.replace(/,/g, '')) : num
@@ -183,18 +181,14 @@ export default {
       return new Intl.NumberFormat('id-ID').format(numericValue) + ',00'
     }
 
-    // Convert field name to readable label
     const fieldToLabel = (fieldName) => {
       return fieldName
         .replace(/_/g, ' ')
         .replace(/\b\w/g, l => l.toUpperCase())
     }
 
-    // Get field configuration for display
     const getFieldConfig = () => {
       if (!data.value) return []
-
-      const fields = []
       const fieldOrder = [
         'ekuitas_awal',
         'tambahan_ekuitas_selama_tahun_berjalan',
@@ -204,50 +198,24 @@ export default {
         'kenaikan_ekuitas_pemilik',
         'ekuitas_akhir'
       ]
-
-      fieldOrder.forEach((fieldName, index) => {
-        if (data.value[fieldName] !== undefined) {
-          fields.push({
-            key: fieldName,
-            label: fieldToLabel(fieldName),
-            value: data.value[fieldName],
-            order: index + 1,
-            isMainItem: fieldName === 'ekuitas_awal' || fieldName === 'ekuitas_akhir',
-            isTotal: fieldName === 'total_kenaikan' || fieldName === 'kenaikan_ekuitas_pemilik',
-            showPlus: fieldName === 'laba_neto_tahun_berjalan' || fieldName === 'total_kenaikan' || fieldName === 'kenaikan_ekuitas_pemilik',
-            showMinus: fieldName === 'penarikan_pribadi_prive'
-          })
-        }
-      })
-
-      return fields
+      return fieldOrder.filter(f => data.value[f] !== undefined)
     }
 
-    // Load data from API
     const loadData = async () => {
       loading.value = true
       error.value = ''
-
       try {
-        console.log(`Loading Laporan Ekuitas for year: ${selectedYear.value}`)
-
         const result = await api.getLaporanEquitas(selectedYear.value)
-        console.log('Laporan Ekuitas API Response:', result)
-
         if (result.success && result.data) {
           data.value = result.data
-          console.log('Laporan Ekuitas data loaded successfully:', data.value)
         } else {
-          // Handle API error message
           let displayMessage = result.message || 'Failed to load laporan ekuitas data'
           if (displayMessage.includes('404') || displayMessage.toLowerCase().includes('belum tersedia')) {
             displayMessage = 'Laporan ekuitas belum tersedia untuk periode ini'
           }
-          console.log('API Response Error:', displayMessage)
           error.value = displayMessage
         }
       } catch (err) {
-        console.error('Error loading laporan ekuitas:', err)
         let displayMessage = err.message || String(err)
         if (displayMessage.includes('404') || displayMessage.toLowerCase().includes('belum tersedia')) {
           displayMessage = 'Laporan ekuitas belum tersedia untuk periode ini'
@@ -260,65 +228,19 @@ export default {
       }
     }
 
-    // Delete laporan functionality
-    const deleteLaporan = async () => {
-      if (loading.value) return
-
-      if (!confirm(`Apakah Anda yakin ingin menghapus Laporan Ekuitas untuk tahun ${selectedYear.value}?`)) {
-        return
-      }
-
-      loading.value = true
-      error.value = ''
-
-      try {
-        console.log(`Deleting Laporan Ekuitas for year: ${selectedYear.value}`)
-
-        const response = await fetch(`http://139.162.41.197:8001/api/ap/deleteLaporanEquitas?tahun=${selectedYear.value}`, {
-          method: 'DELETE'
-        })
-
-        const result = await response.json()
-        console.log('Delete API Response:', result)
-
-        if (result.success) {
-          // Clear data after successful delete
-          data.value = null
-
-          // Show success message from backend
-          alert(result.message || 'Laporan Ekuitas berhasil dihapus')
-          console.log('Laporan Ekuitas deleted successfully')
-        } else {
-          // Show error message from backend
-          alert(result.message || 'Gagal menghapus Laporan Ekuitas')
-          console.log('Delete failed:', result.message)
-        }
-      } catch (err) {
-        console.error('Error deleting laporan ekuitas:', err)
-        alert('Terjadi kesalahan saat menghapus laporan: ' + (err.message || err))
-      } finally {
-        loading.value = false
-      }
-    }
-
-    // Export to PDF
     const exportToPDF = () => {
       if (!data.value) return
-
       const printWindow = window.open('', '_blank')
       const htmlContent = generatePDFHTML()
-
       printWindow.document.write(htmlContent)
       printWindow.document.close()
       printWindow.focus()
-
       setTimeout(() => {
         printWindow.print()
         printWindow.close()
       }, 500)
     }
 
-    // Generate HTML for PDF
     const generatePDFHTML = () => {
       return `
         <!DOCTYPE html>
@@ -329,78 +251,78 @@ export default {
             body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
             h1 { text-align: center; margin-bottom: 5px; color: #000; }
             .subtitle { text-align: center; margin-bottom: 25px; color: #666; font-size: 14px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
-            th, td { border: 1px solid #ddd; padding: 10px 12px; text-align: left; vertical-align: middle; }
-            th { background-color: #f8fafc; font-weight: bold; font-size: 13px; text-transform: uppercase; }
-            .col-nama { width: 65%; }
-            .col-jumlah { width: 35%; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            col.col-label { width: 45%; }
+            col.col-rincian { width: 27.5%; }
+            col.col-total { width: 27.5%; }
+            td { padding: 8px 12px; vertical-align: middle; }
             .text-right { text-align: right; }
-            .text-center { text-align: center; }
-            .bg-blue-light { background-color: #eff6ff; }
-            .bg-gray-light { background-color: #f1f5f9; }
             .font-bold { font-weight: bold; }
             .font-mono { font-family: 'Courier New', Courier, monospace; }
-            .detail-container { position: relative; width: 100%; display: flex; align-items: center; }
-            .detail-label { flex: 1; }
-            .detail-value { position: absolute; left: 50%; transform: translateX(-50%); font-weight: bold; }
-            .ekuitas-akhir-row { background-color: #2563eb; color: white !important; }
-            .ekuitas-akhir-row td { border-color: #1e40af; color: white !important; }
+            .section-header { font-weight: bold; padding-top: 14px; }
+            .indent { padding-left: 24px; }
+            .bg-gray { background-color: #f1f5f9; border-top: 1px solid #9ca3af; }
+            .bg-blue-final { background-color: #2563eb; color: white; }
             .italic { font-style: italic; }
+            .text-blue { color: #1d4ed8; }
+            .text-red { color: #dc2626; }
+            .border-bottom-single { border-bottom: 1px solid #374151; }
+            .border-bottom-double { border-bottom: 3px double #374151; }
           </style>
         </head>
         <body>
           <h1>LAPORAN EKUITAS</h1>
           <p class="subtitle">Periode: ${selectedYear.value}</p>
-          
           <table>
-            <thead>
-              <tr>
-                <th class="col-nama">Nama Perkiraan</th>
-                <th class="col-jumlah text-right">Jumlah</th>
-              </tr>
-            </thead>
+            <colgroup>
+              <col class="col-label">
+              <col class="col-rincian">
+              <col class="col-total">
+            </colgroup>
             <tbody>
-              <tr class="bg-blue-light">
-                <td colspan="2" class="text-center font-bold" style="letter-spacing: 2px;">EKUITAS</td>
-              </tr>
-              ${getFieldConfig().map(field => {
-        const isTotal = field.isTotal || field.key === 'ekuitas_akhir' || field.key === 'ekuitas_awal';
-        const isEkuitasAkhir = field.key === 'ekuitas_akhir';
-        const rowClass = isEkuitasAkhir ? 'ekuitas-akhir-row' : (field.isTotal ? 'bg-gray-light font-bold' : '');
-
-        if (isTotal) {
-          return `
-                    <tr class="${rowClass}">
-                      <td class="${isEkuitasAkhir ? 'text-center' : ''}" style="${field.key === 'ekuitas_awal' ? 'font-bold' : ''}">
-                        ${isEkuitasAkhir ? `<span style="letter-spacing: 3px; text-transform: uppercase;">${field.label}</span>` : field.label}
-                      </td>
-                      <td class="text-right font-mono" style="${field.key === 'ekuitas_awal' ? 'font-weight: bold; color: #000;' : ''}">
-                        ${field.showPlus ? '+ ' : ''}${field.showMinus ? '- ' : ''}${formatNumber(data.value[field.key])}
-                      </td>
-                    </tr>
-                  `;
-        } else {
-          return `
-                    <tr class="${rowClass}">
-                      <td colspan="2">
-                        <div class="detail-container">
-                          <span class="detail-label ${field.key === 'ekuitas_awal' ? 'font-bold' : ''}">${field.label}</span>
-                          <span class="detail-value font-mono">
-                            ${field.showPlus ? '+ ' : ''}${field.showMinus ? '- ' : ''}${formatNumber(data.value[field.key])}
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  `;
-        }
-      }).join('')}
-              ${data.value.keterangan ? `
               <tr>
-                <td colspan="2" class="text-center italic" style="font-size: 11px; color: #666; padding: 15px;">${data.value.keterangan}</td>
-              </tr>` : ''}
+                <td class="font-bold">Ekuitas Awal</td>
+                <td></td>
+                <td class="text-right font-mono font-bold">${formatNumber(data.value.ekuitas_awal)}</td>
+              </tr>
+              <tr>
+                <td class="section-header" colspan="3">Kenaikan :</td>
+              </tr>
+              <tr>
+                <td class="indent">Tambahan Ekuitas Selama Tahun Berjalan</td>
+                <td class="text-right font-mono text-blue">${formatNumber(data.value.tambahan_ekuitas_selama_tahun_berjalan)}</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="indent">Laba Neto Tahun Berjalan</td>
+                <td class="text-right font-mono text-blue">+ ${formatNumber(data.value.laba_neto_tahun_berjalan)}</td>
+                <td></td>
+              </tr>
+              <tr class="bg-gray">
+                <td class="indent italic font-bold" style="text-transform:uppercase;">Total Kenaikan</td>
+                <td class="text-right font-mono font-bold text-blue border-bottom-single">${formatNumber(data.value.total_kenaikan)}</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="section-header" colspan="3">Penurunan</td>
+              </tr>
+              <tr>
+                <td class="indent">Penarikan Pribadi Prive</td>
+                <td class="text-right font-mono text-red">- ${formatNumber(data.value.penarikan_pribadi_prive)}</td>
+                <td></td>
+              </tr>
+              <tr class="bg-gray">
+                <td class="italic font-bold" style="text-transform:uppercase;">Kenaikan Ekuitas Pemilik</td>
+                <td></td>
+                <td class="text-right font-mono font-bold text-blue border-bottom-single">+ ${formatNumber(data.value.kenaikan_ekuitas_pemilik)}</td>
+              </tr>
+              <tr class="bg-blue-final">
+                <td style="text-transform:uppercase; letter-spacing:0.05em; font-size:13px; font-weight:bold;">Ekuitas Akhir</td>
+                <td></td>
+                <td class="text-right font-mono font-bold border-bottom-double" style="color:white; border-bottom-color:white;">${formatNumber(data.value.ekuitas_akhir)}</td>
+              </tr>
             </tbody>
           </table>
-          
           <p style="margin-top: 30px; font-size: 11px; color: #999; text-align: right;">
             Dicetak pada: ${new Date().toLocaleString('id-ID')}
           </p>
@@ -409,7 +331,6 @@ export default {
       `
     }
 
-    // Load data on component mount
     onMounted(() => {
       loadData()
     })
@@ -423,8 +344,7 @@ export default {
       fieldToLabel,
       getFieldConfig,
       loadData,
-      exportToPDF,
-      deleteLaporan
+      exportToPDF
     }
   }
 }

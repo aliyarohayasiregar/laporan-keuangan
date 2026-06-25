@@ -247,13 +247,13 @@
                                       class="text-blue-600 hover:text-blue-900 text-sm font-medium">
                                       Edit
                                     </button>
-                                    <button v-if="hasPermission('nama akun', 'edit')"
+                                    <!-- <button v-if="hasPermission('nama akun', 'edit')"
                                       @click="handleToggleAccountStatus(account)" :class="[
                                         'text-sm font-medium',
                                         account.is_active ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'
                                       ]">
                                       {{ account.is_active ? 'Non-aktifkan' : 'Aktifkan' }}
-                                    </button>
+                                    </button> -->
                                     <button v-if="hasPermission('nama akun', 'delete')"
                                       @click="handleDeleteAccount(account)"
                                       class="text-red-600 hover:text-red-900 text-sm font-medium">
