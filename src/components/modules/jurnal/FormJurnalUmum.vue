@@ -60,7 +60,7 @@
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 :disabled="isLoadingNomorBukti || isEdit || isGeneratingNoBukti || !selectedNoBukti">
                 <option value="">Pilih No. Voucher Tujuan</option>
-                <option v-for="voucher in nomorBuktiList" :key="voucher.kode" :value="voucher.kode">
+                <option v-for="voucher in filteredNomorBuktiList" :key="voucher.kode" :value="voucher.kode">
                   {{ voucher.kode }} {{ voucher.kelompok_jurnal ? `(Grup ${voucher.kelompok_jurnal})` : '' }}
                 </option>
               </select>
@@ -84,7 +84,8 @@
 
           <!-- Field khusus untuk jenis jurnal 6 - 2 Jurnal Terpisah -->
           <div v-else class="space-y-6 pt-4 border-t border-gray-200">
-            <!-- Jurnal 1 -->
+            <!-- Jurnal 1: Nomor Bukti, Keterangan, dan Detail Jurnal 1 disatukan dalam satu card
+                 supaya mudah dibaca (tidak dipisah jauh dari tabel detailnya) -->
             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <h4 class="text-md font-semibold text-blue-800 mb-4">Jurnal 1</h4>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -105,9 +106,147 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Detail Jurnal 1 -->
+              <div class="border-t border-blue-200 pt-4">
+                <div class="flex justify-between items-center mb-4">
+                  <h5 class="text-sm font-semibold text-blue-800">Detail Jurnal 1</h5>
+                  <button type="button" @click="addDetail(false)"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200">
+                    Tambah Detail
+                  </button>
+                </div>
+                <div class="relative overflow-visible">
+                  <table class="min-w-full divide-y divide-blue-200 bg-white rounded-lg">
+                    <thead class="bg-blue-100">
+                      <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-blue-900 uppercase tracking-wider">Akun
+                        </th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-blue-900 uppercase tracking-wider">Debit
+                        </th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-blue-900 uppercase tracking-wider">Kredit
+                        </th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-blue-900 uppercase tracking-wider w-20">
+                          Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-blue-100">
+                      <tr v-for="(detail, index) in formData.details" :key="index">
+                        <td class="px-4 py-2">
+                          <div class="relative inline-block w-full">
+                            <div v-if="index === 0 && showAkunDefaultRow">
+                              <input
+                                :value="akunDefault.debet ? `${akunDefault.debet.kode_akun} - ${akunDefault.debet.nama_akun}` : getAkunDefaultText()"
+                                type="text" readonly
+                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" />
+                            </div>
+                            <div v-else class="relative inline-block w-full">
+                              <div @click="() => toggleAkunCard(index)"
+                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer hover:border-blue-400 transition-colors bg-white">
+                                <div v-if="selectedAkun[index]" class="flex items-center justify-between">
+                                  <span class="text-gray-900">{{ selectedAkun[index].kode_akun }} - {{
+                                    selectedAkun[index].nama_akun }}</span>
+                                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 9l-7 7-7-7"></path>
+                                  </svg>
+                                </div>
+                                <div v-else class="flex items-center justify-between text-gray-500">
+                                  <span>Pilih akun...</span>
+                                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 9l-7 7-7-7"></path>
+                                  </svg>
+                                </div>
+                              </div>
+
+                              <!-- Akun Selection Card -->
+                              <div v-show="showAkunCard[index]"
+                                class="absolute z-[999999] bg-white border border-gray-300 rounded-lg shadow-xl w-full"
+                                style="top: calc(100% + 4px); left: 0; min-width: 350px;">
+                                <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                                  <div class="flex items-center justify-between">
+                                    <h5 class="text-sm font-medium text-gray-900">Pilih Akun</h5>
+                                    <button @click="() => closeAkunCard(index)" class="text-gray-400 hover:text-gray-600">
+                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M6 18L18 6M6 6l12 12"></path>
+                                      </svg>
+                                    </button>
+                                  </div>
+                                  <div class="mt-2">
+                                    <input v-model="searchQueries[index]" type="text" placeholder="Cari akun..."
+                                      class="w-full px-3 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                                  </div>
+                                </div>
+                                <div class="max-h-48 overflow-y-auto">
+                                  <div v-for="akun in filteredAkunOptions(index)" :key="akun.id"
+                                    @click="selectAkun(index, akun)"
+                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
+                                    <div class="flex items-center justify-between">
+                                      <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ akun.kode_akun }}</div>
+                                        <div class="text-xs text-gray-600">{{ akun.nama_akun }}</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-4 py-2">
+                          <input :value="shouldDisableDebit(index) ? '0' : formatNumberInput(detail.debit)" @input="(e) => {
+                            if (!shouldDisableDebit(index)) detail.debit = parseNumberInput(e.target.value);
+                          }" :disabled="shouldDisableDebit(index)" type="text"
+                            class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
+                            placeholder="0" />
+                        </td>
+                        <td class="px-4 py-2">
+                          <input :value="shouldDisableKredit(index) ? '0' : formatNumberInput(detail.kredit)" @input="(e) => {
+                            if (!shouldDisableKredit(index)) detail.kredit = parseNumberInput(e.target.value);
+                          }" :disabled="shouldDisableKredit(index)" type="text"
+                            class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
+                            placeholder="0" />
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                          <button type="button" @click="removeDetail(index)" :disabled="showAkunDefaultRow && index === 0"
+                            class="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                              </path>
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!-- Total Jurnal 1 -->
+                <div class="mt-4 pt-4 border-t border-blue-200">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-blue-100 p-3 rounded-lg flex justify-between items-center">
+                      <span class="text-sm text-blue-800">Total Debit:</span>
+                      <span class="text-lg font-bold text-blue-900">{{ formatNumber(totalDebitJurnal1) }}</span>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-lg flex justify-between items-center">
+                      <span class="text-sm text-blue-800">Total Kredit:</span>
+                      <span class="text-lg font-bold text-blue-900">{{ formatNumber(totalKreditJurnal1) }}</span>
+                    </div>
+                  </div>
+                  <div class="mt-2 text-center">
+                    <span :class="['text-sm font-bold', balanceJurnal1 === 0 ? 'text-green-600' : 'text-red-600']">
+                      {{ balanceJurnal1 === 0 ? 'BALANCE' : 'SELISIH: ' + formatNumber(Math.abs(balanceJurnal1)) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Jurnal 2 (Silang) -->
+            <!-- Jurnal 2 (Silang): Nomor Bukti Silang, Keterangan Silang, dan Detail Jurnal 2
+                 disatukan dalam satu card juga -->
             <div class="bg-green-50 p-4 rounded-lg border border-green-200">
               <h4 class="text-md font-semibold text-green-800 mb-4">Jurnal 2 (Silang)</h4>
 
@@ -127,6 +266,146 @@
                     <div class="absolute bottom-1 right-2 text-xs text-gray-500">
                       {{ formData.keterangan_silang?.length || 0 }}/50
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detail Jurnal 2 (Silang) -->
+              <div class="border-t border-green-200 pt-4">
+                <div class="flex justify-between items-center mb-4">
+                  <h5 class="text-sm font-semibold text-green-800">Detail Jurnal 2 (Silang)</h5>
+                  <button type="button" @click="addDetail(true)"
+                    class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200">
+                    Tambah Detail
+                  </button>
+                </div>
+                <div class="relative overflow-visible">
+                  <table class="min-w-full divide-y divide-green-200 bg-white rounded-lg">
+                    <thead class="bg-green-100">
+                      <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-green-900 uppercase tracking-wider">Akun
+                        </th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-green-900 uppercase tracking-wider">Debit
+                        </th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-green-900 uppercase tracking-wider">Kredit
+                        </th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-green-900 uppercase tracking-wider w-20">
+                          Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-green-100">
+                      <tr v-for="(detail, index) in formData.details_silang" :key="index">
+                        <td class="px-4 py-2">
+                          <div class="relative inline-block w-full">
+                            <div v-if="index === 1 && showAkunDefaultRow">
+                              <input
+                                :value="akunDefault.kredit ? `${akunDefault.kredit.kode_akun} - ${akunDefault.kredit.nama_akun}` : getAkunDefaultText()"
+                                type="text" readonly
+                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" />
+                            </div>
+                            <div v-else class="relative inline-block w-full">
+                              <div @click="() => toggleAkunCard(index, true)"
+                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer hover:border-blue-400 transition-colors bg-white">
+                                <div v-if="selectedAkun['s_' + index]" class="flex items-center justify-between">
+                                  <span class="text-gray-900">{{ selectedAkun['s_' + index].kode_akun }} - {{
+                                    selectedAkun['s_' + index].nama_akun }}</span>
+                                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 9l-7 7-7-7"></path>
+                                  </svg>
+                                </div>
+                                <div v-else class="flex items-center justify-between text-gray-500">
+                                  <span>Pilih akun...</span>
+                                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 9l-7 7-7-7"></path>
+                                  </svg>
+                                </div>
+                              </div>
+
+                              <!-- Akun Selection Card -->
+                              <div v-show="showAkunCard['s_' + index]"
+                                class="absolute z-[999999] bg-white border border-gray-300 rounded-lg shadow-xl w-full"
+                                style="top: calc(100% + 4px); left: 0; min-width: 350px;">
+                                <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                                  <div class="flex items-center justify-between">
+                                    <h5 class="text-sm font-medium text-gray-900">Pilih Akun</h5>
+                                    <button @click="() => closeAkunCard('s_' + index)"
+                                      class="text-gray-400 hover:text-gray-600">
+                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M6 18L18 6M6 6l12 12"></path>
+                                      </svg>
+                                    </button>
+                                  </div>
+                                  <div class="mt-2">
+                                    <input v-model="searchQueries['s_' + index]" type="text" placeholder="Cari akun..."
+                                      class="w-full px-3 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                                  </div>
+                                </div>
+                                <div class="max-h-48 overflow-y-auto">
+                                  <div v-for="akun in filteredAkunOptions('s_' + index)" :key="akun.id"
+                                    @click="selectAkun(index, akun, true)"
+                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
+                                    <div class="flex items-center justify-between">
+                                      <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ akun.kode_akun }}</div>
+                                        <div class="text-xs text-gray-600">{{ akun.nama_akun }}</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-4 py-2">
+                          <input :value="shouldDisableDebit(index, 's_') ? '0' : formatNumberInput(detail.debit)" @input="(e) => {
+                            if (!shouldDisableDebit(index, 's_')) detail.debit = parseNumberInput(e.target.value);
+                          }" :disabled="shouldDisableDebit(index, 's_')" type="text"
+                            class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
+                            placeholder="0" />
+                        </td>
+                        <td class="px-4 py-2">
+                          <input :value="shouldDisableKredit(index, 's_') ? '0' : formatNumberInput(detail.kredit)"
+                            @input="(e) => {
+                              if (!shouldDisableKredit(index, 's_')) detail.kredit = parseNumberInput(e.target.value);
+                            }" :disabled="shouldDisableKredit(index, 's_')" type="text"
+                            class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
+                            placeholder="0" />
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                          <button type="button" @click="removeDetail(index, true)"
+                            :disabled="showAkunDefaultRow && index === 1"
+                            class="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                              </path>
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!-- Total Jurnal 2 -->
+                <div class="mt-4 pt-4 border-t border-green-200">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-green-100 p-3 rounded-lg flex justify-between items-center">
+                      <span class="text-sm text-green-800">Total Debit:</span>
+                      <span class="text-lg font-bold text-green-900">{{ formatNumber(totalDebitJurnal2) }}</span>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-lg flex justify-between items-center">
+                      <span class="text-sm text-green-800">Total Kredit:</span>
+                      <span class="text-lg font-bold text-green-900">{{ formatNumber(totalKreditJurnal2) }}</span>
+                    </div>
+                  </div>
+                  <div class="mt-2 text-center">
+                    <span :class="['text-sm font-bold', balanceJurnal2 === 0 ? 'text-green-600' : 'text-red-600']">
+                      {{ balanceJurnal2 === 0 ? 'BALANCE' : 'SELISIH: ' + formatNumber(Math.abs(balanceJurnal2)) }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -250,285 +529,6 @@
             </div>
           </div>
 
-          <!-- Detail Jurnal untuk Jenis 6 - 2 Tabel Terpisah -->
-          <div v-else class="space-y-8 pt-4 border-t border-gray-200">
-            <!-- Tabel Jurnal 1 -->
-            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div class="flex justify-between items-center mb-4">
-                <h4 class="text-md font-semibold text-blue-800">Detail Jurnal 1</h4>
-                <button type="button" @click="addDetail(false)"
-                  class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200">
-                  Tambah Detail
-                </button>
-              </div>
-              <div class="relative overflow-visible">
-                <table class="min-w-full divide-y divide-blue-200 bg-white rounded-lg">
-                  <thead class="bg-blue-100">
-                    <tr>
-                      <th class="px-4 py-2 text-left text-xs font-medium text-blue-900 uppercase tracking-wider">Akun
-                      </th>
-                      <th class="px-4 py-2 text-left text-xs font-medium text-blue-900 uppercase tracking-wider">Debit
-                      </th>
-                      <th class="px-4 py-2 text-left text-xs font-medium text-blue-900 uppercase tracking-wider">Kredit
-                      </th>
-                      <th class="px-4 py-2 text-left text-xs font-medium text-blue-900 uppercase tracking-wider w-20">
-                        Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody class="bg-white divide-y divide-blue-100">
-                    <tr v-for="(detail, index) in formData.details" :key="index">
-                      <td class="px-4 py-2">
-                        <div class="relative inline-block w-full">
-                          <div v-if="index === 0 && showAkunDefaultRow">
-                            <input
-                              :value="akunDefault.debet ? `${akunDefault.debet.kode_akun} - ${akunDefault.debet.nama_akun}` : getAkunDefaultText()"
-                              type="text" readonly
-                              class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" />
-                          </div>
-                          <div v-else class="relative inline-block w-full">
-                            <div @click="() => toggleAkunCard(index)"
-                              class="w-full px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer hover:border-blue-400 transition-colors bg-white">
-                              <div v-if="selectedAkun[index]" class="flex items-center justify-between">
-                                <span class="text-gray-900">{{ selectedAkun[index].kode_akun }} - {{
-                                  selectedAkun[index].nama_akun }}</span>
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
-                                  viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                              </div>
-                              <div v-else class="flex items-center justify-between text-gray-500">
-                                <span>Pilih akun...</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                              </div>
-                            </div>
-
-                            <!-- Akun Selection Card -->
-                            <div v-show="showAkunCard[index]"
-                              class="absolute z-[999999] bg-white border border-gray-300 rounded-lg shadow-xl w-full"
-                              style="top: calc(100% + 4px); left: 0; min-width: 350px;">
-                              <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-                                <div class="flex items-center justify-between">
-                                  <h5 class="text-sm font-medium text-gray-900">Pilih Akun</h5>
-                                  <button @click="() => closeAkunCard(index)" class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                  </button>
-                                </div>
-                                <div class="mt-2">
-                                  <input v-model="searchQueries[index]" type="text" placeholder="Cari akun..."
-                                    class="w-full px-3 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent">
-                                </div>
-                              </div>
-                              <div class="max-h-48 overflow-y-auto">
-                                <div v-for="akun in filteredAkunOptions(index)" :key="akun.id"
-                                  @click="selectAkun(index, akun)"
-                                  class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
-                                  <div class="flex items-center justify-between">
-                                    <div>
-                                      <div class="text-sm font-medium text-gray-900">{{ akun.kode_akun }}</div>
-                                      <div class="text-xs text-gray-600">{{ akun.nama_akun }}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="px-4 py-2">
-                        <input :value="shouldDisableDebit(index) ? '0' : formatNumberInput(detail.debit)" @input="(e) => {
-                          if (!shouldDisableDebit(index)) detail.debit = parseNumberInput(e.target.value);
-                        }" :disabled="shouldDisableDebit(index)" type="text"
-                          class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
-                          placeholder="0" />
-                      </td>
-                      <td class="px-4 py-2">
-                        <input :value="shouldDisableKredit(index) ? '0' : formatNumberInput(detail.kredit)" @input="(e) => {
-                          if (!shouldDisableKredit(index)) detail.kredit = parseNumberInput(e.target.value);
-                        }" :disabled="shouldDisableKredit(index)" type="text"
-                          class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
-                          placeholder="0" />
-                      </td>
-                      <td class="px-4 py-2 text-center">
-                        <button type="button" @click="removeDetail(index)" :disabled="showAkunDefaultRow && index === 0"
-                          class="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed">
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                            </path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <!-- Total Jurnal 1 -->
-              <div class="mt-4 pt-4 border-t border-blue-200">
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="bg-blue-100 p-3 rounded-lg flex justify-between items-center">
-                    <span class="text-sm text-blue-800">Total Debit:</span>
-                    <span class="text-lg font-bold text-blue-900">{{ formatNumber(totalDebitJurnal1) }}</span>
-                  </div>
-                  <div class="bg-blue-100 p-3 rounded-lg flex justify-between items-center">
-                    <span class="text-sm text-blue-800">Total Kredit:</span>
-                    <span class="text-lg font-bold text-blue-900">{{ formatNumber(totalKreditJurnal1) }}</span>
-                  </div>
-                </div>
-                <div class="mt-2 text-center">
-                  <span :class="['text-sm font-bold', balanceJurnal1 === 0 ? 'text-green-600' : 'text-red-600']">
-                    {{ balanceJurnal1 === 0 ? 'BALANCE' : 'SELISIH: ' + formatNumber(Math.abs(balanceJurnal1)) }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tabel Jurnal 2 (Silang) -->
-            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-              <div class="flex justify-between items-center mb-4">
-                <h4 class="text-md font-semibold text-green-800">Detail Jurnal 2 (Silang)</h4>
-                <button type="button" @click="addDetail(true)"
-                  class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200">
-                  Tambah Detail
-                </button>
-              </div>
-              <div class="relative overflow-visible">
-                <table class="min-w-full divide-y divide-green-200 bg-white rounded-lg">
-                  <thead class="bg-green-100">
-                    <tr>
-                      <th class="px-4 py-2 text-left text-xs font-medium text-green-900 uppercase tracking-wider">Akun
-                      </th>
-                      <th class="px-4 py-2 text-left text-xs font-medium text-green-900 uppercase tracking-wider">Debit
-                      </th>
-                      <th class="px-4 py-2 text-left text-xs font-medium text-green-900 uppercase tracking-wider">Kredit
-                      </th>
-                      <th class="px-4 py-2 text-left text-xs font-medium text-green-900 uppercase tracking-wider w-20">
-                        Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody class="bg-white divide-y divide-green-100">
-                    <tr v-for="(detail, index) in formData.details_silang" :key="index">
-                      <td class="px-4 py-2">
-                        <div class="relative inline-block w-full">
-                          <div v-if="index === 1 && showAkunDefaultRow">
-                            <input
-                              :value="akunDefault.kredit ? `${akunDefault.kredit.kode_akun} - ${akunDefault.kredit.nama_akun}` : getAkunDefaultText()"
-                              type="text" readonly
-                              class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" />
-                          </div>
-                          <div v-else class="relative inline-block w-full">
-                            <div @click="() => toggleAkunCard(index, true)"
-                              class="w-full px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer hover:border-blue-400 transition-colors bg-white">
-                              <div v-if="selectedAkun['s_' + index]" class="flex items-center justify-between">
-                                <span class="text-gray-900">{{ selectedAkun['s_' + index].kode_akun }} - {{
-                                  selectedAkun['s_' + index].nama_akun }}</span>
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
-                                  viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                              </div>
-                              <div v-else class="flex items-center justify-between text-gray-500">
-                                <span>Pilih akun...</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                              </div>
-                            </div>
-
-                            <!-- Akun Selection Card -->
-                            <div v-show="showAkunCard['s_' + index]"
-                              class="absolute z-[999999] bg-white border border-gray-300 rounded-lg shadow-xl w-full"
-                              style="top: calc(100% + 4px); left: 0; min-width: 350px;">
-                              <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-                                <div class="flex items-center justify-between">
-                                  <h5 class="text-sm font-medium text-gray-900">Pilih Akun</h5>
-                                  <button @click="() => closeAkunCard('s_' + index)"
-                                    class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                  </button>
-                                </div>
-                                <div class="mt-2">
-                                  <input v-model="searchQueries['s_' + index]" type="text" placeholder="Cari akun..."
-                                    class="w-full px-3 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent">
-                                </div>
-                              </div>
-                              <div class="max-h-48 overflow-y-auto">
-                                <div v-for="akun in filteredAkunOptions('s_' + index)" :key="akun.id"
-                                  @click="selectAkun(index, akun, true)"
-                                  class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
-                                  <div class="flex items-center justify-between">
-                                    <div>
-                                      <div class="text-sm font-medium text-gray-900">{{ akun.kode_akun }}</div>
-                                      <div class="text-xs text-gray-600">{{ akun.nama_akun }}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="px-4 py-2">
-                        <input :value="shouldDisableDebit(index, 's_') ? '0' : formatNumberInput(detail.debit)" @input="(e) => {
-                          if (!shouldDisableDebit(index, 's_')) detail.debit = parseNumberInput(e.target.value);
-                        }" :disabled="shouldDisableDebit(index, 's_')" type="text"
-                          class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
-                          placeholder="0" />
-                      </td>
-                      <td class="px-4 py-2">
-                        <input :value="shouldDisableKredit(index, 's_') ? '0' : formatNumberInput(detail.kredit)"
-                          @input="(e) => {
-                            if (!shouldDisableKredit(index, 's_')) detail.kredit = parseNumberInput(e.target.value);
-                          }" :disabled="shouldDisableKredit(index, 's_')" type="text"
-                          class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
-                          placeholder="0" />
-                      </td>
-                      <td class="px-4 py-2 text-center">
-                        <button type="button" @click="removeDetail(index, true)"
-                          :disabled="showAkunDefaultRow && index === 1"
-                          class="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed">
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                            </path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <!-- Total Jurnal 2 -->
-              <div class="mt-4 pt-4 border-t border-green-200">
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="bg-green-100 p-3 rounded-lg flex justify-between items-center">
-                    <span class="text-sm text-green-800">Total Debit:</span>
-                    <span class="text-lg font-bold text-green-900">{{ formatNumber(totalDebitJurnal2) }}</span>
-                  </div>
-                  <div class="bg-green-100 p-3 rounded-lg flex justify-between items-center">
-                    <span class="text-sm text-green-800">Total Kredit:</span>
-                    <span class="text-lg font-bold text-green-900">{{ formatNumber(totalKreditJurnal2) }}</span>
-                  </div>
-                </div>
-                <div class="mt-2 text-center">
-                  <span :class="['text-sm font-bold', balanceJurnal2 === 0 ? 'text-green-600' : 'text-red-600']">
-                    {{ balanceJurnal2 === 0 ? 'BALANCE' : 'SELISIH: ' + formatNumber(Math.abs(balanceJurnal2)) }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Totals Section -->
