@@ -51,6 +51,23 @@
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
                 :placeholder="isGeneratingNoBukti ? 'Generating...' : ''" />
             </div>
+
+            <!-- Pilih Nomor Voucher Tujuan (khusus jenis jurnal 6), sejajar dengan Pilih Nomor Voucher
+                 di baris yang sama supaya lebih mudah dibaca/dibandingkan -->
+            <div v-else>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Nomor Voucher Tujuan *</label>
+              <select v-model="selectedNoBuktiTujuan" @change="handleNoBuktiTujuanChange"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                :disabled="isLoadingNomorBukti || isEdit || isGeneratingNoBukti || !selectedNoBukti">
+                <option value="">Pilih No. Voucher Tujuan</option>
+                <option v-for="voucher in nomorBuktiList" :key="voucher.kode" :value="voucher.kode">
+                  {{ voucher.kode }} {{ voucher.kelompok_jurnal ? `(Grup ${voucher.kelompok_jurnal})` : '' }}
+                </option>
+              </select>
+              <p v-if="!selectedNoBukti" class="text-xs text-blue-500 mt-1">
+                Pilih Nomor Voucher Jurnal 1 terlebih dahulu
+              </p>
+            </div>
           </div>
 
           <div v-if="selectedJenisJurnal != 6">
@@ -93,11 +110,13 @@
             <!-- Jurnal 2 (Silang) -->
             <div class="bg-green-50 p-4 rounded-lg border border-green-200">
               <h4 class="text-md font-semibold text-green-800 mb-4">Jurnal 2 (Silang)</h4>
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Bukti Silang</label>
-                  <input :value="formData.no_bukti" type="text" readonly
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 font-mono font-bold text-green-700 cursor-not-allowed">
+                  <input :value="formData.no_bukti_silang" type="text" readonly
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 font-mono font-bold text-green-700 cursor-not-allowed"
+                    :placeholder="isGeneratingNoBukti ? 'Generating...' : ''">
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Keterangan Silang *</label>
@@ -567,8 +586,26 @@
           </button>
         </div>
       </div>
+
+      <!-- Tab switcher: hanya untuk jenis jurnal 6 (Ayat Silang), karena nomor voucher Jurnal 1
+           dan Jurnal 2 berbeda dan harus dipreview/didownload sebagai voucher terpisah -->
+      <div v-if="selectedJenisJurnal == 6" class="px-6 pt-4 bg-gray-50 border-b border-gray-200 flex gap-2">
+        <button @click="activeVoucherTab = 'jurnal1'" :class="[
+          'px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors',
+          activeVoucherTab === 'jurnal1' ? 'border-blue-600 text-blue-700 bg-white' : 'border-transparent text-gray-500 hover:text-gray-700'
+        ]">
+          Jurnal 1 {{ voucherPreviewDataJurnal1.no_voucher ? `(${voucherPreviewDataJurnal1.no_voucher})` : '' }}
+        </button>
+        <button @click="activeVoucherTab = 'jurnal2'" :class="[
+          'px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors',
+          activeVoucherTab === 'jurnal2' ? 'border-green-600 text-green-700 bg-white' : 'border-transparent text-gray-500 hover:text-gray-700'
+        ]">
+          Jurnal 2 (Silang) {{ voucherPreviewDataJurnal2.no_voucher ? `(${voucherPreviewDataJurnal2.no_voucher})` : '' }}
+        </button>
+      </div>
+
       <div class="p-6 overflow-y-auto flex-1 bg-gray-50">
-        <VoucherPreview :template="currentVoucherTemplate" :voucher-data="voucherPreviewData" />
+        <VoucherPreview :template="currentVoucherTemplate" :voucher-data="activeVoucherPreviewData" />
       </div>
     </div>
   </div>
@@ -595,6 +632,7 @@ const emit = defineEmits(['close', 'save'])
 const isEdit = computed(() => !!props.editItem)
 const isSubmitting = ref(false)
 const selectedNoBukti = ref('')
+const selectedNoBuktiTujuan = ref('') // NEW: nomor voucher tujuan, khusus jenis jurnal 6 (Jurnal 2/Silang)
 const selectedJenisJurnal = ref('')
 const nomorBuktiList = ref([])
 const isLoadingNomorBukti = ref(false)
@@ -607,13 +645,30 @@ const isLoadingTemplate = ref(false)
 const allVoucherTemplates = ref([])
 const currentVoucherTemplate = ref(null)
 const selectedTemplateId = ref(null)
-const voucherPreviewData = ref({
+const activeVoucherTab = ref('jurnal1') // 'jurnal1' | 'jurnal2' — tab aktif khusus jenis jurnal 6
+
+const makeEmptyVoucherData = () => ({
   no_voucher: '',
   tanggal: '',
   company_name: 'PT. Nama Perusahaan',
   rows: [],
   total_debit: 0,
   total_kredit: 0
+})
+
+// Untuk jenis jurnal selain 6: dipakai sebagai satu-satunya data preview.
+// Untuk jenis jurnal 6: voucherPreviewDataJurnal1 = data Jurnal 1, voucherPreviewDataJurnal2 = data Jurnal 2 (Silang),
+// masing-masing dengan no_voucher dan rows sendiri (tidak digabung).
+const voucherPreviewDataJurnal1 = ref(makeEmptyVoucherData())
+const voucherPreviewDataJurnal2 = ref(makeEmptyVoucherData())
+
+// Data yang sedang ditampilkan di VoucherPreview, mengikuti tab aktif (untuk jenis 6)
+// atau langsung data Jurnal 1 (untuk jenis jurnal lain, yang hanya punya satu set data)
+const activeVoucherPreviewData = computed(() => {
+  if (selectedJenisJurnal.value == 6 && activeVoucherTab.value === 'jurnal2') {
+    return voucherPreviewDataJurnal2.value
+  }
+  return voucherPreviewDataJurnal1.value
 })
 
 const formData = ref({
@@ -823,11 +878,6 @@ watch(selectedJenisJurnal, async (newJenis) => {
   }
 })
 
-// Watch formData.no_bukti to automatically set no_bukti_silang
-watch(() => formData.value.no_bukti, (newNoBukti) => {
-  formData.value.no_bukti_silang = newNoBukti
-})
-
 const fetchNomorBuktiList = async () => {
   isLoadingNomorBukti.value = true
   try {
@@ -980,11 +1030,77 @@ const applyAkunDefault = () => {
   }
 }
 
+// Helper terpusat: panggil createNoBuktiGenerate. Untuk jenis jurnal 6, kirim juga
+// no_bukti_tujuan bila keduanya (no voucher jurnal 1 & tujuan) sudah terisi, dan backend
+// akan membalas no_bukti_full (utk Jurnal 1) + no_bukti_full_tujuan (utk Jurnal 2/Silang).
+const generateNoBukti = async () => {
+  if (!selectedNoBukti.value || !formData.value.tanggal) return
+
+  // Untuk jenis jurnal 6, tunggu sampai voucher tujuan juga sudah dipilih
+  if (selectedJenisJurnal.value == 6 && !selectedNoBuktiTujuan.value) {
+    return
+  }
+
+  // Konversi tanggal formData.tanggal (YYYY-MM-DD) ke DDMMYYYY
+  const dateParts = formData.value.tanggal.split('-')
+  const tanggalFormat = `${dateParts[2]}${dateParts[1]}${dateParts[0]}`
+
+  isGeneratingNoBukti.value = true
+  try {
+    const payload = {
+      no_bukti: selectedNoBukti.value,
+      tanggal: parseInt(tanggalFormat)
+    }
+
+    // Khusus jenis jurnal 6 (Ayat Silang): kirim juga no_jenis_jurnal dan no_bukti_tujuan,
+    // karena Jurnal 1 dan Jurnal 2 (Silang) punya bank/akun & nomor bukti yang berbeda (in vs out).
+    // Tanpa no_jenis_jurnal, backend tidak tahu ini request ayat silang dan tidak akan
+    // membalas no_bukti_full_tujuan di response.
+    if (selectedJenisJurnal.value == 6) {
+      payload.no_jenis_jurnal = 6
+      payload.no_bukti_tujuan = selectedNoBuktiTujuan.value
+    }
+
+    const res = await api.request('/createNoBuktiGenerate', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }, 'nb')
+
+    if (res.success) {
+      formData.value.no_bukti = res.no_bukti_full
+      // Untuk jenis jurnal 6, nomor bukti silang berasal dari no_bukti_full_tujuan (bukan
+      // auto-sync dari no_bukti, karena keduanya independen / beda bank)
+      if (selectedJenisJurnal.value == 6) {
+        if (res.no_bukti_full_tujuan) {
+          formData.value.no_bukti_silang = res.no_bukti_full_tujuan
+        } else {
+          console.warn('Response createNoBuktiGenerate tidak mengandung no_bukti_full_tujuan:', res)
+          formData.value.no_bukti_silang = ''
+        }
+      }
+      await fetchAkunDefault(selectedJenisJurnal.value, selectedNoBukti.value)
+    } else {
+      alert(res.message || 'Gagal generate nomor bukti!')
+      selectedNoBukti.value = ''
+      if (selectedJenisJurnal.value == 6) selectedNoBuktiTujuan.value = ''
+    }
+  } catch (err) {
+    console.error('Error generate no bukti:', err)
+    alert('Terjadi kesalahan saat generate nomor bukti!')
+    selectedNoBukti.value = ''
+    if (selectedJenisJurnal.value == 6) selectedNoBuktiTujuan.value = ''
+  } finally {
+    isGeneratingNoBukti.value = false
+  }
+}
+
 const handleNoBuktiChange = async () => {
   if (!selectedNoBukti.value) {
     akunDefault.value = null
     formData.value.no_bukti = ''
     selectedJenisJurnal.value = ''
+    selectedNoBuktiTujuan.value = ''
+    formData.value.no_bukti_silang = ''
     return
   }
 
@@ -994,37 +1110,20 @@ const handleNoBuktiChange = async () => {
     selectedJenisJurnal.value = String(selectedVoucher.kelompok_jurnal)
   }
 
-  // Konversi tanggal formData.tanggal (YYYY-MM-DD) ke DDMMYYYY
-  const dateParts = formData.value.tanggal.split('-')
-  const tanggalFormat = `${dateParts[2]}${dateParts[1]}${dateParts[0]}`
-
-  isGeneratingNoBukti.value = true
-  try {
-    // Panggil API createNoBuktiGenerate
-    const payload = {
-      no_bukti: selectedNoBukti.value,
-      tanggal: parseInt(tanggalFormat)
-    }
-    const res = await api.request('/createNoBuktiGenerate', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    }, 'nb')
-
-    if (res.success) {
-      // Set formData.no_bukti dengan no_bukti_full dari response
-      formData.value.no_bukti = res.no_bukti_full
-      await fetchAkunDefault(selectedJenisJurnal.value, selectedNoBukti.value)
-    } else {
-      alert(res.message || 'Gagal generate nomor bukti!')
-      selectedNoBukti.value = ''
-    }
-  } catch (err) {
-    console.error('Error generate no bukti:', err)
-    alert('Terjadi kesalahan saat generate nomor bukti!')
-    selectedNoBukti.value = ''
-  } finally {
-    isGeneratingNoBukti.value = false
+  // Untuk jenis jurnal selain 6, generate langsung seperti biasa.
+  // Untuk jenis jurnal 6, tunggu user juga memilih voucher tujuan dulu (lihat handleNoBuktiTujuanChange)
+  if (selectedJenisJurnal.value != 6) {
+    await generateNoBukti()
   }
+}
+
+const handleNoBuktiTujuanChange = async () => {
+  if (!selectedNoBuktiTujuan.value) {
+    formData.value.no_bukti_silang = ''
+    return
+  }
+  // Begitu voucher tujuan dipilih, generate kedua nomor bukti sekaligus (Jurnal 1 & Jurnal 2/Silang)
+  await generateNoBukti()
 }
 
 const openVoucherPreview = async () => {
@@ -1074,6 +1173,7 @@ const openVoucherPreview = async () => {
     prepareVoucherPreviewData(template)
     currentVoucherTemplate.value = template
     selectedTemplateId.value = template.id
+    activeVoucherTab.value = 'jurnal1'
     showVoucherModal.value = true
 
   } catch (err) {
@@ -1084,89 +1184,81 @@ const openVoucherPreview = async () => {
   }
 }
 
+// Helper: bangun rows untuk satu set details (Jurnal 1 atau Jurnal 2/Silang)
+// detailsList = formData.details atau formData.details_silang
+// keyPrefix = '' untuk Jurnal 1, 's_' untuk Jurnal 2 (Silang) — dipakai untuk lookup selectedAkun
+const buildVoucherRows = (detailsList, keyPrefix = '') => {
+  return (detailsList || []).map((detail, index) => {
+    const akunKey = keyPrefix ? `${keyPrefix}${index}` : index
+    const akun = selectedAkun.value[akunKey]
+    let kodeAkun = ''
+    if (akun) {
+      kodeAkun = akun.kode_akun || akun.kode || ''
+    }
+    if (!kodeAkun && detail.akun_id) {
+      kodeAkun = detail.akun_id
+    }
+    return {
+      no: index + 1,
+      deskripsi: akun ? `${akun.nama_akun}` : '',
+      reff: kodeAkun,
+      debit: detail.debit,
+      kredit: detail.kredit
+    }
+  })
+}
+
+const sumDebitKredit = (rows) => {
+  let totalDebit = 0
+  let totalKredit = 0
+  rows.forEach(row => {
+    totalDebit += parseFloat(row.debit) || 0
+    totalKredit += parseFloat(row.kredit) || 0
+  })
+  return { totalDebit, totalKredit }
+}
+
 const prepareVoucherPreviewData = (template) => {
-  // Prepare rows for table
-  let rows = []
+  const tanggalFormatted = formData.value.tanggal ? new Date(formData.value.tanggal).toLocaleDateString('id-ID') : ''
+  const companyName = template.company_name || 'PT. Nama Perusahaan'
 
   if (selectedJenisJurnal.value == 6) {
-    // Jurnal 1
-    formData.value.details.forEach((detail, index) => {
-      const akun = selectedAkun.value[index]
-      // Dapatkan kode akun dengan fallback
-      let kodeAkun = ''
-      if (akun) {
-        kodeAkun = akun.kode_akun || akun.kode || ''
-      }
-      if (!kodeAkun && detail.akun_id) {
-        kodeAkun = detail.akun_id
-      }
+    // Jenis jurnal 6 (Ayat Silang): Jurnal 1 dan Jurnal 2 (Silang) punya nomor voucher dan
+    // bank/akun yang berbeda, jadi disiapkan sebagai 2 voucher independen — tidak digabung.
+    const rowsJurnal1 = buildVoucherRows(formData.value.details, '')
+    const { totalDebit: totalDebitJ1, totalKredit: totalKreditJ1 } = sumDebitKredit(rowsJurnal1)
+    voucherPreviewDataJurnal1.value = {
+      no_voucher: formData.value.no_bukti,
+      tanggal: tanggalFormatted,
+      company_name: companyName,
+      rows: rowsJurnal1,
+      total_debit: totalDebitJ1,
+      total_kredit: totalKreditJ1
+    }
 
-      rows.push({
-        no: rows.length + 1,
-        deskripsi: akun ? `${akun.nama_akun}` : '',
-        reff: kodeAkun,
-        debit: detail.debit,
-        kredit: detail.kredit
-      })
-    })
-
-    // Jurnal 2 (Silang
-    formData.value.details_silang.forEach((detail, index) => {
-      const akunKey = `s_${index}`
-      const akun = selectedAkun.value[akunKey]
-      // Dapatkan kode akun dengan fallback
-      let kodeAkun = ''
-      if (akun) {
-        kodeAkun = akun.kode_akun || akun.kode || ''
-      }
-      if (!kodeAkun && detail.akun_id) {
-        kodeAkun = detail.akun_id
-      }
-
-      rows.push({
-        no: rows.length + 1,
-        deskripsi: akun ? `${akun.nama_akun}` : '',
-        reff: kodeAkun,
-        debit: detail.debit,
-        kredit: detail.kredit
-      })
-    })
+    const rowsJurnal2 = buildVoucherRows(formData.value.details_silang, 's_')
+    const { totalDebit: totalDebitJ2, totalKredit: totalKreditJ2 } = sumDebitKredit(rowsJurnal2)
+    voucherPreviewDataJurnal2.value = {
+      no_voucher: formData.value.no_bukti_silang,
+      tanggal: tanggalFormatted,
+      company_name: companyName,
+      rows: rowsJurnal2,
+      total_debit: totalDebitJ2,
+      total_kredit: totalKreditJ2
+    }
   } else {
-    // Normal
-    rows = formData.value.details.map((detail, index) => {
-      const akun = selectedAkun.value[index]
-      let kodeAkun = ''
-      if (akun) {
-        kodeAkun = akun.kode_akun || akun.kode || ''
-      }
-      if (!kodeAkun && detail.akun_id) {
-        kodeAkun = detail.akun_id
-      }
-      return {
-        no: index + 1,
-        deskripsi: akun ? `${akun.nama_akun}` : '',
-        reff: kodeAkun,
-        debit: detail.debit,
-        kredit: detail.kredit
-      }
-    })
-  }
-
-  // Hitung total debit dan kredit gabungan (untuk jenis 6, total semua rows)
-  let totalDebitGabungan = 0
-  let totalKreditGabungan = 0
-  rows.forEach(row => {
-    totalDebitGabungan += parseFloat(row.debit) || 0
-    totalKreditGabungan += parseFloat(row.kredit) || 0
-  })
-
-  voucherPreviewData.value = {
-    no_voucher: formData.value.no_bukti,
-    tanggal: formData.value.tanggal ? new Date(formData.value.tanggal).toLocaleDateString('id-ID') : '',
-    company_name: template.company_name || 'PT. Nama Perusahaan',
-    rows,
-    total_debit: totalDebitGabungan,
-    total_kredit: totalKreditGabungan
+    // Jenis jurnal selain 6: hanya satu set data, disimpan di voucherPreviewDataJurnal1
+    // (dipakai juga oleh activeVoucherPreviewData karena tab switcher tidak tampil untuk jenis ini)
+    const rows = buildVoucherRows(formData.value.details, '')
+    const { totalDebit, totalKredit } = sumDebitKredit(rows)
+    voucherPreviewDataJurnal1.value = {
+      no_voucher: formData.value.no_bukti,
+      tanggal: tanggalFormatted,
+      company_name: companyName,
+      rows,
+      total_debit: totalDebit,
+      total_kredit: totalKredit
+    }
   }
 }
 
@@ -1224,7 +1316,7 @@ const handleDownloadPDF = async () => {
       const y = (pdfHeight - scaledHeight) / 2
 
       pdf.addImage(imgData, 'PNG', x, y, scaledWidth, scaledHeight)
-      pdf.save(`voucher-${formData.value.no_bukti || 'nota'}.pdf`)
+      pdf.save(`voucher-${activeVoucherPreviewData.value.no_voucher || 'nota'}.pdf`)
     } catch (err) {
       console.error('Error download PDF:', err)
       alert('Gagal mendownload PDF voucher!')
@@ -1252,6 +1344,7 @@ const resetForm = () => {
     keterangan_silang: ''
   }
   selectedNoBukti.value = ''
+  selectedNoBuktiTujuan.value = ''
   selectedJenisJurnal.value = ''
   akunDefault.value = null
   searchQueries.value = {}
@@ -1273,6 +1366,7 @@ watch(() => props.showModal, (newVal) => {
         details_silang: (props.editItem.details_silang || []).map(d => ({ ...d }))
       }
       selectedNoBukti.value = props.editItem.no_bukti
+      selectedNoBuktiTujuan.value = props.editItem.no_bukti_silang || ''
       selectedJenisJurnal.value = props.editItem.no_jenis_jurnal || props.editItem.jenis_jurnal
 
       // Set selectedAkun dan searchQueries for both details and details_silang (if jenis 6)
@@ -1321,7 +1415,9 @@ watch(() => props.namaAkunOptions, (newOptions) => {
 watch(() => formData.value.tanggal, (newVal, oldVal) => {
   if (!isEdit.value && newVal && newVal !== oldVal) {
     selectedNoBukti.value = ''
+    selectedNoBuktiTujuan.value = ''
     formData.value.no_bukti = ''
+    formData.value.no_bukti_silang = ''
     akunDefault.value = null
   }
 })
@@ -1342,6 +1438,12 @@ const handleSubmit = async () => {
 
   if (!selectedNoBukti.value) {
     alert('Silakan pilih Nomor Voucher!')
+    return
+  }
+
+  // Khusus jenis jurnal 6: voucher tujuan untuk Jurnal 2 (Silang) wajib dipilih
+  if (selectedJenisJurnal.value == 6 && !selectedNoBuktiTujuan.value) {
+    alert('Silakan pilih Nomor Voucher Tujuan untuk Jurnal 2 (Silang)!')
     return
   }
 
