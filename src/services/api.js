@@ -684,6 +684,11 @@ class KartuStokAPI {
     }, 'apv')
   }
 
+  // Voucher Template API Methods
+  async getAllTemplateVoucher() {
+    return this.request('/getAllTemplateVoucher', {}, 'vb')
+  }
+
 }
 
 import { ref } from 'vue'

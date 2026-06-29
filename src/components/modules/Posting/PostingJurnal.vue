@@ -6,110 +6,106 @@
         <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 sm:p-8">
           <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6">
             <div class="text-white">
-              <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 tracking-tight">
-                Buku Besar
+              <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 tracking-tight">
+                {{ companyName }}
               </h2>
+              <h3 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 tracking-tight">
+                Buku Besar
+              </h3>
               <p class="text-blue-100 text-sm sm:text-base lg:text-lg">
                 Laporan Buku Besar Interaktif
               </p>
-              <!-- <div class="mt-4 flex items-center gap-2">
-                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span class="text-blue-100 text-xs sm:text-sm">Sistem Aktif</span>
-              </div> -->
+              <div class="w-full lg:w-80 relative" ref="dropdownContainer">
+                <label class="block text-blue-100 text-xs sm:text-sm font-medium mb-2">
+                  Pilih Akun
+                </label>
+
+                <!-- Custom Searchable Dropdown -->
+                <div class="relative">
+                  <button type="button" @click="toggleDropdown"
+                    class="w-full flex justify-between items-center px-4 py-3 text-sm bg-white/90 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm transition-all duration-200 text-left"
+                    :disabled="loadingAkun" ref="dropdownButton">
+                    <span :class="selectedAkun ? 'text-gray-900' : 'text-gray-500'">
+                      {{ selectedAkunText }}
+                    </span>
+                    <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </button>
+
+                  <!-- Dropdown Panel - Fixed position -->
+                  <Teleport to="body">
+                    <div v-if="showAkunDropdown" :style="dropdownStyle"
+                      class="fixed z-[9999] bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden"
+                      @click.stop>
+                      <div class="p-2 border-b border-gray-50">
+                        <div class="relative">
+                          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                          </svg>
+                          <input v-model="searchAkun" type="text" placeholder="Cari kode atau nama akun..."
+                            class="w-full pl-9 pr-4 py-2 text-sm border border-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            @click.stop />
+                        </div>
+                      </div>
+                      <div class="max-h-[250px] overflow-y-auto">
+                        <div v-if="filteredAkunList.length === 0" class="px-4 py-3 text-sm text-gray-500 text-center">
+                          Tidak ada akun ditemukan
+                        </div>
+                        <button v-for="akun in filteredAkunList" :key="akun.id" @click="selectAkun(akun)"
+                          class="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 transition-colors duration-150 flex flex-col border-b border-gray-50 last:border-0">
+                          <span class="font-semibold text-blue-600">{{ akun.kode }}</span>
+                          <span class="text-gray-600">{{ akun.nama_akun }}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </Teleport>
+                </div>
+
+                <p class="text-blue-200 text-xs mt-2">
+                  <span v-if="loadingAkun">Memuat data akun...</span>
+                  <span v-else>Pilih akun untuk melihat buku besar</span>
+                </p>
+              </div>
+
+              <!-- Row 2: Filter Range Bulan -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-blue-100 text-xs font-medium mb-2">Bulan Awal</label>
+                  <select v-model="startBulan"
+                    class="w-full px-3 py-2 text-sm bg-white text-gray-900 border border-white rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent">
+                    <option v-for="(bulan, index) in bulanOptions" :key="index" :value="index + 1">
+                      {{ bulan }}
+                    </option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-blue-100 text-xs font-medium mb-2">Bulan Akhir</label>
+                  <select v-model="endBulan"
+                    class="w-full px-3 py-2 text-sm bg-white text-gray-900 border border-white rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent">
+                    <option v-for="(bulan, index) in bulanOptions" :key="index" :value="index + 1">
+                      {{ bulan }}
+                    </option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-blue-100 text-xs font-medium mb-2">Tahun</label>
+                  <select v-model="selectedYear"
+                    class="w-full px-3 py-2 text-sm bg-white text-gray-900 border border-white rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent">
+                    <option v-for="year in yearOptions" :key="year" :value="year">
+                      {{ year }}
+                    </option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <!-- Filter Controls -->
             <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 sm:p-6 border border-white/20">
               <div class="space-y-4">
-                <!-- Row 1: Pilih Akun -->
-                <div class="w-full lg:w-80 relative" ref="dropdownContainer">
-                  <label class="block text-blue-100 text-xs sm:text-sm font-medium mb-2">
-                    Pilih Akun
-                  </label>
-
-                  <!-- Custom Searchable Dropdown -->
-                  <!-- Custom Searchable Dropdown -->
-                  <div class="relative">
-                    <button type="button" @click="toggleDropdown"
-                      class="w-full flex justify-between items-center px-4 py-3 text-sm bg-white/90 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm transition-all duration-200 text-left"
-                      :disabled="loadingAkun" ref="dropdownButton">
-                      <span :class="selectedAkun ? 'text-gray-900' : 'text-gray-500'">
-                        {{ selectedAkunText }}
-                      </span>
-                      <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      </svg>
-                    </button>
-
-                    <!-- Dropdown Panel - Fixed position -->
-                    <Teleport to="body">
-                      <div v-if="showAkunDropdown" :style="dropdownStyle"
-                        class="fixed z-[9999] bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden"
-                        @click.stop>
-                        <div class="p-2 border-b border-gray-50">
-                          <div class="relative">
-                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none"
-                              stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                            <input v-model="searchAkun" type="text" placeholder="Cari kode atau nama akun..."
-                              class="w-full pl-9 pr-4 py-2 text-sm border border-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              @click.stop />
-                          </div>
-                        </div>
-                        <div class="max-h-[250px] overflow-y-auto">
-                          <div v-if="filteredAkunList.length === 0" class="px-4 py-3 text-sm text-gray-500 text-center">
-                            Tidak ada akun ditemukan
-                          </div>
-                          <button v-for="akun in filteredAkunList" :key="akun.id" @click="selectAkun(akun)"
-                            class="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 transition-colors duration-150 flex flex-col border-b border-gray-50 last:border-0">
-                            <span class="font-semibold text-blue-600">{{ akun.kode }}</span>
-                            <span class="text-gray-600">{{ akun.nama_akun }}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </Teleport>
-                  </div>
-
-                  <p class="text-blue-200 text-xs mt-2">
-                    <span v-if="loadingAkun">Memuat data akun...</span>
-                    <span v-else>Pilih akun untuk melihat buku besar</span>
-                  </p>
-                </div>
-
-                <!-- Row 2: Filter Range Bulan -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label class="block text-blue-100 text-xs font-medium mb-2">Bulan Awal</label>
-                    <select v-model="startBulan"
-                      class="w-full px-3 py-2 text-sm bg-white/90 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm">
-                      <option v-for="(bulan, index) in bulanOptions" :key="index" :value="index + 1">
-                        {{ bulan }}
-                      </option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-blue-100 text-xs font-medium mb-2">Bulan Akhir</label>
-                    <select v-model="endBulan"
-                      class="w-full px-3 py-2 text-sm bg-white/90 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm">
-                      <option v-for="(bulan, index) in bulanOptions" :key="index" :value="index + 1">
-                        {{ bulan }}
-                      </option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-blue-100 text-xs font-medium mb-2">Tahun</label>
-                    <select v-model="selectedYear"
-                      class="w-full px-3 py-2 text-sm bg-white/90 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm">
-                      <option v-for="year in yearOptions" :key="year" :value="year">
-                        {{ year }}
-                      </option>
-                    </select>
-                  </div>
-                </div>
-
                 <!-- Row 3: Primary Buttons -->
                 <div class="flex flex-col sm:flex-row gap-3">
                   <button @click="handleTampilkanData" :disabled="!selectedAkun || loading"
@@ -124,6 +120,16 @@
                       </path>
                     </svg>
                     {{ loading ? 'Memuat...' : 'Tampilkan Data' }}
+                  </button>
+                  <button @click="exportToPDF"
+                    :disabled="!postingData || !postingData.akun || postingData.akun.length === 0"
+                    class="flex-1 sm:flex-none bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                      </path>
+                    </svg>
+                    Export PDF
                   </button>
                 </div>
               </div>
@@ -419,6 +425,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../../../services/api.js'
+import { useCompanyName } from '../../../composables/useCompanyName.js'
 
 // Reactive data
 const selectedAkun = ref('')
@@ -436,6 +443,8 @@ const dropdownContainer = ref(null)
 
 const dropdownButton = ref(null)
 const dropdownStyle = ref({})
+
+const { companyName } = useCompanyName()
 
 const toggleDropdown = () => {
   if (!showAkunDropdown.value) {
@@ -509,38 +518,6 @@ const selectAkun = (akun) => {
 const handleAkunChange = () => {
   // Reset data when account changes
   postingData.value = null
-}
-
-// Load daftar posting
-const loadDaftarPosting = async () => {
-  try {
-    loadingDaftarPosting.value = true
-    errorDaftarPosting.value = null
-
-    console.log('Fetching daftar posting for year:', selectedYear.value)
-    const result = await api.getDaftarPostingByTahunBB(selectedYear.value)
-    console.log('Daftar Posting API Response:', result)
-
-    if (result.success) {
-      daftarPosting.value = result.data || []
-
-      // Check if the year is already final posted from API response
-      // If the API doesn't provide this flag, we should only set it to true 
-      // after a successful handlePostingFinal call.
-      isFinalPosted.value = result.is_final_posted || false
-
-      console.log('Daftar posting loaded:', daftarPosting.value)
-    } else {
-      errorDaftarPosting.value = result.message || 'Gagal memuat daftar posting'
-      daftarPosting.value = []
-    }
-  } catch (err) {
-    console.error('Error loading daftar posting:', err)
-    errorDaftarPosting.value = 'Terjadi kesalahan saat memuat daftar posting: ' + err.message
-    daftarPosting.value = []
-  } finally {
-    loadingDaftarPosting.value = false
-  }
 }
 
 // Handle tampilkan data
@@ -669,5 +646,120 @@ const handleClickOutside = (event) => {
   if (dropdownContainer.value && !dropdownContainer.value.contains(event.target)) {
     showAkunDropdown.value = false
   }
+}
+
+const exportToPDF = () => {
+  if (!postingData.value || !postingData.value.akun || postingData.value.akun.length === 0) {
+    alert('Tidak ada data untuk diekspor')
+    return
+  }
+
+  const periodeText = startBulan.value === endBulan.value
+    ? `${getMonthName(startBulan.value)} ${selectedYear.value}`
+    : `${getMonthName(startBulan.value)} - ${getMonthName(endBulan.value)} ${selectedYear.value}`
+
+  let content = `
+    <html>
+      <head>
+        <title>BUKU BESAR - ${periodeText}</title>
+        <style>
+          * { box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; font-size: 12px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .header h1 { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+          .header h2 { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+          .header p { font-size: 14px; color: #666; margin: 0; }
+          .account-section { margin-bottom: 40px; page-break-inside: avoid; }
+          .account-header { background-color: #4f46e5; color: white; padding: 12px 15px; font-size: 16px; font-weight: bold; }
+          .account-info { padding: 15px; border: 1px solid #ddd; border-top: none; }
+          .summary-cards { display: flex; gap: 15px; margin-bottom: 20px; }
+          .summary-card { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 4px; }
+          .summary-card.debit { background-color: #dcfce7; }
+          .summary-card.credit { background-color: #fee2e2; }
+          .summary-card.balance { background-color: #dbeafe; }
+          .summary-card h4 { margin: 0 0 8px 0; font-size: 11px; text-transform: uppercase; color: #555; }
+          .summary-card p { margin: 0; font-size: 16px; font-weight: bold; }
+          table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+          th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; vertical-align: top; word-wrap: break-word; }
+          th { background-color: #f3f4f6; font-weight: bold; color: #374151; font-size: 11px; text-transform: uppercase; }
+          td { font-size: 11px; }
+          .text-right { text-align: right; }
+          .text-center { text-align: center; }
+          .debit-amount { color: #166534; font-weight: bold; }
+          .credit-amount { color: #991b1b; font-weight: bold; }
+          .balance-amount { color: #1e40af; font-weight: bold; }
+          @media print {
+            body { margin: 0.5cm; }
+            .account-section { page-break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${companyName.value}</h1>
+          <h2>BUKU BESAR</h2>
+          <p>Periode: ${periodeText}</p>
+        </div>
+
+        ${postingData.value.akun.map(akun => `
+          <div class="account-section">
+            <div class="account-header">
+              ${akun.kode_akun} - ${akun.nama_akun}
+            </div>
+            <div class="account-info">
+              <div class="summary-cards">
+                <div class="summary-card debit">
+                  <h4>Total Debit</h4>
+                  <p>${formatNumber(akun.total_mutasi_debit)}</p>
+                </div>
+                <div class="summary-card credit">
+                  <h4>Total Kredit</h4>
+                  <p>${formatNumber(akun.total_mutasi_kredit)}</p>
+                </div>
+                <div class="summary-card balance">
+                  <h4>Saldo Akhir</h4>
+                  <p>${formatNumber(akun.saldo_akhir_debit || akun.saldo_akhir_kredit)} (${akun.saldo_akhir_debit > 0 ? 'Debit' : 'Kredit'})</p>
+                </div>
+              </div>
+              
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 15%;">Nomor Voucher</th>
+                    <th style="width: 12%;">Tanggal</th>
+                    <th style="width: 31%;">Keterangan</th>
+                    <th style="width: 14%;" class="text-right">Debit</th>
+                    <th style="width: 14%;" class="text-right">Kredit</th>
+                    <th style="width: 14%;" class="text-right">Saldo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(akun.tabel && akun.tabel.length > 0) ? akun.tabel.map(transaksi => `
+                    <tr>
+                      <td class="text-center">${transaksi.reff || '-'}</td>
+                      <td class="text-center">${formatDate(transaksi.tanggal)}</td>
+                      <td>${transaksi.keterangan || '-'}</td>
+                      <td class="text-right ${transaksi.mutasi_debit > 0 ? 'debit-amount' : ''}">${transaksi.mutasi_debit > 0 ? formatNumber(transaksi.mutasi_debit) : '-'}</td>
+                      <td class="text-right ${transaksi.mutasi_kredit > 0 ? 'credit-amount' : ''}">${transaksi.mutasi_kredit > 0 ? formatNumber(transaksi.mutasi_kredit) : '-'}</td>
+                      <td class="text-right balance-amount">${formatNumber(transaksi.saldo_debit)}</td>
+                    </tr>
+                  `).join('') : `
+                    <tr>
+                      <td colspan="6" class="text-center" style="color: #6b7280; padding: 20px;">Tidak ada transaksi</td>
+                    </tr>
+                  `}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `).join('')}
+      </body>
+    </html>
+  `
+
+  const printWindow = window.open('', '_blank')
+  printWindow.document.write(content)
+  printWindow.document.close()
+  setTimeout(() => printWindow.print(), 500)
 }
 </script>

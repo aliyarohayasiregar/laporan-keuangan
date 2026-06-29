@@ -14,6 +14,7 @@
               Kembali
             </button>
             <div>
+              <h2 class="text-xl font-bold text-gray-900 mb-1">{{ companyName }}</h2>
               <h1 class="text-3xl font-bold text-gray-900">Laporan Stok</h1>
               <p class="mt-2 text-sm text-gray-600">Laporan kartu stok per periode</p>
             </div>
@@ -200,19 +201,19 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ item.no }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">{{ item.kode_barang
-                  }}</span>
+                    }}</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ item.nama_barang }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.Tanggal }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">{{ item.nomor_bukti
-                  }}</span>
+                    }}</span>
                 </td>
 
                 <!-- Penambahan Qty -->
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                   <span v-if="item.penambahan_banyak > 0" class="text-green-600 font-medium">{{ item.penambahan_banyak
-                  }}</span>
+                    }}</span>
                   <span v-else class="text-gray-400">-</span>
                 </td>
 
@@ -226,7 +227,7 @@
                 <!-- Pengurangan Qty -->
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                   <span v-if="item.pengurangan_banyak > 0" class="text-red-600 font-medium">{{ item.pengurangan_banyak
-                  }}</span>
+                    }}</span>
                   <span v-else class="text-gray-400">-</span>
                 </td>
 
@@ -276,7 +277,7 @@
         </div>
         <h3 class="text-lg font-medium text-gray-900 mb-2">Laporan stok belum tersedia untuk periode ini</h3>
         <p class="text-gray-500">Tidak ada transaksi stok untuk periode {{ getBulanNama(filter.bulan) }} {{ filter.tahun
-        }}</p>
+          }}</p>
       </div>
     </div>
   </div>
@@ -285,6 +286,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import api from '../../../services/api.js'
+import { useCompanyName } from '../../../composables/useCompanyName.js'
 
 const filter = ref({
   bulan: '',
@@ -295,6 +297,8 @@ const laporanData = ref([])
 const loading = ref(false)
 const error = ref(null)
 const hasFiltered = ref(false)
+
+const { companyName } = useCompanyName()
 
 const getBulanNama = (bulan) => {
   const bulanNames = {

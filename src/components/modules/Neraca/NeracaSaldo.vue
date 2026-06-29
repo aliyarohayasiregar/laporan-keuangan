@@ -3,6 +3,7 @@
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
       <div>
+        <h3 class="text-xl font-bold text-gray-900 mb-1">{{ companyName }}</h3>
         <h2 class="text-2xl font-bold text-gray-900">Neraca Saldo</h2>
         <p class="text-gray-600 mt-1">Laporan neraca saldo sebelum dan setelah penyesuaian</p>
       </div>
@@ -257,6 +258,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import api from '../../../services/api.js'
+import { useCompanyName } from '../../../composables/useCompanyName.js'
 
 const activeTab = ref('sebelum')
 const selectedYear = ref(new Date().getFullYear())
@@ -269,6 +271,8 @@ const sebelumData = ref(null)
 const loadingSetelah = ref(false)
 const errorSetelah = ref(null)
 const setelahData = ref(null)
+
+const { companyName } = useCompanyName()
 
 const formatNumber = (num) => {
   if (!num) return '0,00'

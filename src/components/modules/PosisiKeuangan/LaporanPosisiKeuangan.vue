@@ -2,6 +2,7 @@
   <div class="p-6 bg-white rounded-lg shadow-lg">
     <!-- Header -->
     <div class="mb-6 text-center">
+      <h2 class="text-xl font-bold text-gray-800 mb-1">{{ companyName }}</h2>
       <h1 class="text-2xl font-bold text-gray-800 mb-2">Neraca</h1>
       <p class="text-gray-600">Periode: {{ selectedYear }}</p>
     </div>
@@ -298,7 +299,7 @@
                     <td class="py-2 text-sm text-gray-700">Laba Ditahan Awal</td>
                     <td class="py-2 text-right text-sm text-gray-900">{{
                       formatNumber(data.laba_ditahan.laba_ditahan_awal)
-                      }}</td>
+                    }}</td>
                   </tr>
                   <tr>
                     <td class="py-2 text-sm text-gray-700">Laba Bersih</td>
@@ -365,6 +366,7 @@
 <script>
 import { ref, onMounted } from 'vue'
 import api from '../../../services/api.js'
+import { useCompanyName } from '../../../composables/useCompanyName.js'
 
 export default {
   name: 'LaporanPosisiKeuangan',
@@ -374,6 +376,7 @@ export default {
     const loading = ref(false)
     const error = ref('')
     const showDetails = ref(false)
+    const { companyName } = useCompanyName()
 
     // Format number with thousand separator and 2 decimal places, handle negative values
     const formatNumber = (num) => {
@@ -571,8 +574,13 @@ export default {
               text-align: center;
               margin-bottom: 30px;
             }
-            .header h1 {
+            .header h2 {
               margin: 0;
+              font-size: 20px;
+              font-weight: bold;
+            }
+            .header h1 {
+              margin: 5px 0 0;
               font-size: 24px;
               font-weight: bold;
             }
@@ -672,6 +680,7 @@ export default {
         </head>
         <body>
           <div class="header">
+            <h2>${companyName.value}</h2>
             <h1>Laporan Posisi Keuangan</h1>
             <p>Periode: ${selectedYear.value}</p>
           </div>
@@ -865,6 +874,7 @@ export default {
       loadData,
       exportToPDF,
       showDetails,
+      companyName,
       // Dynamic field name functions
       getAsetSectionName,
       getAsetLancarName,

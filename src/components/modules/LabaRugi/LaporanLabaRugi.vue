@@ -3,7 +3,10 @@
     <!-- Header -->
     <div class="mb-6">
       <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold text-gray-900">LAPORAN LABA RUGI BULANAN</h1>
+        <div>
+          <h2 class="text-xl font-bold text-gray-900 mb-1">{{ companyName }}</h2>
+          <h1 class="text-2xl font-bold text-gray-900">LAPORAN LABA RUGI BULANAN</h1>
+        </div>
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
             <label class="text-sm font-medium text-gray-700">Bulan:</label>
@@ -230,6 +233,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '../../../services/api.js'
+import { useCompanyName } from '../../../composables/useCompanyName.js'
 
 const selectedYear = ref('2026')
 const selectedMonth = ref('all')
@@ -237,6 +241,8 @@ const neracaData = ref(null)
 const loading = ref(false)
 const error = ref('')
 const expandedMonths = ref([])
+
+const { companyName } = useCompanyName()
 
 // Computed
 const filteredData = computed(() => {
@@ -354,6 +360,7 @@ const exportToPDF = () => {
           body { font-family: Arial, sans-serif; margin: 20px; }
           .header { text-align: center; margin-bottom: 30px; }
           .header h1 { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+          .header h2 { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
           .header p { font-size: 14px; color: #666; }
           .month-section { margin-bottom: 50px; page-break-inside: avoid; }
           .month-title { background-color: #f3f4f6; padding: 10px; font-size: 16px; font-weight: bold; border-left: 5px solid #2563eb; margin-bottom: 15px; }
@@ -369,7 +376,8 @@ const exportToPDF = () => {
       </head>
       <body>
         <div class="header">
-          <h1>LAPORAN LABA RUGI BULANAN</h1>
+          <h1>${companyName.value}</h1>
+          <h2>LAPORAN LABA RUGI BULANAN</h2>
           <p>Tahun: ${selectedYear.value}</p>
         </div>
 

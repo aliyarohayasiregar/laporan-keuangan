@@ -2,6 +2,7 @@
   <div class="min-h-screen bg-gray-50 p-6">
     <!-- Header -->
     <div class="mb-8">
+      <h2 class="text-xl font-bold text-gray-800 mb-1">{{ companyName }}</h2>
       <h1 class="text-3xl font-bold text-gray-800 mb-2">Laporan Ekuitas</h1>
       <p class="text-gray-600">Laporan perubahan ekuitas pemilik</p>
     </div>
@@ -88,7 +89,8 @@
             <!-- Total Kenaikan - di kolom rincian, dengan garis bawah -->
             <tr class="bg-gray-100/80 border-t border-gray-300">
               <td class="py-3 px-4 pl-8 font-bold italic uppercase text-gray-800">Total Kenaikan</td>
-              <td class="py-3 px-4 text-right font-mono font-bold text-blue-700" style="border-bottom: 1px solid #374151;">
+              <td class="py-3 px-4 text-right font-mono font-bold text-blue-700"
+                style="border-bottom: 1px solid #374151;">
                 {{ formatNumber(data.total_kenaikan) }}
               </td>
               <td class="py-3 px-4"></td>
@@ -112,7 +114,8 @@
             <tr class="bg-gray-100/80 border-t border-gray-300">
               <td class="py-3 px-4 font-bold italic uppercase text-gray-800">Kenaikan Ekuitas Pemilik</td>
               <td class="py-3 px-4"></td>
-              <td class="py-3 px-4 text-right font-mono font-bold text-blue-700" style="border-bottom: 1px solid #374151;">
+              <td class="py-3 px-4 text-right font-mono font-bold text-blue-700"
+                style="border-bottom: 1px solid #374151;">
                 + {{ formatNumber(data.kenaikan_ekuitas_pemilik) }}
               </td>
             </tr>
@@ -165,6 +168,7 @@
 <script>
 import { ref, onMounted } from 'vue'
 import api from '../../../services/api.js'
+import { useCompanyName } from '../../../composables/useCompanyName.js'
 
 export default {
   name: 'LaporanEkuitas',
@@ -173,6 +177,7 @@ export default {
     const data = ref(null)
     const loading = ref(false)
     const error = ref('')
+    const { companyName } = useCompanyName()
 
     const formatNumber = (num) => {
       if (num === null || num === undefined || num === '') return '0,00'
@@ -249,7 +254,9 @@ export default {
           <title>Laporan Ekuitas - ${selectedYear.value}</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-            h1 { text-align: center; margin-bottom: 5px; color: #000; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .header h2 { margin: 0; font-size: 20px; font-weight: bold; }
+            .header h1 { margin: 5px 0 0; font-size: 24px; font-weight: bold; }
             .subtitle { text-align: center; margin-bottom: 25px; color: #666; font-size: 14px; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
             col.col-label { width: 45%; }
@@ -271,7 +278,10 @@ export default {
           </style>
         </head>
         <body>
-          <h1>LAPORAN EKUITAS</h1>
+          <div class="header">
+            <h2>${companyName.value}</h2>
+            <h1>LAPORAN EKUITAS</h1>
+          </div>
           <p class="subtitle">Periode: ${selectedYear.value}</p>
           <table>
             <colgroup>
@@ -344,7 +354,8 @@ export default {
       fieldToLabel,
       getFieldConfig,
       loadData,
-      exportToPDF
+      exportToPDF,
+      companyName
     }
   }
 }

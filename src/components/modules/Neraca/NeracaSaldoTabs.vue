@@ -5,6 +5,7 @@
       <div class="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 p-6 sm:p-8">
         <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6">
           <div class="flex-1">
+            <h2 class="text-xl sm:text-2xl font-bold text-white mb-1">{{ companyName }}</h2>
             <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">Neraca Saldo</h1>
             <!-- <p class="text-indigo-100 text-lg">Laporan neraca saldo sebelum penyesuaian</p> -->
           </div>
@@ -311,6 +312,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '../../../services/api.js'
+import { useCompanyName } from '../../../composables/useCompanyName.js'
 
 // Reactive data
 const selectedYear = ref(new Date().getFullYear())
@@ -320,6 +322,8 @@ const loading = ref(false)
 const error = ref(null)
 const neracaData = ref(null)
 const expandedMonths = ref([])
+
+const { companyName } = useCompanyName()
 
 // Methods
 const toggleMonth = (bulan) => {
@@ -481,7 +485,8 @@ const exportToPDF = () => {
           @page { size: landscape; margin: 3mm; }
           body { font-family: Arial, sans-serif; margin: 0; font-size: 4.5pt; color: #000; line-height: 1; }
           .header { text-align: center; margin-bottom: 8px; }
-          .header h1 { margin: 0; font-size: 10pt; text-transform: uppercase; }
+          .header h2 { margin: 0; font-size: 9pt; }
+          .header h1 { margin: 3px 0 0; font-size: 10pt; text-transform: uppercase; }
           .header p { margin: 2px 0 0; font-size: 7pt; }
           
           table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 0.2pt solid #000; }
@@ -505,6 +510,7 @@ const exportToPDF = () => {
       </head>
       <body>
         <div class="header">
+          <h2>${companyName.value}</h2>
           <h1>LAPORAN NERACA SALDO TAHUNAN</h1>
           <p>Tahun: ${neracaData.value.tahun} | Periode: ${getMonthName(startBulan.value)} - ${getMonthName(endBulan.value)}</p>
         </div>
