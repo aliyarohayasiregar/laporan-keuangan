@@ -176,11 +176,10 @@
                     </td>
                   </tr>
                   <tr v-if="el.properties.showTotals" class="bg-gray-100 font-semibold border-t-2 border-gray-800">
-                    <td :colspan="el.properties.columns.length - 2" class="border border-gray-800 px-1 text-right pr-4">
+                    <td :colspan="el.properties.columns.length - 1" class="border border-gray-800 px-1 text-right pr-4">
                       TOTAL
                     </td>
-                    <td class="border border-gray-800 px-1 text-right">{{ formatNumber(displayTotals.debit) }}</td>
-                    <td class="border border-gray-800 px-1 text-right">{{ formatNumber(displayTotals.kredit) }}</td>
+                    <td class="border border-gray-800 px-1 text-right">{{ formatNumber(displayTotals.total) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -236,10 +235,16 @@
             </div>
           </div>
 
-          <div v-if="hasTextProps">
+          <div v-if="hasTextProps && selectedElement.type !== 'title'">
             <label class="text-xs text-gray-500">Teks</label>
             <input v-model="selectedElement.properties.text" type="text"
               class="w-full px-2 py-1 border rounded text-xs" />
+          </div>
+          <div v-if="selectedElement.type === 'title'">
+            <label class="text-xs text-gray-500">Judul</label>
+            <input v-model="selectedElement.properties.text" type="text"
+              class="w-full px-2 py-1 border rounded text-xs bg-gray-100" disabled />
+            <p class="text-xs text-gray-400 mt-1">Judul akan otomatis diganti dengan nama jenis jurnal saat mencetak</p>
           </div>
 
           <div v-if="selectedElement.type === 'field'">
@@ -357,11 +362,10 @@
                       </td>
                     </tr>
                     <tr v-if="el.properties.showTotals" class="bg-gray-100 font-semibold border-t-2 border-black">
-                      <td :colspan="el.properties.columns.length - 2" class="border border-black px-1 text-right pr-4">
+                      <td :colspan="el.properties.columns.length - 1" class="border border-black px-1 text-right pr-4">
                         TOTAL
                       </td>
-                      <td class="border border-black px-1 text-right">{{ formatNumber(sampleData.total_debit) }}</td>
-                      <td class="border border-black px-1 text-right">{{ formatNumber(sampleData.total_kredit) }}</td>
+                      <td class="border border-black px-1 text-right">{{ formatNumber(sampleData.total) }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -434,13 +438,12 @@ const canvasStyle = computed(() => {
 })
 
 const displayRows = computed(() => previewData.value?.rows || [
-  { no: 1, deskripsi: '...', reff: 'COA Lawan', debit: 'xxx', kredit: '' },
-  { no: 2, deskripsi: '...', reff: 'COA Lawan', debit: '', kredit: 'xxx' }
+  { no: 1, deskripsi: '...', reff: 'COA Lawan', jumlah: 'xxx' },
+  { no: 2, deskripsi: '...', reff: 'COA Lawan', jumlah: 'xxx' }
 ])
 
 const displayTotals = computed(() => ({
-  debit: previewData.value?.total_debit || 'xxx',
-  kredit: previewData.value?.total_kredit || 'xxx'
+  total: previewData.value?.total || 'xxx'
 }))
 
 // Helper Methods
@@ -462,7 +465,7 @@ const createElement = (type) => {
     company_name: { x: 20, y: 5, width: 50, height: 6, properties: { fontSize: 14, fontWeight: 'bold' } },
     title: { x: 25, y: 15, width: 50, height: 6, properties: { text: 'VOUCHER', fontSize: 16, fontWeight: 'bold', align: 'center' } },
     field: { x: 5, y: 25, width: 40, height: 4, properties: { label: 'NO VOUCHER', fieldKey: 'no_voucher', fontSize: 12 } },
-    table: { x: 5, y: 35, width: 90, height: 30, properties: { columns: [{ key: 'no', label: 'NO', width: 8 }, { key: 'deskripsi', label: 'DESKRIPSI', width: 35 }, { key: 'reff', label: 'REFF', width: 25 }, { key: 'debit', label: 'D', width: 16 }, { key: 'kredit', label: 'K', width: 16 }], showTotals: true } },
+    table: { x: 5, y: 35, width: 90, height: 30, properties: { columns: [{ key: 'no', label: 'NO', width: 8 }, { key: 'deskripsi', label: 'DESKRIPSI', width: 35 }, { key: 'reff', label: 'REFF', width: 25 }, { key: 'jumlah', label: 'JUMLAH', width: 22 }], showTotals: true } },
     signature: { x: 5, y: 70, width: 20, height: 18, properties: { label: 'Dibuat Oleh' } },
     text: { x: 5, y: 50, width: 50, height: 4, properties: { text: 'Catatan...', fontSize: 12 } },
     line: { x: 5, y: 55, width: 90, height: 0.3, properties: {} }
@@ -562,7 +565,7 @@ const handleLogoUpload = async (event) => {
     saveMessage.value = 'Logo berhasil dipilih! Silakan simpan template.'
     setTimeout(() => saveMessage.value = '', 3000)
   }
-  reader.onerror = async(e) => {
+  reader.onerror = async (e) => {
     console.error('Gagal baca file:', e)
     await showError('Gagal membaca file logo!')
   }

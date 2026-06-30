@@ -93,7 +93,8 @@ const jenisJurnalOptions = [
   { value: 3, label: 'Bank Masuk' },
   { value: 4, label: 'Bank Keluar' },
   { value: 5, label: 'Adjustment/Pembalik' },
-  { value: 6, label: 'Ayat Silang' }
+  { value: 6, label: 'Ayat Silang' },
+  { value: 7, label: 'transaksi vendor/customer' }
 ]
 
 const resetForm = () => {

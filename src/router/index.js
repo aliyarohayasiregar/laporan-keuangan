@@ -50,6 +50,11 @@ const router = createRouter({
       component: () => import('../components/modules/Dashboard/Dashboard.vue')
     },
     {
+      path: '/vendor-customer',
+      name: 'vendor-customer',
+      component: () => import('../components/modules/Dashboard/Dashboard.vue')
+    },
+    {
       path: '/kelompok-akun',
       name: 'kelompok-akun',
       component: () => import('../components/modules/Dashboard/Dashboard.vue')

@@ -132,8 +132,7 @@ export const createDefaultTemplate = () => ({
           { key: 'no', label: 'NO', width: 8, sort_order: 1 },
           { key: 'deskripsi', label: 'DESKRIPSI', width: 35, sort_order: 2 },
           { key: 'reff', label: 'REFF', width: 25, sort_order: 3 },
-          { key: 'debit', label: 'D', width: 16, sort_order: 4 },
-          { key: 'kredit', label: 'K', width: 16, sort_order: 5 }
+          { key: 'jumlah', label: 'JUMLAH', width: 22, sort_order: 4 }
         ],
         showTotals: true
       }
@@ -150,11 +149,10 @@ export const getSampleVoucherData = () => ({
   tanggal: '11/06/2026',
   company_name: 'PT NAMA PERUSAHAAN',
   rows: [
-    { no: 1, deskripsi: 'Biaya Operasional', reff: '5-101', debit: 500000, kredit: 0 },
-    { no: 2, deskripsi: 'Kas', reff: '1-101', debit: 0, kredit: 500000 }
+    { no: 1, deskripsi: 'Biaya Operasional', reff: '5-101', jumlah: 500000 },
+    { no: 2, deskripsi: 'Kas', reff: '1-101', jumlah: 500000 }
   ],
-  total_debit: 500000,
-  total_kredit: 500000
+  total: 500000
 })
 
 // --- API Calls ---

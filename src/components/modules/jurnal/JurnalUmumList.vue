@@ -23,30 +23,38 @@
       </div>
     </div>
 
-    <!-- Selection Section -->
-    <div v-if="hasPermission('jurnal umum ', 'create')" class="bg-white rounded-lg shadow p-4">
-      <!-- Jenis Jurnal Cards -->
-      <div class="space-y-4">
-        <h3 class="text-lg font-medium text-gray-900">Pilih Jenis Jurnal</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="jenis in jenisJurnalOptions" :key="jenis.value" @click="handleSelectJenisJurnal(jenis)"
-            class="bg-white border border-gray-200 rounded-xl p-6 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 relative group">
-            <div class="flex flex-col h-full">
-              <div class="flex justify-between items-start mb-2">
-                <h4 class="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors">{{ jenis.label }}</h4>
-                <span class="text-3xl font-black text-blue-100 group-hover:text-blue-500 transition-colors">{{ jenis.value }}</span>
-              </div>
-              <p class="text-sm text-gray-500 mb-6 flex-grow">{{ jenis.description }}</p>
-              <button
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-[0.98]">
-                Tambah {{ jenis.label }}
-              </button>
-            </div>
+<!-- Selection Section -->
+<div v-if="hasPermission('jurnal umum ', 'create')" class="bg-white rounded-lg shadow">
+  <!-- Toggle Header -->
+  <button @click="showJenisJurnalSection = !showJenisJurnalSection"
+    class="w-full flex items-center justify-center gap-2 px-4 py-4 text-sm font-bold text-gray-600 uppercase tracking-wide hover:bg-gray-50 transition-colors duration-200 rounded-lg">
+    Pilih Jenis Jurnal
+    <svg :class="['w-4 h-4 transition-transform duration-200', showJenisJurnalSection ? 'rotate-180' : '']"
+      fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+    </svg>
+  </button>
+
+  <!-- Jenis Jurnal Cards -->
+  <div v-show="showJenisJurnalSection" class="px-4 pb-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div v-for="jenis in jenisJurnalOptions" :key="jenis.value" @click="handleSelectJenisJurnal(jenis)"
+        class="bg-white border border-gray-200 rounded-xl p-6 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-300 relative group">
+        <div class="flex flex-col h-full">
+          <div class="flex justify-between items-start mb-2">
+            <h4 class="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors">{{ jenis.label }}</h4>
+            <span class="text-3xl font-black text-blue-100 group-hover:text-blue-500 transition-colors">{{ jenis.value }}</span>
           </div>
+          <p class="text-sm text-gray-500 mb-6 flex-grow">{{ jenis.description }}</p>
+          <button
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-[0.98]">
+            Tambah {{ jenis.label }}
+          </button>
         </div>
       </div>
     </div>
-
+  </div>
+</div>
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -212,6 +220,8 @@ import ViewJurnalUmum from './ViewJurnalUmum.vue'
 import ViewKeteranganJurnal from './ViewKeteranganJurnal.vue'
 
 const hasPermission = inject('hasPermission', () => true)
+
+const showJenisJurnalSection = ref(false)
 
 const jurnals = ref([])
 const namaAkunOptions = ref([])

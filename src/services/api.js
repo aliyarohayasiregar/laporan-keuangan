@@ -689,6 +689,29 @@ class KartuStokAPI {
     return this.request('/getAllTemplateVoucher', {}, 'vb')
   }
 
+  // Vendor & Customer API Methods
+  async createVendorCustomer(data) {
+    return this.request('/createNamaVendorCustomer', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }, 'ju')
+  }
+
+  async getAllVendor() {
+    return this.request('/getDaftarVendor', {}, 'ju')
+  }
+
+  async getAllCustomer() {
+    return this.request('/getDaftarCustomer', {}, 'ju')
+  }
+
+  async editVendorCustomer(id, jenis, data) {
+    return this.request(`/editNamaVendorCustomer/${id}/${jenis}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }, 'ju')
+  }
+
 }
 
 import { ref } from 'vue'

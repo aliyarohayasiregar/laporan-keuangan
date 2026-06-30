@@ -96,9 +96,9 @@
             Daftar Akun
           </router-link>
 
-          
 
-        
+
+
 
 
 
@@ -279,6 +279,20 @@
               </path>
             </svg>
             Template Voucher
+          </router-link>
+
+          <router-link v-if="hasPermission('manajemen vendor dan customer')" to="/vendor-customer" :class="[
+            'w-full text-left px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-3',
+            route.name === 'vendor-customer'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-700 hover:bg-gray-100'
+          ]">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-3-3H5a3 3 0 00-3 3v2M12 7a4 4 0 100-8 4 4 0 000 8zM12 3a1 1 0 100-2 1 1 0 000 2zM12 9a2 2 0 100-4 2 2 0 000 4zM12 13a1 1 0 100 2 1 1 0 000-2z">
+              </path>
+            </svg>
+            Vendor & Customer
           </router-link>
 
           <router-link v-if="hasPermission('user management')" to="/user-management" :class="[
@@ -469,6 +483,11 @@
           <TemplateVoucherBuilder />
         </div>
 
+        <!-- Vendor & Customer Page -->
+        <div v-else-if="route.name === 'vendor-customer'">
+          <VendorCustomer />
+        </div>
+
         <!-- Kelompok Akun Page -->
         <div v-else-if="route.name === 'kelompok-akun'">
           <KelompokAkun />
@@ -600,6 +619,7 @@ import RoleManagement from '../Role/RoleManagement.vue'
 import ApprovalWorkflow from '../approval/ApprovalWorkflow.vue'
 import ModulManagement from '../Modul/ModulManagement.vue'
 import RegistrasiApproval from '../UserManajement/RegistrasiApproval.vue'
+import VendorCustomer from '../VendorCustomer/VendorCustomer.vue'
 import kartuStokAPI from '../../../services/api.js'
 
 // Router and route instances

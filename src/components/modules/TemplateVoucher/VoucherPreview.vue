@@ -14,6 +14,7 @@
         <div v-else-if="['company_name', 'title', 'text'].includes(el.type)" :style="textStyle(el.properties)"
           class="w-full h-full flex items-center overflow-hidden">
           <span v-if="el.type === 'company_name'">{{ template.company_name }}</span>
+          <span v-else-if="el.type === 'title'">{{ voucherData.jenis_jurnal_label || el.properties.text }}</span>
           <span v-else>{{ el.properties.text }}</span>
         </div>
 
@@ -43,15 +44,14 @@
               <tr v-for="(row, idx) in voucherData.rows" :key="idx" class="border-b border-gray-300">
                 <td v-for="col in (el.properties.columns || [])" :key="col.key" :style="{ width: `${col.width}%` }"
                   class="border border-gray-400 px-2 py-1 text-center">
-                  {{ row[col.key] }}
+                  {{ col.key === 'jumlah' ? formatNumber(row[col.key]) : row[col.key] }}
                 </td>
               </tr>
               <tr v-if="el.properties.showTotals === true || el.properties.showTotals === 'true'"
                 class="bg-gray-100 font-semibold border-t-2 border-black">
-                <td :colspan="(el.properties.columns?.length || 2) - 2"
+                <td :colspan="(el.properties.columns?.length || 2) - 1"
                   class="border border-black px-2 py-1 text-right pr-4">TOTAL</td>
-                <td class="border border-black px-2 py-1 text-right">{{ formatNumber(voucherData.total_debit) }}</td>
-                <td class="border border-black px-2 py-1 text-right">{{ formatNumber(voucherData.total_kredit) }}</td>
+                <td class="border border-black px-2 py-1 text-right">{{ formatNumber(voucherData.total) }}</td>
               </tr>
             </tbody>
           </table>

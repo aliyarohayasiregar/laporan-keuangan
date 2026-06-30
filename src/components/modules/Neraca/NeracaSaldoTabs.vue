@@ -389,9 +389,24 @@ const loadNeracaSaldo = async () => {
       neracaData.value = null
     }
   } catch (err) {
-    console.error('Error loading neraca saldo:', err)
-    error.value = 'Terjadi kesalahan saat memuat data: ' + err.message
-    neracaData.value = null
+  console.error('Error loading neraca saldo:', err)
+
+  // Coba ambil pesan error yang lebih bersih dari response API
+  let cleanMessage = 'Terjadi kesalahan saat memuat data'
+  try {
+    // err.message biasanya berbentuk: "HTTP error! status: 400 - {...json...}"
+    const jsonPart = err.message.substring(err.message.indexOf('{'))
+    const parsed = JSON.parse(jsonPart)
+    if (parsed.message) {
+      cleanMessage = parsed.message
+    }
+  } catch (parseErr) {
+    // kalau gagal parse, fallback ke message asli tanpa embel-embel JSON
+    cleanMessage = err.message || cleanMessage
+  }
+
+  error.value = cleanMessage
+  neracaData.value = null
 
     // Fallback data for demonstration
     neracaData.value = {
