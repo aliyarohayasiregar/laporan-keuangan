@@ -2,7 +2,7 @@
   <div class="p-6 bg-white rounded-lg shadow-lg">
     <!-- Header -->
     <div class="mb-6 text-center">
-      <h2 class="text-xl font-bold text-gray-800 mb-1">{{ companyName }}</h2>
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">{{ companyName }}</h2>
       <h1 class="text-2xl font-bold text-gray-800 mb-2">Neraca</h1>
       <p class="text-gray-600">Periode: {{ selectedYear }}</p>
     </div>

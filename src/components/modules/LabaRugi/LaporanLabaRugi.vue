@@ -4,7 +4,7 @@
     <div class="mb-6">
       <div class="flex justify-between items-center mb-4">
         <div>
-          <h2 class="text-xl font-bold text-gray-900 mb-1">{{ companyName }}</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ companyName }}</h2>
           <h1 class="text-2xl font-bold text-gray-900">LAPORAN LABA RUGI BULANAN</h1>
         </div>
         <div class="flex items-center gap-4">

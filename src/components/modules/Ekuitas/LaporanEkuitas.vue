@@ -2,7 +2,6 @@
   <div class="min-h-screen bg-gray-50 p-6">
     <!-- Header -->
     <div class="mb-8">
-      <h2 class="text-xl font-bold text-gray-800 mb-1">{{ companyName }}</h2>
       <h1 class="text-3xl font-bold text-gray-800 mb-2">Laporan Ekuitas</h1>
       <p class="text-gray-600">Laporan perubahan ekuitas pemilik</p>
     </div>
@@ -41,6 +40,7 @@
       <div class="bg-white rounded-lg shadow-lg p-6">
         <!-- Report Header -->
         <div class="text-center mb-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-1">{{ companyName }}</h2>
           <h1 class="text-xl font-bold text-gray-800 mb-2">LAPORAN EKUITAS</h1>
           <p class="text-sm text-gray-600">Periode: {{ selectedYear }}</p>
         </div>
