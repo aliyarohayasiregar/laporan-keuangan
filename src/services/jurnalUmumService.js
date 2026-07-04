@@ -26,19 +26,21 @@ class JurnalUmumService {
   // Untuk jenis jurnal 7: tambah kategoriJenis, bulan, tahun
   async getAkunDefault(noJenisJurnal, noBukti, kategoriJenis = null, bulan = null, tahun = null) {
     try {
-      let url = `/akunDefault?no_jenis_jurnal=${noJenisJurnal}&no_bukti=${encodeURIComponent(noBukti)}`
-
+      let url = `/akunDefault?no_jenis_jurnal=${noJenisJurnal}`
+  
+      // Hanya tambah no_bukti kalau ada nilainya
+      if (noBukti) url += `&no_bukti=${encodeURIComponent(noBukti)}`
       if (bulan) url += `&bulan=${bulan}`
       if (tahun) url += `&tahun=${tahun}`
       if (kategoriJenis) url += `&kategori_jenis=${kategoriJenis}`
-
+  
       return await api.request(url, {}, 'ju')
     } catch (error) {
       console.error('Error fetching akun default:', error)
       throw error
     }
   }
-
+  
   async generateNoBuktiByAkun(payload) {
     try {
       return await api.request('/generateNoBuktiByAkun', {

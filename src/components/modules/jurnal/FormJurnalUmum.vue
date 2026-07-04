@@ -36,7 +36,7 @@
                   :disabled="isLoadingNomorBukti || isEdit || isGeneratingNoBukti || !formData.tanggal">
                   <option value="">Pilih No. Voucher</option>
                   <option v-for="voucher in filteredNomorBuktiList" :key="voucher.kode" :value="voucher.kode">
-                    {{ voucher.kode }} {{ voucher.kelompok_jurnal ? `(Grup ${voucher.kelompok_jurnal})` : '' }}
+                    {{ voucher.kode }} {{ voucher.kelompok_jurnal ? `` : '' }}
                   </option>
                 </select>
                 <p v-if="isLoadingNomorBukti || isGeneratingNoBukti || !formData.tanggal"
@@ -1022,9 +1022,8 @@ const selectAkun = async (index, akun, isSilang = false) => {
     return
   }
 
-  if (index === 1) {
-    await generateNoBuktiBySelectedAkun(false)
-  }
+  
+
 }
 
 const addDetail = (isSilang = false) => {
@@ -1058,6 +1057,62 @@ watch(activeAccountGroup, (newGroup) => {
   }
 })
 
+const autoInitTanpaLawan = async (jenis) => {
+  if (!formData.value.tanggal) return
+  try {
+    // pastikan daftar kode bukti (template) sudah ada
+    if (nomorBuktiList.value.length === 0) {
+      await fetchNomorBuktiList()
+    }
+
+    // cari kode template yang sesuai jenis jurnal ini
+    const matchingBukti = nomorBuktiList.value.find(
+      v => String(v.kelompok_jurnal) === String(jenis)
+    )
+    if (!matchingBukti) {
+      console.warn(`Tidak ada kode no_bukti terdaftar untuk jenis jurnal ${jenis}`)
+      return
+    }
+
+    const tanggalParts = formData.value.tanggal.split('-')
+    const res = await jurnalUmumService.getAkunDefault(
+      jenis,
+      matchingBukti.kode,           // ← ini yang tadinya null, sekarang diisi kode template
+      null,
+      parseInt(tanggalParts[1]),
+      parseInt(tanggalParts[0])
+    )
+    if (!res.success) {
+      console.warn('getAkunDefault gagal:', res.message)
+      return
+    }
+
+    akunDefault.value = res.data
+    applyAkunDefault()
+
+    const akunId = res.data.id_akun
+    const tanggal = getTanggalPayload()
+    if (!akunId || !tanggal) return
+
+    isGeneratingNoBukti.value = true
+    const genRes = await jurnalUmumService.generateNoBuktiByAkun({
+      no_jenis_jurnal: parseInt(jenis),
+      akun_id: parseInt(akunId),
+      tanggal
+    })
+    if (genRes.success) {
+      formData.value.no_bukti = genRes.no_bukti_full || ''
+    } else {
+      console.warn('generateNoBuktiByAkun gagal:', genRes.message)
+    }
+  } catch (err) {
+    console.error('Error auto init jenis 1/2/3/4:', err)
+  } finally {
+    isGeneratingNoBukti.value = false
+  }
+}
+
+
 watch(selectedJenisJurnal, async (newJenis) => {
   if (!isEdit.value) {
     initializeDetailsForJenis(newJenis)
@@ -1070,8 +1125,12 @@ watch(selectedJenisJurnal, async (newJenis) => {
     if (newJenis == 5 && selectedNoBukti.value) {
       await fetchAkunDefault(newJenis, selectedNoBukti.value)
     }
+    if (['1', '2', '3', '4'].includes(String(newJenis)) && formData.value.tanggal) {
+      await autoInitTanpaLawan(newJenis)
+    }
   }
 })
+
 
 const fetchNomorBuktiList = async () => {
   isLoadingNomorBukti.value = true
@@ -1107,8 +1166,6 @@ const fetchAkunDefault = async (jenis, bukti) => {
     }
   } catch (err) { console.error(err) }
 }
-
-
 
 
 const applyAkunDefault = () => {
@@ -1217,7 +1274,60 @@ const handleKategoriJenisChange = async () => {
   initializeDetailsForJenis(7)
   if (!selectedKategoriJenis.value) return
   await fetchDaftarVendorCustomer()
+
+  try {
+    // pastikan daftar kode bukti (template) sudah ada
+    if (nomorBuktiList.value.length === 0) {
+      await fetchNomorBuktiList()
+    }
+
+    // cari kode template yang sesuai jenis jurnal 7
+    const matchingBukti = nomorBuktiList.value.find(
+      v => String(v.kelompok_jurnal) === '7'
+    )
+    if (!matchingBukti) {
+      console.warn('Tidak ada kode no_bukti terdaftar untuk jenis jurnal 7')
+      return
+    }
+
+    const tanggalParts = formData.value.tanggal.split('-')
+    const res = await jurnalUmumService.getAkunDefault(
+      7,
+      matchingBukti.kode,           // ← diisi kode template, bukan null lagi
+      selectedKategoriJenis.value,
+      parseInt(tanggalParts[1]),
+      parseInt(tanggalParts[0])
+    )
+    if (!res.success) {
+      console.warn('getAkunDefault jenis 7 gagal:', res.message)
+      return
+    }
+    akunDefault.value = res.data
+    applyAkunDefault()
+
+    const akunId = res.data.id_akun || res.data.id || res.data.akun_id
+    const tanggal = getTanggalPayload()
+    if (!akunId || !tanggal) return
+
+    isGeneratingNoBukti.value = true
+    const genRes = await jurnalUmumService.generateNoBuktiByAkun({
+      no_jenis_jurnal: 7,
+      akun_id: parseInt(akunId),
+      tanggal,
+      kategori_jenis: parseInt(selectedKategoriJenis.value)
+    })
+    if (genRes.success) {
+      formData.value.no_bukti = genRes.no_bukti_full || ''
+    } else {
+      console.warn('generateNoBuktiByAkun jenis 7 gagal:', genRes.message)
+    }
+  } catch (err) {
+    console.error('Error auto init jenis 7:', err)
+  } finally {
+    isGeneratingNoBukti.value = false
+  }
 }
+
 
 const openVoucherPreview = async () => {
   isLoadingTemplate.value = true
@@ -1392,8 +1502,7 @@ const resetForm = () => {
   resetVendorCustomerState() // NEW
 }
 
-watch(() => props.showModal, (newVal) => {
-  if (newVal) {
+watch(() => props.showModal, async (newVal) => {  if (newVal) {
     fetchNomorBuktiList()
     if (isEdit.value && props.editItem) {
       formData.value = {
@@ -1440,7 +1549,16 @@ watch(() => props.showModal, (newVal) => {
       resetForm()
       selectedJenisJurnal.value = String(props.preselectedData.jenis_jurnal)
     }
-  }
+  } else if (props.preselectedData) {
+      resetForm()
+      const jenis = String(props.preselectedData.jenis_jurnal)
+      selectedJenisJurnal.value = jenis
+      await nextTick()
+      if (['1', '2', '3', '4'].includes(jenis) && formData.value.tanggal) {
+        await autoInitTanpaLawan(jenis)
+      }
+    }
+  
 }, { immediate: true })
 
 watch(() => props.namaAkunOptions, (newOptions) => {
