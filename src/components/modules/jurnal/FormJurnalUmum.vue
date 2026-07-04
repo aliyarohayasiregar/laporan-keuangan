@@ -28,45 +28,56 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Nomor Voucher *</label>
-              <select v-model="selectedNoBukti" @change="handleNoBuktiChange"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                :disabled="isLoadingNomorBukti || isEdit || isGeneratingNoBukti || !formData.tanggal">
-                <option value="">Pilih No. Voucher</option>
-                <option v-for="voucher in filteredNomorBuktiList" :key="voucher.kode" :value="voucher.kode">
-                  {{ voucher.kode }} {{ voucher.kelompok_jurnal ? `(Grup ${voucher.kelompok_jurnal})` : '' }}
-                </option>
-              </select>
-              <p v-if="isLoadingNomorBukti || isGeneratingNoBukti || !formData.tanggal"
-                class="text-xs text-blue-500 mt-1">
-                {{ !formData.tanggal ? 'Pilih tanggal terlebih dahulu' : (isLoadingNomorBukti ? 'Memuat data voucher...'
+            <template v-if="selectedJenisJurnal == 5">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Nomor Voucher *</label>
+                <select v-model="selectedNoBukti" @change="handleNoBuktiChange"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  :disabled="isLoadingNomorBukti || isEdit || isGeneratingNoBukti || !formData.tanggal">
+                  <option value="">Pilih No. Voucher</option>
+                  <option v-for="voucher in filteredNomorBuktiList" :key="voucher.kode" :value="voucher.kode">
+                    {{ voucher.kode }} {{ voucher.kelompok_jurnal ? `(Grup ${voucher.kelompok_jurnal})` : '' }}
+                  </option>
+                </select>
+                <p v-if="isLoadingNomorBukti || isGeneratingNoBukti || !formData.tanggal"
+                  class="text-xs text-blue-500 mt-1">
+                  {{ !formData.tanggal ? 'Pilih tanggal terlebih dahulu' : (isLoadingNomorBukti ? 'Memuat data voucher...'
                   : 'Generating nomor bukti...') }}
-              </p>
-            </div>
+                </p>
+              </div>
 
-            <div v-if="selectedJenisJurnal != 6">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Bukti</label>
-              <input :value="formData.no_bukti" type="text" readonly
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
-                :placeholder="isGeneratingNoBukti ? 'Generating...' : ''" />
-            </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Bukti</label>
+                <input :value="formData.no_bukti" type="text" readonly
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
+                  :placeholder="isGeneratingNoBukti ? 'Generating...' : ''" />
+              </div>
+            </template>
 
-            <!-- Pilih Nomor Voucher Tujuan (khusus jenis jurnal 6) -->
-            <div v-else>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Nomor Voucher Tujuan *</label>
-              <select v-model="selectedNoBuktiTujuan" @change="handleNoBuktiTujuanChange"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                :disabled="isLoadingNomorBukti || isEdit || isGeneratingNoBukti || !selectedNoBukti">
-                <option value="">Pilih No. Voucher Tujuan</option>
-                <option v-for="voucher in filteredNomorBuktiList" :key="voucher.kode" :value="voucher.kode">
-                  {{ voucher.kode }} {{ voucher.kelompok_jurnal ? `(Grup ${voucher.kelompok_jurnal})` : '' }}
-                </option>
-              </select>
-              <p v-if="!selectedNoBukti" class="text-xs text-blue-500 mt-1">
-                Pilih Nomor Voucher Jurnal 1 terlebih dahulu
-              </p>
-            </div>
+            <template v-else-if="selectedJenisJurnal == 6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Bukti Jurnal 1</label>
+                <input :value="formData.no_bukti" type="text" readonly
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
+                  :placeholder="isGeneratingNoBukti ? 'Generating...' : 'Akan digenerate otomatis setelah pilih akun jurnal 1'" />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Bukti Jurnal 2</label>
+                <input :value="formData.no_bukti_silang" type="text" readonly
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-green-700"
+                  :placeholder="isGeneratingNoBukti ? 'Generating...' : 'Akan digenerate otomatis setelah pilih akun jurnal 2'" />
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Bukti</label>
+                <input :value="formData.no_bukti" type="text" readonly
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
+                  :placeholder="isGeneratingNoBukti ? 'Generating...' : 'Akan digenerate otomatis setelah pilih akun'" />
+              </div>
+            </template>
           </div>
 
           <!-- Dropdown Kategori Jenis (khusus jenis jurnal 7) -->
@@ -74,14 +85,14 @@
             <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Transaksi *</label>
             <select v-model="selectedKategoriJenis" @change="handleKategoriJenisChange"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              :disabled="!formData.no_bukti || isEdit">
+              :disabled="isEdit">
               <option value="">Pilih Kategori Transaksi</option>
               <option v-for="k in kategoriJenisOptions" :key="k.value" :value="k.value">
                 {{ k.label }}
               </option>
             </select>
-            <p v-if="!formData.no_bukti" class="text-xs text-blue-500 mt-1">
-              Pilih Nomor Voucher terlebih dahulu
+            <p v-if="!selectedKategoriJenis" class="text-xs text-blue-500 mt-1">
+              Pilih kategori transaksi terlebih dahulu sebelum memilih akun
             </p>
           </div>
 
@@ -94,7 +105,8 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               :disabled="isLoadingVendorCustomer || isEdit">
               <option value="">
-                {{ isLoadingVendorCustomer ? 'Memuat data...' : `Pilih Nama ${isKategoriVendor ? 'Vendor' : 'Customer'}` }}
+                {{ isLoadingVendorCustomer ? 'Memuat data...' : `Pilih Nama ${isKategoriVendor ? 'Vendor' : 'Customer'}`
+                }}
               </option>
               <option v-for="v in daftarVendorCustomer" :key="v.id" :value="v.id">
                 {{ v.nama }}
@@ -169,10 +181,8 @@
                       <tr v-for="(detail, index) in formData.details" :key="index">
                         <td class="px-4 py-2">
                           <div class="relative inline-block w-full">
-                            <div v-if="index === 0 && showAkunDefaultRow">
-                              <input
-                                :value="akunDefault.debet ? `${akunDefault.debet.kode_akun} - ${akunDefault.debet.nama_akun}` : getAkunDefaultText()"
-                                type="text" readonly
+                            <div v-if="index === 0">
+                              <input :value="getAyatSilangDebitText()" type="text" readonly
                                 class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" />
                             </div>
                             <div v-else class="relative inline-block w-full">
@@ -184,14 +194,16 @@
                                   <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7"></path>
+                                      d="M19 9l-7 7-7-7">
+                                    </path>
                                   </svg>
                                 </div>
                                 <div v-else class="flex items-center justify-between text-gray-500">
                                   <span>Pilih akun...</span>
                                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7"></path>
+                                      d="M19 9l-7 7-7-7">
+                                    </path>
                                   </svg>
                                 </div>
                               </div>
@@ -241,8 +253,7 @@
                             placeholder="0" />
                         </td>
                         <td class="px-4 py-2 text-center">
-                          <button type="button" @click="removeDetail(index)"
-                            :disabled="showAkunDefaultRow && index === 0"
+                          <button type="button" @click="removeDetail(index)" :disabled="index === 0"
                             class="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -324,10 +335,8 @@
                       <tr v-for="(detail, index) in formData.details_silang" :key="index">
                         <td class="px-4 py-2">
                           <div class="relative inline-block w-full">
-                            <div v-if="index === 1 && showAkunDefaultRow">
-                              <input
-                                :value="akunDefault.kredit ? `${akunDefault.kredit.kode_akun} - ${akunDefault.kredit.nama_akun}` : getAkunDefaultText()"
-                                type="text" readonly
+                            <div v-if="index === 1">
+                              <input :value="getAyatSilangKreditText()" type="text" readonly
                                 class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" />
                             </div>
                             <div v-else class="relative inline-block w-full">
@@ -339,14 +348,16 @@
                                   <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7"></path>
+                                      d="M19 9l-7 7-7-7">
+                                    </path>
                                   </svg>
                                 </div>
                                 <div v-else class="flex items-center justify-between text-gray-500">
                                   <span>Pilih akun...</span>
                                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7"></path>
+                                      d="M19 9l-7 7-7-7">
+                                    </path>
                                   </svg>
                                 </div>
                               </div>
@@ -398,8 +409,7 @@
                             placeholder="0" />
                         </td>
                         <td class="px-4 py-2 text-center">
-                          <button type="button" @click="removeDetail(index, true)"
-                            :disabled="showAkunDefaultRow && index === 1"
+                          <button type="button" @click="removeDetail(index, true)" :disabled="index === 1"
                             class="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -461,8 +471,8 @@
                     <td class="px-4 py-2">
                       <div class="relative inline-block w-full">
                         <!-- Baris akun fixed (Kas/Persediaan/Penjualan/Utang/Piutang induk), berlaku untuk semua jenis termasuk 7 -->
-                        <div v-if="index === 0 && showAkunDefaultRow">
-                          <input :value="getAkunDefaultText()" type="text" readonly
+                        <div v-if="index === 0 && shouldShowLockedDefaultRow">
+                          <input :value="getPrimaryDefaultText()" type="text" readonly
                             class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" />
                         </div>
                         <div v-else class="relative inline-block w-full">
@@ -529,7 +539,8 @@
                         placeholder="0" />
                     </td>
                     <td class="px-4 py-2 text-center">
-                      <button type="button" @click="removeDetail(index)" :disabled="showAkunDefaultRow && index === 0"
+                      <button type="button" @click="removeDetail(index)"
+                        :disabled="shouldShowLockedDefaultRow && index === 0"
                         class="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -778,6 +789,9 @@ const filteredNomorBuktiList = computed(() => {
   return nomorBuktiList.value.filter(v => String(v.kelompok_jurnal) === activeAccountGroup.value)
 })
 
+const usesManualVoucherSelection = computed(() => String(selectedJenisJurnal.value) === '5')
+const usesAutoNoBuktiGeneration = computed(() => !!selectedJenisJurnal.value && !usesManualVoucherSelection.value)
+const shouldShowLockedDefaultRow = computed(() => !!selectedJenisJurnal.value && selectedJenisJurnal.value != 5 && selectedJenisJurnal.value != 6)
 const showAkunDefaultRow = computed(() => akunDefault.value && selectedJenisJurnal.value != 5)
 
 const formatNumber = (num) => {
@@ -790,6 +804,21 @@ const formatNumber = (num) => {
 const formatNumberInput = (val) => val ? val.toString().replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.') : ''
 const parseNumberInput = (val) => val ? parseFloat(val.toString().replace(/\./g, '')) || 0 : 0
 
+const getTanggalPayload = () => {
+  if (!formData.value.tanggal) return null
+  const [tahun, bulan, tanggal] = formData.value.tanggal.split('-')
+  if (!tahun || !bulan || !tanggal) return null
+  return parseInt(`${tanggal}${bulan}${tahun}`)
+}
+
+const getExpectedDefaultPosisi = () => {
+  const jenis = String(selectedJenisJurnal.value || '')
+  if (['1', '3'].includes(jenis)) return 'debet'
+  if (['2', '4'].includes(jenis)) return 'kredit'
+  if (jenis === '7' && akunDefault.value?.posisi_akun) return akunDefault.value.posisi_akun
+  return akunDefault.value?.posisi_akun || null
+}
+
 const getAkunDefaultText = () => {
   if (!akunDefault.value) return ''
   if (selectedJenisJurnal.value == 6 && akunDefault.value.debet) {
@@ -798,20 +827,35 @@ const getAkunDefaultText = () => {
   return `${akunDefault.value.kode_akun || akunDefault.value.kode} - ${akunDefault.value.nama_akun}`
 }
 
-const shouldDisableDebit = (index, prefix = '') => {
-  if (selectedJenisJurnal.value != 6) {
-    const key = prefix === '' ? index : `${prefix}${index}`
-    const selectedAccount = selectedAkun.value[key]
-    if (index === 0 && showAkunDefaultRow.value) {
-      return akunDefault.value?.posisi_akun === 'kredit'
-    }
-    if (selectedAccount) {
-      return selectedAccount.posisi_akun === 'kredit'
-    }
-    return false
+const getPrimaryDefaultText = () => {
+  return getAkunDefaultText() || 'Akun default akan otomatis terisi setelah pilih akun'
+}
+
+const getAyatSilangDebitText = () => {
+  if (akunDefault.value?.debet) {
+    return `${akunDefault.value.debet.kode_akun} - ${akunDefault.value.debet.nama_akun}`
   }
-  if (prefix === '') return index === 1
-  else return index === 1
+  return 'Akun ayat silang debit akan otomatis terisi'
+}
+
+const getAyatSilangKreditText = () => {
+  if (akunDefault.value?.kredit) {
+    return `${akunDefault.value.kredit.kode_akun} - ${akunDefault.value.kredit.nama_akun}`
+  }
+  return 'Akun ayat silang kredit akan otomatis terisi'
+}
+
+const shouldDisableDebit = (index, prefix = '') => {
+  if (selectedJenisJurnal.value == 6) return index === 1
+  const key = prefix === '' ? index : `${prefix}${index}`
+  const selectedAccount = selectedAkun.value[key]
+  if (index === 0 && shouldShowLockedDefaultRow.value) {
+    return getExpectedDefaultPosisi() === 'kredit'
+  }
+  if (selectedAccount) {
+    return selectedAccount.posisi_akun === 'kredit'
+  }
+  return false
 }
 
 const shouldDisableKredit = (index, prefix = '') => {
@@ -820,8 +864,8 @@ const shouldDisableKredit = (index, prefix = '') => {
   }
   const key = prefix === '' ? index : `${prefix}${index}`
   const selectedAccount = selectedAkun.value[key]
-  if (index === 0 && showAkunDefaultRow.value) {
-    return akunDefault.value?.posisi_akun === 'debet'
+  if (index === 0 && shouldShowLockedDefaultRow.value) {
+    return getExpectedDefaultPosisi() === 'debet'
   }
   if (selectedAccount) {
     return selectedAccount.posisi_akun === 'debet'
@@ -846,7 +890,119 @@ const toggleAkunCard = (index, isSilang = false) => {
 
 const closeAkunCard = (key) => { showAkunCard.value[key] = false }
 
-const selectAkun = (index, akun, isSilang = false) => {
+const createEmptyDetail = () => ({ akun_id: '', debit: 0, kredit: 0 })
+
+const resetDetailSelections = () => {
+  searchQueries.value = {}
+  selectedAkun.value = {}
+  showAkunCard.value = {}
+}
+
+const initializeDetailsForJenis = (jenis = selectedJenisJurnal.value) => {
+  const jenisValue = String(jenis || '')
+  akunDefault.value = null
+  formData.value.no_bukti = ''
+  formData.value.no_bukti_silang = ''
+  resetDetailSelections()
+
+  if (jenisValue === '6') {
+    formData.value.details = [createEmptyDetail(), createEmptyDetail()]
+    formData.value.details_silang = [createEmptyDetail(), createEmptyDetail()]
+    return
+  }
+
+  formData.value.details_silang = []
+  if (jenisValue === '5') {
+    formData.value.details = [createEmptyDetail()]
+    return
+  }
+
+  formData.value.details = [createEmptyDetail(), createEmptyDetail()]
+}
+
+const findAkunFromOptions = (data) => {
+  const code = (data?.kode_akun || data?.kode || '').toString().trim()
+  const found = props.namaAkunOptions.find(a => (a.kode_akun || a.kode || '').toString().trim() === code)
+  return {
+    id: found?.id || found?.id_akun || found?.akun_id || found?.id_nama_akun || data?.id || data?.id_akun || data?.akun_id,
+    akun: found || { kode_akun: code, nama_akun: data?.nama_akun, posisi_akun: data?.posisi_akun }
+  }
+}
+
+const getNoBuktiPayloadByAkun = (isSilang = false) => {
+  if (!usesAutoNoBuktiGeneration.value) return null
+  const tanggal = getTanggalPayload()
+  if (!tanggal) return null
+
+  const jenis = Number(selectedJenisJurnal.value)
+  if (!jenis) return null
+
+  if (jenis === 6) {
+    const akunId = isSilang ? formData.value.details_silang[0]?.akun_id : formData.value.details[1]?.akun_id
+    if (!akunId) return null
+    return {
+      no_jenis_jurnal: 6,
+      akun_id: parseInt(akunId),
+      tanggal,
+      urutan_transaksi: isSilang ? 2 : 1
+    }
+  }
+
+  if (jenis === 7 && !selectedKategoriJenis.value) return null
+
+  const akunId = formData.value.details[1]?.akun_id
+  if (!akunId) return null
+
+  const payload = {
+    no_jenis_jurnal: jenis,
+    akun_id: parseInt(akunId),
+    tanggal
+  }
+
+  if (jenis === 7) {
+    payload.kategori_jenis = parseInt(selectedKategoriJenis.value)
+  }
+
+  return payload
+}
+
+const generateNoBuktiBySelectedAkun = async (isSilang = false) => {
+  const payload = getNoBuktiPayloadByAkun(isSilang)
+  if (!payload) return
+
+  isGeneratingNoBukti.value = true
+  try {
+    const res = await jurnalUmumService.generateNoBuktiByAkun(payload)
+    if (!res.success) {
+      alert(res.message || 'Gagal generate nomor bukti!')
+      return
+    }
+
+    if (payload.no_jenis_jurnal === 6) {
+      if (isSilang) {
+        formData.value.no_bukti_silang = res.no_bukti_full || ''
+      } else {
+        formData.value.no_bukti = res.no_bukti_full || ''
+        if (formData.value.no_bukti) {
+          await fetchAkunDefault(6, formData.value.no_bukti)
+        }
+      }
+      return
+    }
+
+    formData.value.no_bukti = res.no_bukti_full || ''
+    if (formData.value.no_bukti) {
+      await fetchAkunDefault(payload.no_jenis_jurnal, formData.value.no_bukti)
+    }
+  } catch (err) {
+    console.error('Error generate no bukti by akun:', err)
+    alert('Terjadi kesalahan saat generate nomor bukti!')
+  } finally {
+    isGeneratingNoBukti.value = false
+  }
+}
+
+const selectAkun = async (index, akun, isSilang = false) => {
   const akunId = akun.id || akun.id_akun || akun.akun_id || akun.id_nama_akun
   const key = isSilang ? `s_${index}` : index
   if (isSilang) {
@@ -857,6 +1013,18 @@ const selectAkun = (index, akun, isSilang = false) => {
   selectedAkun.value[key] = akun
   searchQueries.value[key] = `${akun.kode_akun || akun.kode || ''} - ${akun.nama_akun}`
   showAkunCard.value[key] = false
+
+  if (isEdit.value || !usesAutoNoBuktiGeneration.value) return
+
+  if (selectedJenisJurnal.value == 6) {
+    if (!isSilang && index === 1) await generateNoBuktiBySelectedAkun(false)
+    if (isSilang && index === 0) await generateNoBuktiBySelectedAkun(true)
+    return
+  }
+
+  if (index === 1) {
+    await generateNoBuktiBySelectedAkun(false)
+  }
 }
 
 const addDetail = (isSilang = false) => {
@@ -873,9 +1041,10 @@ const removeDetail = (index, isSilang = false) => {
   } else {
     formData.value.details.splice(index, 1)
   }
-  delete selectedAkun.value[index]
-  delete searchQueries.value[index]
-  delete showAkunCard.value[index]
+  const key = isSilang ? `s_${index}` : index
+  delete selectedAkun.value[key]
+  delete searchQueries.value[key]
+  delete showAkunCard.value[key]
 }
 
 watch(activeAccountGroup, (newGroup) => {
@@ -891,16 +1060,14 @@ watch(activeAccountGroup, (newGroup) => {
 
 watch(selectedJenisJurnal, async (newJenis) => {
   if (!isEdit.value) {
-    formData.value.details = []
-    formData.value.details_silang = []
-    searchQueries.value = {}
-    selectedAkun.value = {}
-    showAkunCard.value = {}
+    initializeDetailsForJenis(newJenis)
+    selectedNoBukti.value = ''
+    selectedNoBuktiTujuan.value = ''
     if (newJenis != 7) {
       selectedKategoriJenis.value = ''
       resetVendorCustomerState()
     }
-    if (newJenis && selectedNoBukti.value && newJenis != 7) {
+    if (newJenis == 5 && selectedNoBukti.value) {
       await fetchAkunDefault(newJenis, selectedNoBukti.value)
     }
   }
@@ -919,7 +1086,7 @@ const fetchNomorBuktiList = async () => {
 const fetchAkunDefault = async (jenis, bukti) => {
   if (jenis == 5) {
     akunDefault.value = null
-    if (formData.value.details.length === 0) addDetail(false)
+    if (formData.value.details.length === 0) formData.value.details = [createEmptyDetail()]
     return
   }
   if (jenis == 7 && !selectedKategoriJenis.value) return
@@ -941,79 +1108,77 @@ const fetchAkunDefault = async (jenis, bukti) => {
   } catch (err) { console.error(err) }
 }
 
+
+
+
 const applyAkunDefault = () => {
   if (!akunDefault.value || selectedJenisJurnal.value == 5) return
-  formData.value.details = []
-  formData.value.details_silang = []
-  searchQueries.value = {}
 
   if (selectedJenisJurnal.value == 6) {
-    // Jenis 6: response punya .debet dan .kredit — 2 jurnal terpisah
     const debetAkunData = akunDefault.value.debet || akunDefault.value
     const kreditAkunData = akunDefault.value.kredit || akunDefault.value
-
-    const findAkunFromOptions = (data) => {
-      const code = (data?.kode_akun || '').toString().trim()
-      const found = props.namaAkunOptions.find(a => (a.kode_akun || '').toString().trim() === code)
-      return {
-        id: found?.id || found?.id_akun || found?.akun_id || found?.id_nama_akun || data?.id,
-        akun: found || { kode_akun: code, nama_akun: data?.nama_akun, posisi_akun: data?.posisi_akun }
-      }
-    }
-
     const debet = findAkunFromOptions(debetAkunData)
     const kredit = findAkunFromOptions(kreditAkunData)
 
-    formData.value.details.push({ akun_id: debet.id, debit: 0, kredit: 0 })
-    formData.value.details.push({ akun_id: '', debit: 0, kredit: 0 })
-    formData.value.details_silang.push({ akun_id: '', debit: 0, kredit: 0 })
-    formData.value.details_silang.push({ akun_id: kredit.id, debit: 0, kredit: 0 })
+    const manualJurnal1 = formData.value.details[1] || createEmptyDetail()
+    const manualJurnal2 = formData.value.details_silang[0] || createEmptyDetail()
+    const selectedManualJurnal1 = selectedAkun.value[1]
+    const selectedManualJurnal2 = selectedAkun.value['s_0']
+
+    formData.value.details = [
+      { akun_id: debet.id, debit: formData.value.details[0]?.debit || 0, kredit: formData.value.details[0]?.kredit || 0 },
+      { ...manualJurnal1 }
+    ]
+    formData.value.details_silang = [
+      { ...manualJurnal2 },
+      { akun_id: kredit.id, debit: formData.value.details_silang[1]?.debit || 0, kredit: formData.value.details_silang[1]?.kredit || 0 }
+    ]
 
     selectedAkun.value[0] = debet.akun
     searchQueries.value[0] = `${debet.akun.kode_akun} - ${debet.akun.nama_akun}`
     selectedAkun.value['s_1'] = kredit.akun
     searchQueries.value['s_1'] = `${kredit.akun.kode_akun} - ${kredit.akun.nama_akun}`
-    searchQueries.value[1] = ''
-    searchQueries.value['s_0'] = ''
-
-  } else {
-    // Jenis 1-5 dan 7: response langsung object akun tunggal (akun fixed/induk)
-    let defaultAkunId = akunDefault.value.id || akunDefault.value.id_akun || akunDefault.value.akun_id || akunDefault.value.id_nama_akun
-    const defaultCode = (akunDefault.value.kode_akun || akunDefault.value.kode || '').toString().trim()
-
-    if (!defaultAkunId && defaultCode) {
-      const found = props.namaAkunOptions.find(a => (a.kode_akun || '').toString().trim() === defaultCode)
-      if (found) defaultAkunId = found.id || found.id_akun || found.akun_id || found.id_nama_akun
+    if (selectedManualJurnal1) {
+      selectedAkun.value[1] = selectedManualJurnal1
+      searchQueries.value[1] = `${selectedManualJurnal1.kode_akun || selectedManualJurnal1.kode || ''} - ${selectedManualJurnal1.nama_akun || ''}`
+    }
+    if (selectedManualJurnal2) {
+      selectedAkun.value['s_0'] = selectedManualJurnal2
+      searchQueries.value['s_0'] = `${selectedManualJurnal2.kode_akun || selectedManualJurnal2.kode || ''} - ${selectedManualJurnal2.nama_akun || ''}`
     }
 
-    formData.value.details.push({ akun_id: defaultAkunId, debit: 0, kredit: 0 })
-    formData.value.details.push({ akun_id: '', debit: 0, kredit: 0 })
+  } else {
+    const defaultAkun = findAkunFromOptions(akunDefault.value)
+    const manualDetail = formData.value.details[1] || createEmptyDetail()
+    const selectedManualDetail = selectedAkun.value[1]
+
+    formData.value.details = [
+      { akun_id: defaultAkun.id, debit: formData.value.details[0]?.debit || 0, kredit: formData.value.details[0]?.kredit || 0 },
+      { ...manualDetail }
+    ]
 
     searchQueries.value[0] = getAkunDefaultText()
-    searchQueries.value[1] = ''
     selectedAkun.value[0] = {
-      id: defaultAkunId,
-      kode_akun: defaultCode,
+      id: defaultAkun.id,
+      kode_akun: (akunDefault.value.kode_akun || akunDefault.value.kode || '').toString().trim(),
       nama_akun: akunDefault.value.nama_akun,
       posisi_akun: akunDefault.value.posisi_akun
+    }
+    if (selectedManualDetail) {
+      selectedAkun.value[1] = selectedManualDetail
+      searchQueries.value[1] = `${selectedManualDetail.kode_akun || selectedManualDetail.kode || ''} - ${selectedManualDetail.nama_akun || ''}`
     }
   }
 }
 
 const generateNoBukti = async () => {
   if (!selectedNoBukti.value || !formData.value.tanggal) return
-  if (selectedJenisJurnal.value == 6 && !selectedNoBuktiTujuan.value) return
-
-  const dateParts = formData.value.tanggal.split('-')
-  const tanggalFormat = `${dateParts[2]}${dateParts[1]}${dateParts[0]}`
+  const tanggalFormat = getTanggalPayload()
+  if (!tanggalFormat) return
 
   isGeneratingNoBukti.value = true
   try {
     const payload = { no_bukti: selectedNoBukti.value, tanggal: parseInt(tanggalFormat) }
-    if (selectedJenisJurnal.value == 6) {
-      payload.no_jenis_jurnal = 6
-      payload.no_bukti_tujuan = selectedNoBuktiTujuan.value
-    }
 
     const res = await api.request('/createNoBuktiGenerate', {
       method: 'POST',
@@ -1022,20 +1187,15 @@ const generateNoBukti = async () => {
 
     if (res.success) {
       formData.value.no_bukti = res.no_bukti_full
-      if (selectedJenisJurnal.value == 6) {
-        formData.value.no_bukti_silang = res.no_bukti_full_tujuan || ''
-      }
       await fetchAkunDefault(selectedJenisJurnal.value, selectedNoBukti.value)
     } else {
       alert(res.message || 'Gagal generate nomor bukti!')
       selectedNoBukti.value = ''
-      if (selectedJenisJurnal.value == 6) selectedNoBuktiTujuan.value = ''
     }
   } catch (err) {
     console.error('Error generate no bukti:', err)
     alert('Terjadi kesalahan saat generate nomor bukti!')
     selectedNoBukti.value = ''
-    if (selectedJenisJurnal.value == 6) selectedNoBuktiTujuan.value = ''
   } finally {
     isGeneratingNoBukti.value = false
   }
@@ -1045,25 +1205,7 @@ const handleNoBuktiChange = async () => {
   if (!selectedNoBukti.value) {
     akunDefault.value = null
     formData.value.no_bukti = ''
-    selectedJenisJurnal.value = ''
-    selectedNoBuktiTujuan.value = ''
-    formData.value.no_bukti_silang = ''
-    selectedKategoriJenis.value = ''
-    resetVendorCustomerState()
-    return
-  }
-  const selectedVoucher = nomorBuktiList.value.find(v => v.kode === selectedNoBukti.value)
-  if (selectedVoucher && selectedVoucher.kelompok_jurnal) {
-    selectedJenisJurnal.value = String(selectedVoucher.kelompok_jurnal)
-  }
-  if (selectedJenisJurnal.value != 6) {
-    await generateNoBukti()
-  }
-}
-
-const handleNoBuktiTujuanChange = async () => {
-  if (!selectedNoBuktiTujuan.value) {
-    formData.value.no_bukti_silang = ''
+    initializeDetailsForJenis(5)
     return
   }
   await generateNoBukti()
@@ -1071,15 +1213,10 @@ const handleNoBuktiTujuanChange = async () => {
 
 // Handler saat kategori jenis dipilih (khusus jenis 7)
 const handleKategoriJenisChange = async () => {
-  resetVendorCustomerState() // NEW: reset pilihan vendor/customer setiap ganti kategori
-  if (!selectedKategoriJenis.value || !selectedNoBukti.value) return
-  formData.value.details = []
-  searchQueries.value = {}
-  selectedAkun.value = {}
-  showAkunCard.value = {}
-  akunDefault.value = null
-  await fetchAkunDefault(7, selectedNoBukti.value)
-  await fetchDaftarVendorCustomer() // NEW: load daftar vendor/customer sesuai kategori
+  resetVendorCustomerState()
+  initializeDetailsForJenis(7)
+  if (!selectedKategoriJenis.value) return
+  await fetchDaftarVendorCustomer()
 }
 
 const openVoucherPreview = async () => {
@@ -1316,11 +1453,9 @@ watch(() => formData.value.tanggal, (newVal, oldVal) => {
   if (!isEdit.value && newVal && newVal !== oldVal) {
     selectedNoBukti.value = ''
     selectedNoBuktiTujuan.value = ''
-    formData.value.no_bukti = ''
-    formData.value.no_bukti_silang = ''
-    akunDefault.value = null
-    selectedKategoriJenis.value = ''
-    resetVendorCustomerState() // NEW
+    if (selectedJenisJurnal.value) {
+      initializeDetailsForJenis(selectedJenisJurnal.value)
+    }
   }
 })
 
@@ -1338,9 +1473,16 @@ const handleSubmit = async () => {
     }
   }
 
-  if (!selectedNoBukti.value) { alert('Silakan pilih Nomor Voucher!'); return }
-  if (selectedJenisJurnal.value == 6 && !selectedNoBuktiTujuan.value) {
-    alert('Silakan pilih Nomor Voucher Tujuan untuk Jurnal 2 (Silang)!')
+  if (selectedJenisJurnal.value == 5 && !selectedNoBukti.value) {
+    alert('Silakan pilih Nomor Voucher!')
+    return
+  }
+  if (selectedJenisJurnal.value != 5 && !formData.value.no_bukti) {
+    alert('Nomor bukti belum tergenerate. Silakan pilih akun terlebih dahulu!')
+    return
+  }
+  if (selectedJenisJurnal.value == 6 && !formData.value.no_bukti_silang) {
+    alert('Nomor bukti jurnal 2 belum tergenerate. Silakan pilih akun jurnal 2 terlebih dahulu!')
     return
   }
   if (selectedJenisJurnal.value == 7 && !selectedKategoriJenis.value) {

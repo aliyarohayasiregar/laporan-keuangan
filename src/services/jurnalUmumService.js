@@ -39,6 +39,18 @@ class JurnalUmumService {
     }
   }
 
+  async generateNoBuktiByAkun(payload) {
+    try {
+      return await api.request('/generateNoBuktiByAkun', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      }, 'nb')
+    } catch (error) {
+      console.error('Error generating no bukti by akun:', error)
+      throw error
+    }
+  }
+
   // Jenis jurnal options
   getJenisJurnalOptions() {
     return [
