@@ -317,7 +317,7 @@ const handleView = async (jurnal) => {
     console.log('Fetching complete jurnal penyesuaian data for view, ID:', jurnal.id)
 
     // Fetch complete data from API
-    const response = await fetch(`http://139.162.41.197:8001/api/jp/getJurnalPenyesuaian/${jurnal.id}`)
+    const response = await fetch(`https://api.coopdevs.com/api/jp/getJurnalPenyesuaian/${jurnal.id}`)
     const result = await response.json()
     console.log('View Jurnal Penyesuaian API Response:', result)
 
@@ -347,7 +347,7 @@ const handleDelete = async (jurnal) => {
   if (confirm(`Apakah Anda yakin ingin menghapus jurnal penyesuaian "${jurnal.kode}"?`)) {
     try {
       console.log('Deleting jurnal penyesuaian ID:', jurnal.id)
-      const response = await fetch(`http://139.162.41.197:8001/api/jp/deleteJurnalPenyesuaian/${jurnal.id}`, {
+      const response = await fetch(`https://api.coopdevs.com/api/jp/deleteJurnalPenyesuaian/${jurnal.id}`, {
         method: 'DELETE'
       })
       const result = await response.json()

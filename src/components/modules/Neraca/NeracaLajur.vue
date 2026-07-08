@@ -199,9 +199,9 @@
               <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900" style="border: 1px solid #374151;">
                 <div class="flex justify-center items-center">
                   <span class="w-28 text-center text-green-600">{{ formatNumber(item.ayat_jurnal_penyesuaian.debet)
-                  }}</span>
+                    }}</span>
                   <span class="w-28 text-center text-red-600">{{ formatNumber(item.ayat_jurnal_penyesuaian.kredit)
-                  }}</span>
+                    }}</span>
                 </div>
               </td>
 
@@ -229,7 +229,7 @@
                   <span class="w-28 text-center text-green-600">{{ formatNumber(item.laporan_posisi_keuangan?.debet ||
                     0) }}</span>
                   <span class="w-28 text-center text-red-600">{{ formatNumber(item.laporan_posisi_keuangan?.kredit || 0)
-                  }}</span>
+                    }}</span>
                 </div>
               </td>
             </tr>
@@ -627,7 +627,7 @@ const simpanNeracaLajur = async () => {
   try {
     console.log('Saving Neraca Lajur for year:', selectedYear.value)
 
-    const response = await fetch(`http://139.162.41.197:8001/api/ap/simpanNeracaLajur?tahun=${selectedYear.value}`, {
+    const response = await fetch(`https://api.coopdevs.com/api/ap/simpanNeracaLajur?tahun=${selectedYear.value}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

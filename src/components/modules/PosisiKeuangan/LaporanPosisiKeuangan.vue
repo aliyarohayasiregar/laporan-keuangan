@@ -299,7 +299,7 @@
                     <td class="py-2 text-sm text-gray-700">Laba Ditahan Awal</td>
                     <td class="py-2 text-right text-sm text-gray-900">{{
                       formatNumber(data.laba_ditahan.laba_ditahan_awal)
-                    }}</td>
+                      }}</td>
                   </tr>
                   <tr>
                     <td class="py-2 text-sm text-gray-700">Laba Bersih</td>
@@ -526,7 +526,7 @@ export default {
       try {
         console.log(`Deleting Laporan Posisi Keuangan for year: ${selectedYear.value}`)
 
-        const response = await fetch(`http://139.162.41.197:8001/api/ap/deleteLaporanPosisiKeuangan?tahun=${selectedYear.value}`, {
+        const response = await fetch(`https://api.coopdevs.com/api/ap/deleteLaporanPosisiKeuangan?tahun=${selectedYear.value}`, {
           method: 'DELETE'
         })
 

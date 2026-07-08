@@ -15,6 +15,56 @@
       <form @submit.prevent="handleSubmit" class="p-6">
         <div class="space-y-4">
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Kelompok Akun *</label>
+            <div class="relative">
+              <div @click="toggleAkunDropdown"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm cursor-pointer hover:border-blue-400 transition-colors bg-white flex items-center justify-between"
+                :class="{ 'opacity-60 cursor-not-allowed': loadingAkun }">
+                <span v-if="selectedKelompokAkun" class="text-gray-900">
+                  {{ selectedKelompokAkun.kode }} - {{ selectedKelompokAkun.nama_kelompok_akun }}
+                </span>
+                <span v-else class="text-gray-500">
+                  {{ loadingAkun ? 'Memuat kelompok akun...' : 'Pilih Kelompok Akun' }}
+                </span>
+                <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+
+              <div v-show="showAkunDropdown"
+                class="absolute z-50 mt-1 bg-white border border-gray-300 rounded-lg shadow-xl w-full">
+                <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                  <div class="flex items-center justify-between">
+                    <h5 class="text-sm font-medium text-gray-900">Pilih Kelompok Akun</h5>
+                    <button type="button" @click="closeAkunDropdown" class="text-gray-400 hover:text-gray-600">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="mt-2">
+                    <input v-model="akunSearchQuery" type="text" placeholder="Cari kode atau nama akun..."
+                      class="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                  </div>
+                </div>
+                <div class="max-h-56 overflow-y-auto">
+                  <div v-if="filteredKelompokAkunOptions.length === 0" class="px-4 py-3 text-sm text-gray-500">
+                    Tidak ada kelompok akun ditemukan
+                  </div>
+                  <div v-for="option in filteredKelompokAkunOptions" :key="option.id"
+                    @click="selectKelompokAkun(option)"
+                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
+                    <div class="text-sm font-medium text-gray-900">{{ option.kode }}</div>
+                    <div class="text-xs text-gray-600">{{ option.nama_kelompok_akun }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p v-if="errorAkun" class="text-xs text-red-500 mt-1">{{ errorAkun }}</p>
+          </div>
+
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Kode Voucher *</label>
             <input v-model="formData.kode" type="text" required
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -27,17 +77,6 @@
             <input v-model="formData.tahun" type="number" required min="2000" max="2100"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="2026" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Kelompok Jurnal *</label>
-            <select v-model="formData.kelompok_jurnal" required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <option value="">Pilih Kelompok Jurnal</option>
-              <option v-for="option in jenisJurnalOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
           </div>
         </div>
 
@@ -67,9 +106,10 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { showError } from '@/composables/useModal.js'
 import nomorVoucherService from '../../../services/nomorVoucherService.js'
+import api from '../../../services/api.js'
 
 const props = defineProps({
   showModal: { type: Boolean, required: true },
@@ -80,30 +120,84 @@ const emit = defineEmits(['close', 'save'])
 
 const isSubmitting = ref(false)
 
+const loadingAkun = ref(false)
+const errorAkun = ref(null)
+const kelompokAkunOptions = ref([])
+
+const showAkunDropdown = ref(false)
+const akunSearchQuery = ref('')
+const selectedKelompokAkun = ref(null)
+
 const formData = ref({
   kode: '',
   tahun: new Date().getFullYear(),
-  kelompok_jurnal: '',
+  id_akun: '',
   status: 'aktif'
 })
 
-const jenisJurnalOptions = [
-  //{ value: 1, label: 'Kas Masuk' },
-  //{ value: 2, label: 'Kas Keluar' },
-  { value: 3, label: 'Bank Masuk' },
-  { value: 4, label: 'Bank Keluar' },
-  { value: 5, label: 'Adjustment/Pembalik' },
-  //{ value: 6, label: 'Ayat Silang' },
-  //{ value: 7, label: 'transaksi vendor/customer' }
-]
+const filteredKelompokAkunOptions = computed(() => {
+  const query = akunSearchQuery.value.toLowerCase().trim()
+  if (!query) return kelompokAkunOptions.value
+  return kelompokAkunOptions.value.filter(opt =>
+    (opt.kode || '').toLowerCase().includes(query) ||
+    (opt.nama_kelompok_akun || '').toLowerCase().includes(query)
+  )
+})
+
+const toggleAkunDropdown = () => {
+  if (loadingAkun.value) return
+  showAkunDropdown.value = !showAkunDropdown.value
+  if (showAkunDropdown.value) akunSearchQuery.value = ''
+}
+
+const closeAkunDropdown = () => {
+  showAkunDropdown.value = false
+}
+
+const selectKelompokAkun = (option) => {
+  selectedKelompokAkun.value = option
+  formData.value.id_akun = option.id
+  showAkunDropdown.value = false
+  akunSearchQuery.value = ''
+}
+
+const fetchKelompokAkun = async () => {
+  loadingAkun.value = true
+  errorAkun.value = null
+  try {
+    const res = await api.request('/getAllKelompokAkun', { method: 'GET' }, 'pb')
+    if (res.success) {
+      kelompokAkunOptions.value = (res.data || []).map((item) => ({
+        id: item.id,
+        kode: item.kode,
+        nama_kelompok_akun: item.nama_kelompok_akun
+      }))
+      // Kalau sedang edit dan id_akun sudah ada, cocokkan opsi terpilih setelah data termuat
+      if (formData.value.id_akun) {
+        const found = kelompokAkunOptions.value.find(o => o.id == formData.value.id_akun)
+        if (found) selectedKelompokAkun.value = found
+      }
+    } else {
+      errorAkun.value = res.message || 'Gagal memuat daftar kelompok akun.'
+    }
+  } catch (err) {
+    console.error('Error fetching kelompok akun:', err)
+    errorAkun.value = 'Gagal memuat daftar kelompok akun.'
+  } finally {
+    loadingAkun.value = false
+  }
+}
 
 const resetForm = () => {
   formData.value = {
     kode: '',
     tahun: new Date().getFullYear(),
-    kelompok_jurnal: '',
+    id_akun: '',
     status: 'aktif'
   }
+  selectedKelompokAkun.value = null
+  akunSearchQuery.value = ''
+  showAkunDropdown.value = false
 }
 
 watch(() => props.editItem, (newEditItem) => {
@@ -111,9 +205,11 @@ watch(() => props.editItem, (newEditItem) => {
     formData.value = {
       kode: newEditItem.kode || '',
       tahun: newEditItem.tahun || new Date().getFullYear(),
-      kelompok_jurnal: newEditItem.kelompok_jurnal || '',
+      id_akun: newEditItem.id_akun || '',
       status: newEditItem.status || 'aktif'
     }
+    const found = kelompokAkunOptions.value.find(o => o.id == newEditItem.id_akun)
+    selectedKelompokAkun.value = found || null
   } else {
     resetForm()
   }
@@ -129,7 +225,7 @@ const handleSubmit = async () => {
     const payload = {
       kode: formData.value.kode,
       tahun: parseInt(formData.value.tahun),
-      kelompok_jurnal: String(formData.value.kelompok_jurnal)
+      id_akun: parseInt(formData.value.id_akun)
     }
 
     console.log('Sending payload to API:', payload)
@@ -159,4 +255,8 @@ const handleSubmit = async () => {
     isSubmitting.value = false
   }
 }
+
+onMounted(() => {
+  fetchKelompokAkun()
+})
 </script>

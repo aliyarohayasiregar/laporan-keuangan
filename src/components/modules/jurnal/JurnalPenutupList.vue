@@ -312,7 +312,7 @@ const handleAddNew = () => {
 const handleEdit = async (jurnal) => {
   try {
     console.log('Fetching complete jurnal data for edit:', jurnal.id)
-    const response = await fetch(`http://139.162.41.197:8001/api/jpa/getJurnalPenutup/${jurnal.id}`)
+    const response = await fetch(`https://api.coopdevs.com/api/jpa/getJurnalPenutup/${jurnal.id}`)
     const result = await response.json()
 
     if (result.success && result.data) {
@@ -334,7 +334,7 @@ const handleView = async (jurnal) => {
     console.log('Fetching complete jurnal penutup data for view, ID:', jurnal.id)
 
     // Fetch complete data from API
-    const response = await fetch(`http://139.162.41.197:8001/api/jpa/getJurnalPenutup/${jurnal.id}`)
+    const response = await fetch(`https://api.coopdevs.com/api/jpa/getJurnalPenutup/${jurnal.id}`)
     const result = await response.json()
     console.log('View Jurnal Penutup API Response:', result)
 

@@ -189,8 +189,7 @@
                               <div @click="() => toggleAkunCard(index)"
                                 class="w-full px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer hover:border-blue-400 transition-colors bg-white">
                                 <div v-if="selectedAkun[index]" class="flex items-center justify-between">
-                                  <span class="text-gray-900">{{ selectedAkun[index].kode_akun }} - {{
-                                    selectedAkun[index].nama_akun }}</span>
+                                  <span class="text-gray-900">{{ getAkunLabel(selectedAkun[index]) }}</span>
                                   <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -228,11 +227,13 @@
                                 </div>
                                 <div class="max-h-48 overflow-y-auto">
                                   <div v-for="akun in filteredAkunOptions(index)" :key="akun.id"
-                                    @click="selectAkun(index, akun)"
-                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
-                                    <div class="text-sm font-medium text-gray-900">{{ akun.kode_akun }}</div>
-                                    <div class="text-xs text-gray-600">{{ akun.nama_akun }}</div>
-                                  </div>
+  @click="selectAkun(index, akun)"
+  class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
+  <div class="text-sm font-medium text-gray-900">
+    {{ akun.kode_akun || akun.kode || akun.no_akun || '-' }}
+  </div>
+  <div class="text-xs text-gray-600">{{ akun.nama_akun || akun.nama }}</div>
+</div>
                                 </div>
                               </div>
                             </div>
@@ -479,9 +480,7 @@
                           <div @click="() => toggleAkunCard(index)"
                             class="w-full px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer hover:border-blue-400 transition-colors bg-white">
                             <div v-if="selectedAkun[index]" class="flex items-center justify-between">
-                              <span class="text-gray-900">{{ selectedAkun[index].kode_akun }} - {{
-                                selectedAkun[index].nama_akun }}</span>
-                              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <span class="text-gray-900">{{ getAkunLabel(selectedAkun['s_' + index]) }}</span>                              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M19 9l-7 7-7-7"></path>
                               </svg>
@@ -514,11 +513,13 @@
                             </div>
                             <div class="max-h-48 overflow-y-auto">
                               <div v-for="akun in filteredAkunOptions(index)" :key="akun.id"
-                                @click="selectAkun(index, akun)"
-                                class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
-                                <div class="text-sm font-medium text-gray-900">{{ akun.kode_akun }}</div>
-                                <div class="text-xs text-gray-600">{{ akun.nama_akun }}</div>
-                              </div>
+  @click="selectAkun(index, akun)"
+  class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
+  <div class="text-sm font-medium text-gray-900">
+    {{ akun.kode_akun || akun.kode || akun.no_akun || '-' }}
+  </div>
+  <div class="text-xs text-gray-600">{{ akun.nama_akun || akun.nama }}</div>
+</div>
                             </div>
                           </div>
                         </div>
@@ -865,28 +866,24 @@ const getDisplayKredit = (index) => {
 const getAkunDefaultText = () => {
   if (!akunDefault.value) return ''
   if (selectedJenisJurnal.value == 6 && akunDefault.value.debet) {
-    return `${akunDefault.value.debet.kode_akun} - ${akunDefault.value.debet.nama_akun}`
+    return getAkunLabel(akunDefault.value.debet)
   }
-  return `${akunDefault.value.kode_akun || akunDefault.value.kode} - ${akunDefault.value.nama_akun}`
+  return getAkunLabel(akunDefault.value)
 }
+
 
 const getPrimaryDefaultText = () => {
   return getAkunDefaultText() || 'Akun default akan otomatis terisi setelah pilih akun'
 }
 
 const getAyatSilangDebitText = () => {
-  if (akunDefault.value?.debet) {
-    return `${akunDefault.value.debet.kode_akun} - ${akunDefault.value.debet.nama_akun}`
-  }
-  return 'Ayat silang'
+  return akunDefault.value?.debet ? getAkunLabel(akunDefault.value.debet) : 'Ayat silang'
 }
 
 const getAyatSilangKreditText = () => {
-  if (akunDefault.value?.kredit) {
-    return `${akunDefault.value.kredit.kode_akun} - ${akunDefault.value.kredit.nama_akun}`
-  }
-  return 'Ayat silang '
+  return akunDefault.value?.kredit ? getAkunLabel(akunDefault.value.kredit) : 'Ayat silang'
 }
+
 
 const shouldDisableDebit = (index, prefix = '') => {
   if (selectedJenisJurnal.value == 6) return index === 1
@@ -927,6 +924,13 @@ const shouldDisableKredit = (index, prefix = '') => {
   const selectedAccount = selectedAkun.value[key]
   if (selectedAccount) return selectedAccount.posisi_akun === 'debet'
   return false
+}
+
+const getAkunLabel = (akun) => {
+  if (!akun) return ''
+  const kode = akun.kode_akun || akun.kode || akun.no_akun || akun.account_code || ''
+  const nama = akun.nama_akun || akun.nama || ''
+  return kode ? `${kode} - ${nama}` : nama
 }
 
 const filteredAkunOptions = (key) => {
@@ -1067,7 +1071,7 @@ const selectAkun = async (index, akun, isSilang = false) => {
     formData.value.details[index].akun_id = akunId
   }
   selectedAkun.value[key] = akun
-  searchQueries.value[key] = `${akun.kode_akun || akun.kode || ''} - ${akun.nama_akun}`
+  searchQueries.value[key] = getAkunLabel(akun)
   showAkunCard.value[key] = false
 
   if (isEdit.value || !usesAutoNoBuktiGeneration.value) return

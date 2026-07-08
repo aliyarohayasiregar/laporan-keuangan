@@ -187,7 +187,7 @@ const fetchFreshJurnalData = async (id) => {
     console.log(`Fetching fresh jurnal penutup data for ID: ${id}`)
     loading.value = true
 
-    const response = await fetch(`http://139.162.41.197:8001/api/jpa/getJurnalPenutup/${id}`)
+    const response = await fetch(`https://api.coopdevs.com/api/jpa/getJurnalPenutup/${id}`)
     const result = await response.json()
     console.log('Fresh API Response:', result)
 

@@ -36,7 +36,7 @@
                 <option v-for="preset in kodeFormatPresets" :key="preset.label" :value="preset.label">
                   {{ preset.label }}
                 </option>
-                <option value="custom">Custom...</option>
+                <!-- <option value="custom">Custom...</option> -->
               </select>
 
               <div v-if="isCustomFormat" class="mt-2 flex items-center gap-1 flex-wrap">

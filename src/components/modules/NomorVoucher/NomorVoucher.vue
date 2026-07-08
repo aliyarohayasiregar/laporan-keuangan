@@ -113,7 +113,10 @@
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">No</th>
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kode Voucher</th>
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Tahun</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kode akun</th>
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Aksi</th>
+
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -128,6 +131,8 @@
                     </button>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.tahun }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.akun_kode }}</td>
+
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span :class="[
                       'px-3 py-1 text-xs rounded-full font-medium',
@@ -275,6 +280,43 @@ const availableYears = computed(() => {
   return years.sort((a, b) => b - a)
 })
 
+const extractFriendlyErrorMessage = (err) => {
+  // Kalau error sudah berupa objek response dengan data.message (axios-style)
+  if (err.response?.data?.message) {
+    return err.response.data.message
+  }
+
+  const raw = err.responseData?.message || err.message || ''
+
+  // Coba cari & parse JSON yang nyelip di dalam string error (mis. "HTTP error! status: 500 - {...}")
+  const jsonMatch = raw.match(/\{.*\}/s)
+  if (jsonMatch) {
+    try {
+      const parsed = JSON.parse(jsonMatch[0])
+      if (parsed.message) return parsed.message
+    } catch (e) {
+      // bukan JSON valid, lanjut ke fallback di bawah
+    }
+  }
+
+  // Deteksi status code buat pesan yang lebih manusiawi
+  if (/status:\s*500/.test(raw)) {
+    return 'Terjadi gangguan pada server. Silakan coba lagi beberapa saat lagi.'
+  }
+  if (/status:\s*404/.test(raw)) {
+    return 'Data tidak ditemukan.'
+  }
+  if (/status:\s*401|status:\s*403/.test(raw)) {
+    return 'Anda tidak memiliki akses untuk melihat data ini.'
+  }
+  if (/Failed to fetch|NetworkError/i.test(raw)) {
+    return 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.'
+  }
+
+  // Fallback terakhir: generic, tidak nampilin raw string apapun
+  return 'Terjadi kesalahan saat memuat data nomor voucher. Silakan coba lagi.'
+}
+
 // Methods
 const fetchData = async () => {
   loading.value = true
@@ -288,13 +330,7 @@ const fetchData = async () => {
     }
   } catch (err) {
     console.error('Error fetching nomor vouchers:', err)
-    let errorMessage = 'Terjadi kesalahan saat memuat data'
-    if (err.response && err.response.data && err.response.data.message) {
-      errorMessage = err.response.data.message
-    } else if (err.message) {
-      errorMessage = 'Terjadi kesalahan saat memuat data: ' + err.message
-    }
-    error.value = errorMessage
+    error.value = extractFriendlyErrorMessage(err)
 
     // Fallback data for demonstration
     nomorVouchers.value = [
@@ -306,7 +342,6 @@ const fetchData = async () => {
     loading.value = false
   }
 }
-
 const handleAdd = () => {
   selectedItem.value = null
   showFormModal.value = true
@@ -337,17 +372,11 @@ const handleDelete = async (item) => {
     if (response.success) {
       await fetchData()
     } else {
-      await showError('Gagal menghapus nomor voucher.')
+      await showError(response.message || 'Gagal menghapus nomor voucher.')
     }
   } catch (err) {
     console.error('Error deleting nomor voucher:', err)
-    let errorMessage = 'Gagal menghapus nomor voucher'
-    if (err.response && err.response.data && err.response.data.message) {
-      errorMessage = err.response.data.message
-    } else if (err.message) {
-      errorMessage = 'Terjadi kesalahan saat menghapus nomor voucher: ' + err.message
-    }
-    await showError(errorMessage)
+    await showError(extractFriendlyErrorMessage(err))
   }
 }
 

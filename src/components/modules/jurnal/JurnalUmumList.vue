@@ -450,7 +450,7 @@ const handleDelete = async (jurnal) => {
     }
   } catch (err) {
     console.error('Error deleting jurnal umum:', err)
-    await showError(err.message || 'Terjadi kesalahan saat menghapus jurnal umum.')
+    await showError(err || 'Terjadi kesalahan saat menghapus jurnal umum.')
   }
 }
 

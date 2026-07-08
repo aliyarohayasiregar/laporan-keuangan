@@ -1,4 +1,5 @@
 import { ref, reactive } from 'vue'
+import { getErrorMessage } from '@/utils/errorHandler.js'
 
 const visible = ref(false)
 const state = reactive({
@@ -58,9 +59,15 @@ export const showConfirm = (options) =>
 export const showSuccess = (message, title = 'Berhasil') =>
   showAlert({ type: 'success', title, message })
 
-/** Shortcut error */
-export const showError = (message, title = 'Terjadi Kesalahan') =>
-  showAlert({ type: 'danger', title, message })
+/**
+ * Shortcut error.
+ * Terima STRING biasa ATAU objek Error — keduanya SELALU diparse lewat getErrorMessage
+ * supaya raw JSON/HTTP status/prefix "Error: " tidak pernah tampil mentah ke user.
+ */
+export const showError = (errOrMessage, title = 'Terjadi Kesalahan') => {
+  const message = getErrorMessage(errOrMessage, 'Terjadi kesalahan. Silakan coba lagi.')
+  return showAlert({ type: 'danger', title, message })
+}
 
 /** Shortcut warning */
 export const showWarning = (message, title = 'Peringatan') =>

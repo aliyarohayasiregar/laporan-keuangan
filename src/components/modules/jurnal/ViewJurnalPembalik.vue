@@ -124,7 +124,7 @@
                     <!-- <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ detail.keterangan }}</td> -->
                     <td class="px-4 py-2 whitespace-nowrap text-sm text-right text-gray-900">
                       <span v-if="detail.debit > 0" class="font-medium text-blue-600">Rp {{ formatNumber(detail.debit)
-                        }}</span>
+                      }}</span>
                       <span v-else class="text-gray-400">-</span>
                     </td>
                     <td class="px-4 py-2 whitespace-nowrap text-sm text-right text-gray-900">
@@ -244,7 +244,7 @@ const fetchFreshJurnalData = async () => {
     error.value = ''
 
     console.log('Fetching fresh jurnal pembalik data for ID:', props.jurnal.id)
-    const response = await fetch(`http://139.162.41.197:8001/api/jpb/getJurnalPembalik/${props.jurnal.id}`)
+    const response = await fetch(`https://api.coopdevs.com/api/jpb/getJurnalPembalik/${props.jurnal.id}`)
     const result = await response.json()
 
     if (result.success && result.data) {

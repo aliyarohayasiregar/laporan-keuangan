@@ -593,7 +593,7 @@ const handleSave = async () => {
     setTimeout(() => { saveMessage.value = '' }, 3000)
   } catch (err) {
     saveMessage.value = 'Gagal menyimpan template'
-    await showError(err.message || 'Gagal menyimpan template')
+    await showError(err || 'Gagal menyimpan template')
   } finally {
     saving.value = false
   }
@@ -630,7 +630,7 @@ const handleDelete = async () => {
     setTimeout(() => { saveMessage.value = '' }, 3000)
   } catch (err) {
     saveMessage.value = 'Gagal menghapus template'
-    await showError(err.message || 'Gagal menyimpan template')
+    await showError(err || 'Gagal menyimpan template')
   } finally {
     saving.value = false
   }
