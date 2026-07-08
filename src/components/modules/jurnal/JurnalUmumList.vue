@@ -438,10 +438,7 @@ const handleDelete = async (jurnal) => {
 
   try {
     console.log('Deleting jurnal umum ID:', jurnal.id)
-    const response = await fetch(`http://139.162.41.197:8001/api/ju/deleteJurnalUmum/${jurnal.id}`, {
-      method: 'DELETE'
-    })
-    const result = await response.json()
+    const result = await api.deleteJurnalUmum(jurnal.id)
     console.log('Delete API Response:', result)
 
     if (result.success) {

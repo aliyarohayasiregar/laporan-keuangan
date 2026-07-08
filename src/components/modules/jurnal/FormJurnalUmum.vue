@@ -121,11 +121,11 @@
           <div v-if="selectedJenisJurnal != 6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Keterangan *</label>
             <div class="relative">
-              <textarea v-model="formData.keterangan" rows="3" required maxlength="50"
+              <textarea v-model="formData.keterangan" rows="3" required maxlength="150"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                placeholder="Masukkan keterangan jurnal (maksimal 50 karakter)"></textarea>
+                placeholder="Masukkan keterangan jurnal (maksimal 150 karakter)"></textarea>
               <div class="absolute bottom-2 right-2 text-xs text-gray-500">
-                {{ formData.keterangan?.length || 0 }}/50 karakter
+                {{ formData.keterangan?.length || 0 }}/150 karakter
               </div>
             </div>
           </div>
@@ -144,11 +144,11 @@
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Keterangan *</label>
                   <div class="relative">
-                    <textarea v-model="formData.keterangan" rows="2" required maxlength="50"
+                    <textarea v-model="formData.keterangan" rows="2" required maxlength="150"
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                       placeholder="Masukkan keterangan jurnal 1"></textarea>
                     <div class="absolute bottom-1 right-2 text-xs text-gray-500">
-                      {{ formData.keterangan?.length || 0 }}/50
+                      {{ formData.keterangan?.length || 0 }}/150
                     </div>
                   </div>
                 </div>
@@ -524,19 +524,13 @@
                         </div>
                       </div>
                     </td>
+
                     <td class="px-4 py-2">
-                      <input :value="shouldDisableDebit(index) ? '0' : formatNumberInput(detail.debit)" @input="(e) => {
-                        if (!shouldDisableDebit(index)) detail.debit = parseNumberInput(e.target.value);
-                      }" :disabled="shouldDisableDebit(index)" type="text"
-                        class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
-                        placeholder="0" />
+                      <input :value="getDisplayDebit(index)" @input="(e) => { if (!shouldDisableDebit(index)) detail.debit = parseNumberInput(e.target.value); }" :disabled="shouldDisableDebit(index)" type="text" class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"placeholder="0" />
                     </td>
                     <td class="px-4 py-2">
-                      <input :value="shouldDisableKredit(index) ? '0' : formatNumberInput(detail.kredit)" @input="(e) => {
-                        if (!shouldDisableKredit(index)) detail.kredit = parseNumberInput(e.target.value);
-                      }" :disabled="shouldDisableKredit(index)" type="text"
-                        class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
-                        placeholder="0" />
+                      <input :value="getDisplayKredit(index)" @input="(e) => {
+                        if (!shouldDisableKredit(index)) detail.kredit = parseNumberInput(e.target.value);}" :disabled="shouldDisableKredit(index)" type="text"class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100" placeholder="0" />
                     </td>
                     <td class="px-4 py-2 text-center">
                       <button type="button" @click="removeDetail(index)"
@@ -819,6 +813,55 @@ const getExpectedDefaultPosisi = () => {
   return akunDefault.value?.posisi_akun || null
 }
 
+// Auto-hitung nominal baris akun default (index 0) = total dari semua baris lawan (index >= 1)
+watch(
+  () => shouldShowLockedDefaultRow.value && selectedJenisJurnal.value != 6
+    ? formData.value.details.slice(1).map(d => `${d.debit}|${d.kredit}`).join(',')
+    : null,
+  () => {
+    if (!shouldShowLockedDefaultRow.value || selectedJenisJurnal.value == 6) return
+    if (!formData.value.details[0]) return
+
+    const posisi = getExpectedDefaultPosisi()
+    const otherRows = formData.value.details.slice(1)
+    const sumDebit = otherRows.reduce((s, d) => s + (parseFloat(d.debit) || 0), 0)
+    const sumKredit = otherRows.reduce((s, d) => s + (parseFloat(d.kredit) || 0), 0)
+
+    if (posisi === 'debet') {
+      // akun default di debit → nominalnya = total kredit lawan
+      formData.value.details[0].debit = sumKredit
+      formData.value.details[0].kredit = 0
+    } else if (posisi === 'kredit') {
+      // akun default di kredit → nominalnya = total debit lawan
+      formData.value.details[0].kredit = sumDebit
+      formData.value.details[0].debit = 0
+    }
+  },
+  { immediate: true }
+)
+
+
+watch(() => getExpectedDefaultPosisi(), (posisi) => {
+  if (!shouldShowLockedDefaultRow.value || !posisi) return
+  formData.value.details.slice(1).forEach(d => {
+    if (posisi === 'debet') d.debit = 0    // lawan isi kredit -> paksa debit lawan 0
+    else if (posisi === 'kredit') d.kredit = 0  // lawan isi debit -> paksa kredit lawan 0
+  })
+})
+
+const getDisplayDebit = (index) => {
+  if (index === 0 && shouldShowLockedDefaultRow.value) {
+    return formatNumberInput(formData.value.details[0]?.debit)
+  }
+  return shouldDisableDebit(index) ? '0' : formatNumberInput(formData.value.details[index]?.debit)
+}
+const getDisplayKredit = (index) => {
+  if (index === 0 && shouldShowLockedDefaultRow.value) {
+    return formatNumberInput(formData.value.details[0]?.kredit)
+  }
+  return shouldDisableKredit(index) ? '0' : formatNumberInput(formData.value.details[index]?.kredit)
+}
+
 const getAkunDefaultText = () => {
   if (!akunDefault.value) return ''
   if (selectedJenisJurnal.value == 6 && akunDefault.value.debet) {
@@ -835,41 +878,54 @@ const getAyatSilangDebitText = () => {
   if (akunDefault.value?.debet) {
     return `${akunDefault.value.debet.kode_akun} - ${akunDefault.value.debet.nama_akun}`
   }
-  return 'Akun ayat silang debit akan otomatis terisi'
+  return 'Ayat silang'
 }
 
 const getAyatSilangKreditText = () => {
   if (akunDefault.value?.kredit) {
     return `${akunDefault.value.kredit.kode_akun} - ${akunDefault.value.kredit.nama_akun}`
   }
-  return 'Akun ayat silang kredit akan otomatis terisi'
+  return 'Ayat silang '
 }
 
 const shouldDisableDebit = (index, prefix = '') => {
   if (selectedJenisJurnal.value == 6) return index === 1
   const key = prefix === '' ? index : `${prefix}${index}`
-  const selectedAccount = selectedAkun.value[key]
+
+  // Baris akun default (index 0): selalu dikunci, nominal auto dari lawan
   if (index === 0 && shouldShowLockedDefaultRow.value) {
-    return getExpectedDefaultPosisi() === 'kredit'
+    return true
   }
-  if (selectedAccount) {
-    return selectedAccount.posisi_akun === 'kredit'
+
+  // Baris lawan: sisi yang boleh diisi = kebalikan dari posisi akun default
+  if (shouldShowLockedDefaultRow.value) {
+    const defaultPosisi = getExpectedDefaultPosisi()
+    if (defaultPosisi === 'debet') return true   // default di debit -> lawan wajib isi kredit
+    if (defaultPosisi === 'kredit') return false // default di kredit -> lawan wajib isi debit
   }
+
+  // Fallback (belum ada default row, mis. jenis 5)
+  const selectedAccount = selectedAkun.value[key]
+  if (selectedAccount) return selectedAccount.posisi_akun === 'kredit'
   return false
 }
 
 const shouldDisableKredit = (index, prefix = '') => {
-  if (selectedJenisJurnal.value == 6) {
-    return index === 0
-  }
+  if (selectedJenisJurnal.value == 6) return index === 0
   const key = prefix === '' ? index : `${prefix}${index}`
-  const selectedAccount = selectedAkun.value[key]
+
   if (index === 0 && shouldShowLockedDefaultRow.value) {
-    return getExpectedDefaultPosisi() === 'debet'
+    return true
   }
-  if (selectedAccount) {
-    return selectedAccount.posisi_akun === 'debet'
+
+  if (shouldShowLockedDefaultRow.value) {
+    const defaultPosisi = getExpectedDefaultPosisi()
+    if (defaultPosisi === 'kredit') return true
+    if (defaultPosisi === 'debet') return false
   }
+
+  const selectedAccount = selectedAkun.value[key]
+  if (selectedAccount) return selectedAccount.posisi_akun === 'debet'
   return false
 }
 
@@ -1022,7 +1078,7 @@ const selectAkun = async (index, akun, isSilang = false) => {
     return
   }
 
-  
+
 
 }
 
@@ -1502,7 +1558,8 @@ const resetForm = () => {
   resetVendorCustomerState() // NEW
 }
 
-watch(() => props.showModal, async (newVal) => {  if (newVal) {
+watch(() => props.showModal, async (newVal) => {
+  if (newVal) {
     fetchNomorBuktiList()
     if (isEdit.value && props.editItem) {
       formData.value = {
@@ -1550,15 +1607,15 @@ watch(() => props.showModal, async (newVal) => {  if (newVal) {
       selectedJenisJurnal.value = String(props.preselectedData.jenis_jurnal)
     }
   } else if (props.preselectedData) {
-      resetForm()
-      const jenis = String(props.preselectedData.jenis_jurnal)
-      selectedJenisJurnal.value = jenis
-      await nextTick()
-      if (['1', '2', '3', '4'].includes(jenis) && formData.value.tanggal) {
-        await autoInitTanpaLawan(jenis)
-      }
+    resetForm()
+    const jenis = String(props.preselectedData.jenis_jurnal)
+    selectedJenisJurnal.value = jenis
+    await nextTick()
+    if (['1', '2', '3', '4'].includes(jenis) && formData.value.tanggal) {
+      await autoInitTanpaLawan(jenis)
     }
-  
+  }
+
 }, { immediate: true })
 
 watch(() => props.namaAkunOptions, (newOptions) => {

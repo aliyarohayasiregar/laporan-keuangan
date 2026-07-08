@@ -62,7 +62,7 @@ class JurnalUmumService {
       { value: 4, label: 'Bank Keluar', description: 'Debit: Akun lain, Kredit: Bank' },
       { value: 5, label: 'Adjustment/Pembalik', description: 'Debit: Akun lain, Kredit: Akun lain' },
       { value: 6, label: 'Ayat Silang', description: 'Transaksi Antar Bank Internal' },
-      { value: 7, label: 'Transaksi Vendor & Customer', description: 'Beli/Jual/Bayar ke Vendor & Customer' }
+      // { value: 7, label: 'Transaksi Vendor & Customer', description: 'Beli/Jual/Bayar ke Vendor & Customer' }
     ]
   }
 

@@ -26,10 +26,42 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Kode *</label>
+
+            <!-- Pilihan format HANYA muncul kalau belum ada data kelompok akun sama sekali & mode create -->
+            <div v-if="!isEdit && !detectedFormat && !loadingKelompokOptions" class="mb-2">
+              <label class="block text-xs font-medium text-gray-600 mb-1">Format Kode (belum ada data acuan)</label>
+              <select v-model="selectedPresetLabel" @change="handlePresetChange"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-xs">
+                <option value="">Pilih format kode akun</option>
+                <option v-for="preset in kodeFormatPresets" :key="preset.label" :value="preset.label">
+                  {{ preset.label }}
+                </option>
+                <option value="custom">Custom...</option>
+              </select>
+
+              <div v-if="isCustomFormat" class="mt-2 flex items-center gap-1 flex-wrap">
+                <template v-for="(seg, i) in customSegments" :key="i">
+                  <input v-model.number="customSegments[i]" type="number" min="1" max="6"
+                    class="w-14 px-1 py-1 border border-gray-300 rounded text-xs text-center" />
+                  <span v-if="i < customSegments.length - 1" class="text-gray-400">-</span>
+                </template>
+                <button type="button" @click="customSegments.push(2)"
+                  class="text-xs text-blue-600 hover:underline ml-1">+
+                  segmen</button>
+                <button type="button" @click="customSegments.length > 1 && customSegments.pop()"
+                  class="text-xs text-red-500 hover:underline">- segmen</button>
+              </div>
+              <p class="text-[11px] text-gray-400 mt-1">Format ini akan jadi acuan untuk kode akun berikutnya.</p>
+            </div>
+
             <input :value="formData.kode" @input="handleKodeInput" type="text" required :disabled="isEdit"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              placeholder="Contoh: 1 11 11 1111" maxlength="12" />
+              :placeholder="`Contoh: ${kodeFormatExample}`" :maxlength="kodeMaxLength" />
+
             <p v-if="isEdit" class="text-xs text-gray-500 mt-1">Kode tidak dapat diubah saat edit</p>
+            <p v-else-if="detectedFormat" class="text-xs text-gray-400 mt-1">
+              Format otomatis dari Kelompok Akun yang sudah ada: {{ kodeFormat.join('-') }}
+            </p>
           </div>
 
           <div>
@@ -127,6 +159,30 @@ const loadKelompokOptions = async () => {
     loadingKelompokOptions.value = true
     const response = await api.getAllKelompokAkunAkun()
     kelompokOptions.value = response.data || []
+
+    // Deteksi pola dari data yang ada
+    const detected = detectKodeFormat(kelompokOptions.value)
+    if (detected) {
+      detectedFormat.value = detected
+      // simpan sebagai default company untuk kondisi belum ada data lain kali
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(detected))
+    } else {
+      detectedFormat.value = null
+      // belum ada data sama sekali → coba pakai format tersimpan sebelumnya
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY)
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          selectedPresetLabel.value = kodeFormatPresets.find(
+            p => JSON.stringify(p.value) === JSON.stringify(parsed)
+          )?.label || ''
+          if (!selectedPresetLabel.value) {
+            isCustomFormat.value = true
+            customSegments.value = parsed
+          }
+        } catch (e) { /* ignore */ }
+      }
+    }
   } catch (error) {
     console.error('Error loading kelompok akun:', error)
     kelompokOptions.value = []
@@ -146,7 +202,7 @@ const filteredKelompokOptions = computed(() => {
     // Contoh: "1 10 10 0001" → prefix = "1 10 10"
     // Contoh: "1 10" → prefix = "1 10"
     const segments = currentKode.split(' ').filter(s => s !== '')
-    
+
     filtered = filtered.filter(k => {
       const kelompokSegments = k.kode.split(' ').filter(s => s !== '')
       // Cocokkan sejumlah segmen yang ada di input (max 3 segmen pertama)
@@ -202,31 +258,24 @@ const resetForm = () => {
 }
 
 const handleKodeInput = (e) => {
-  let val = (e.target.value || '').replace(/\s/g, '').replace(/\D/g, '') // Remove spaces and non-digits
-  val = val.substring(0, 9) // Batasi total maks 9 digit (1+2+2+4)
+  let val = (e.target.value || '').replace(/\s/g, '').replace(/\D/g, '')
+  val = val.substring(0, totalKodeDigits.value)
+
   let formatted = ''
-
-  if (val.length > 0) {
-    // Kelompok pertama: max 1 digit
-    formatted += val.substring(0, 1)
-
-    // Kelompok kedua: max 2 digit
-    if (val.length > 1) {
-      formatted += ' ' + val.substring(1, 3)
+  let pos = 0
+  kodeFormat.value.forEach((len, idx) => {
+    if (val.length > pos) {
+      formatted += (idx > 0 ? ' ' : '') + val.substring(pos, pos + len)
     }
-
-    // Kelompok ketiga: max 2 digit
-    if (val.length > 3) {
-      formatted += ' ' + val.substring(3, 5)
-    }
-
-    // Kelompok keempat: max 4 digit
-    if (val.length > 5) {
-      formatted += ' ' + val.substring(5, 9)
-    }
-  }
+    pos += len
+  })
 
   formData.value.kode = formatted
+}
+
+const handlePresetChange = () => {
+  isCustomFormat.value = selectedPresetLabel.value === 'custom'
+  formData.value.kode = '' // reset input saat ganti format
 }
 
 const handleSubmit = () => {
@@ -263,4 +312,67 @@ const handleSubmit = () => {
     emit('save', submitData)
   }
 }
+
+
+
+// ===== KODE FORMAT (dinamis, tidak hardcode) =====
+const kodeFormatPresets = [
+  { label: '1-2-2-4 (9 digit)', value: [1, 2, 2, 4] },
+  { label: '2-2-3-5 (12 digit)', value: [2, 2, 3, 5] },
+  { label: '1-1-2-4 (8 digit)', value: [1, 1, 2, 4] },
+  { label: '2-1-3-4 (10 digit)', value: [2, 1, 3, 4] },
+  { label: '1-2-3-4 (10 digit)', value: [1, 2, 3, 4] },
+]
+
+const detectedFormat = ref(null)      // hasil deteksi otomatis dari API
+const selectedPresetLabel = ref('')   // dipakai kalau harus pilih manual (belum ada data)
+const customSegments = ref([1, 2, 2, 4]) // dipakai kalau user pilih "Custom"
+const isCustomFormat = ref(false)
+
+const LOCAL_STORAGE_KEY = 'coa_kode_format'
+
+// Deteksi pola paling dominan & paling detail dari kode-kode yang sudah ada
+const detectKodeFormat = (options) => {
+  const kodeSamples = (options || [])
+    .map(k => (k.kode || '').trim())
+    .filter(k => k.length > 0)
+
+  if (kodeSamples.length === 0) return null
+
+  const patternCount = {}
+  kodeSamples.forEach(kode => {
+    const segments = kode.split(' ').filter(s => s !== '')
+    if (segments.length === 0) return
+    const pattern = segments.map(s => s.length).join('-')
+    patternCount[pattern] = (patternCount[pattern] || 0) + 1
+  })
+
+  // Prioritas: pola dengan total digit terbanyak (paling lengkap/detail),
+  // kalau seri baru dibandingkan berdasarkan frekuensi kemunculan
+  let bestPattern = null
+  let bestScore = -1
+  Object.entries(patternCount).forEach(([pattern, count]) => {
+    const segments = pattern.split('-').map(Number)
+    const totalDigits = segments.reduce((a, b) => a + b, 0)
+    const score = totalDigits * 1000 + count
+    if (score > bestScore) {
+      bestScore = score
+      bestPattern = segments
+    }
+  })
+
+  return bestPattern
+}
+
+// Pola aktif yang dipakai untuk format input Kode
+const kodeFormat = computed(() => {
+  if (detectedFormat.value) return detectedFormat.value
+  if (isCustomFormat.value) return customSegments.value
+  const preset = kodeFormatPresets.find(p => p.label === selectedPresetLabel.value)
+  return preset ? preset.value : [1, 2, 2, 4] // fallback terakhir
+})
+
+const totalKodeDigits = computed(() => kodeFormat.value.reduce((a, b) => a + b, 0))
+const kodeMaxLength = computed(() => totalKodeDigits.value + (kodeFormat.value.length - 1)) // + spasi
+const kodeFormatExample = computed(() => kodeFormat.value.map(len => '1'.repeat(len)).join(' '))
 </script>

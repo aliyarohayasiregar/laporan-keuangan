@@ -1,14 +1,14 @@
 <template>
-  <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+  <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
       <!-- Header -->
-      <div class="px-6 py-4 border-b border-gray-200">
+      <div class="px-6 py-4 border-b border-gray-200 flex-shrink-0">
         <h3 class="text-lg font-semibold text-gray-900">Detail Nomor Voucher</h3>
         <p class="text-sm text-gray-600 mt-1">Informasi lengkap nomor voucher</p>
       </div>
 
       <!-- Content -->
-      <div class="p-6">
+      <div class="p-6 overflow-y-auto flex-1">
         <div v-if="loading" class="flex items-center justify-center py-8">
           <svg class="animate-spin h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -87,7 +87,7 @@
       </div>
 
       <!-- Footer -->
-      <div class="px-6 py-4 border-t border-gray-200">
+      <div class="px-6 py-4 border-t border-gray-200 flex-shrink-0">
         <button @click="handleClose"
           class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
           Tutup

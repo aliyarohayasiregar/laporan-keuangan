@@ -88,13 +88,13 @@ const formData = ref({
 })
 
 const jenisJurnalOptions = [
-  { value: 1, label: 'Kas Masuk' },
-  { value: 2, label: 'Kas Keluar' },
+  //{ value: 1, label: 'Kas Masuk' },
+  //{ value: 2, label: 'Kas Keluar' },
   { value: 3, label: 'Bank Masuk' },
   { value: 4, label: 'Bank Keluar' },
   { value: 5, label: 'Adjustment/Pembalik' },
-  { value: 6, label: 'Ayat Silang' },
-  { value: 7, label: 'transaksi vendor/customer' }
+  //{ value: 6, label: 'Ayat Silang' },
+  //{ value: 7, label: 'transaksi vendor/customer' }
 ]
 
 const resetForm = () => {

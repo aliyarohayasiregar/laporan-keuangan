@@ -102,7 +102,7 @@
             </tr>
             <tr class="bg-gray-50 font-bold border-t border-gray-300">
               <td colspan="2" class="py-2 pl-4 text-xs text-gray-800 italic">{{ getTotalAsetLancarName() }}</td>
-              <td class="py-2 text-right text-xs text-gray-400 pr-2 font-mono">-</td>
+              <td class="py-2 text-right text-xs text-gray-400 pr-2 font-mono"></td>
               <td class="py-2 text-right text-xs text-blue-700 pr-2 font-mono underline decoration-double">{{
                 formatNumber(data.total_aset_lancar) }}</td>
             </tr>
@@ -122,7 +122,7 @@
             </tr>
             <tr class="bg-gray-50 font-bold border-t border-gray-300">
               <td colspan="2" class="py-2 pl-4 text-xs text-gray-800 italic">{{ getTotalAsetTetapName() }}</td>
-              <td class="py-2 text-right text-xs text-gray-400 pr-2 font-mono">-</td>
+              <td class="py-2 text-right text-xs text-gray-400 pr-2 font-mono"></td>
               <td class="py-2 text-right text-xs text-blue-700 pr-2 font-mono underline decoration-double">{{
                 formatNumber(data.total_aset_tetap) }}</td>
             </tr>
@@ -130,7 +130,7 @@
             <!-- Total Aset Footer -->
             <tr class="bg-blue-600 text-white font-bold">
               <td colspan="2" class="py-3 text-center text-sm uppercase tracking-widest">{{ getTotalAsetName() }}</td>
-              <td class="py-3 text-right text-sm pr-2 font-mono">-</td>
+              <td class="py-3 text-right text-sm pr-2 font-mono"></td>
               <td class="py-3 text-right text-sm pr-2 font-mono"> {{ formatNumber(data.total_aset) }}</td>
             </tr>
           </tbody>
@@ -170,7 +170,7 @@
             <tr class="bg-gray-50 font-bold border-t border-gray-300">
               <td colspan="2" class="py-2 pl-4 text-xs text-gray-800 italic">{{ getTotalLiabilitasJangkaPendekName() }}
               </td>
-              <td class="py-2 text-right text-xs text-gray-400 pr-2 font-mono">-</td>
+              <td class="py-2 text-right text-xs text-gray-400 pr-2 font-mono"></td>
               <td class="py-2 text-right text-xs text-emerald-700 pr-2 font-mono underline decoration-double">{{
                 formatNumber(data.total_liabilitas_jangka_pendek) }}</td>
             </tr>
@@ -184,7 +184,7 @@
             <tr class="hover:bg-gray-50 border-b border-gray-100">
               <td class="py-1.5 text-center text-[11px] text-gray-500 font-mono">-</td>
               <td class="py-1.5 text-[11px] text-gray-700 font-medium pl-2">{{ getEkuitasPemilikName() }}</td>
-              <td class="py-1.5 text-right text-[11px] text-gray-400 pr-2 font-mono">-</td>
+              <td class="py-1.5 text-right text-[11px] text-gray-400 pr-2 font-mono"></td>
               <td class="py-1.5 text-right text-[11px] text-gray-900 font-bold pr-2 font-mono">
                 {{ formatNumber(data.ekuitas_pemilik) }}
               </td>
@@ -194,7 +194,7 @@
             <tr class="bg-emerald-600 text-white font-bold">
               <td colspan="2" class="py-3 text-center text-sm uppercase tracking-widest">{{
                 getTotalLiabilitasDanEkuitasPemilikName() }}</td>
-              <td class="py-3 text-right text-sm pr-2 font-mono">-</td>
+              <td class="py-3 text-right text-sm pr-2 font-mono"></td>
               <td class="py-3 text-right text-sm pr-2 font-mono">{{
                 formatNumber(data.total_liabilitas_dan_ekuitas_pemilik) }}</td>
             </tr>
