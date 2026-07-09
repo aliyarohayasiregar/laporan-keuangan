@@ -27,6 +27,18 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
 
+          <!-- Pengaturan Akun Sistem: tampil untuk semua jenis jurnal ketika belum dikonfigurasi -->
+          <div v-if="selectedJenisJurnal && !akunSistemConfig && !isLoadingAkunSistem"
+            class="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+            <p class="text-sm text-amber-800">
+              Akun sistem untuk jenis jurnal ini belum diatur.
+            </p>
+            <button type="button" @click="openAkunSistemModal"
+              class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium transition-colors">
+              + Tambah Akun
+            </button>
+          </div>
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <template v-if="selectedJenisJurnal == 5">
               <div>
@@ -227,13 +239,13 @@
                                 </div>
                                 <div class="max-h-48 overflow-y-auto">
                                   <div v-for="akun in filteredAkunOptions(index)" :key="akun.id"
-  @click="selectAkun(index, akun)"
-  class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
-  <div class="text-sm font-medium text-gray-900">
-    {{ akun.kode_akun || akun.kode || akun.no_akun || '-' }}
-  </div>
-  <div class="text-xs text-gray-600">{{ akun.nama_akun || akun.nama }}</div>
-</div>
+                                    @click="selectAkun(index, akun)"
+                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
+                                    <div class="text-sm font-medium text-gray-900">
+                                      {{ akun.kode_akun || akun.kode || akun.no_akun || '-' }}
+                                    </div>
+                                    <div class="text-xs text-gray-600">{{ akun.nama_akun || akun.nama }}</div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -479,8 +491,10 @@
                         <div v-else class="relative inline-block w-full">
                           <div @click="() => toggleAkunCard(index)"
                             class="w-full px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer hover:border-blue-400 transition-colors bg-white">
+                            <!-- SESUDAH (benar) -->
                             <div v-if="selectedAkun[index]" class="flex items-center justify-between">
-                              <span class="text-gray-900">{{ getAkunLabel(selectedAkun['s_' + index]) }}</span>                              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <span class="text-gray-900">{{ getAkunLabel(selectedAkun[index]) }}</span> <svg
+                                class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M19 9l-7 7-7-7"></path>
                               </svg>
@@ -513,13 +527,13 @@
                             </div>
                             <div class="max-h-48 overflow-y-auto">
                               <div v-for="akun in filteredAkunOptions(index)" :key="akun.id"
-  @click="selectAkun(index, akun)"
-  class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
-  <div class="text-sm font-medium text-gray-900">
-    {{ akun.kode_akun || akun.kode || akun.no_akun || '-' }}
-  </div>
-  <div class="text-xs text-gray-600">{{ akun.nama_akun || akun.nama }}</div>
-</div>
+                                @click="selectAkun(index, akun)"
+                                class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
+                                <div class="text-sm font-medium text-gray-900">
+                                  {{ akun.kode_akun || akun.kode || akun.no_akun || '-' }}
+                                </div>
+                                <div class="text-xs text-gray-600">{{ akun.nama_akun || akun.nama }}</div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -527,11 +541,18 @@
                     </td>
 
                     <td class="px-4 py-2">
-                      <input :value="getDisplayDebit(index)" @input="(e) => { if (!shouldDisableDebit(index)) detail.debit = parseNumberInput(e.target.value); }" :disabled="shouldDisableDebit(index)" type="text" class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"placeholder="0" />
+                      <input :value="getDisplayDebit(index)"
+                        @input="(e) => { if (!shouldDisableDebit(index)) detail.debit = parseNumberInput(e.target.value); }"
+                        :disabled="shouldDisableDebit(index)" type="text"
+                        class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
+                        placeholder="0" />
                     </td>
                     <td class="px-4 py-2">
                       <input :value="getDisplayKredit(index)" @input="(e) => {
-                        if (!shouldDisableKredit(index)) detail.kredit = parseNumberInput(e.target.value);}" :disabled="shouldDisableKredit(index)" type="text"class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100" placeholder="0" />
+                        if (!shouldDisableKredit(index)) detail.kredit = parseNumberInput(e.target.value);
+                      }" :disabled="shouldDisableKredit(index)" type="text"
+                        class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
+                        placeholder="0" />
                     </td>
                     <td class="px-4 py-2 text-center">
                       <button type="button" @click="removeDetail(index)"
@@ -629,6 +650,49 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal Pengaturan Akun Sistem (generic, berlaku untuk semua jenis jurnal) -->
+  <div v-if="showAkunSistemModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+      <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-900">Pengaturan Akun Sistem</h3>
+        <button @click="closeAkunSistemModal" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">
+          Silakan pilih akun default yang akan digunakan untuk jenis jurnal ini.
+        </p>
+
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Akun</label>
+          <select v-model="selectedAkunSistemPilihan"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="">-- Pilih Akun --</option>
+            <option v-for="akun in props.namaAkunOptions" :key="akun.id" :value="akun">
+              {{ akun.kode_akun }} - {{ akun.nama_akun }}
+            </option>
+          </select>
+        </div>
+
+        <div class="flex justify-end gap-3">
+          <button @click="closeAkunSistemModal"
+            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+            Batal
+          </button>
+          <button @click="createPengaturanAkunSistem" :disabled="isLoadingAkunSistem"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400">
+            {{ isLoadingAkunSistem ? 'Menyimpan...' : 'Simpan' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -660,6 +724,14 @@ const nomorBuktiList = ref([])
 const isLoadingNomorBukti = ref(false)
 const isGeneratingNoBukti = ref(false)
 const akunDefault = ref(null)
+
+// Pengaturan Akun Sistem (generic, berlaku untuk semua jenis jurnal)
+// GET  /getDefaultPengaturan/{no_jenis_jurnal}
+// POST /createPengaturanAkunSistem/{no_jenis_jurnal}  { akun_id }
+const showAkunSistemModal = ref(false)
+const isLoadingAkunSistem = ref(false)
+const akunSistemConfig = ref(null)
+const selectedAkunSistemPilihan = ref(null)
 
 // ===== NEW: Vendor/Customer (khusus jenis jurnal 7) =====
 // Kategori 1 = Beli Barang ke Vendor, 2 = Bayar ke Vendor -> Vendor
@@ -829,11 +901,11 @@ watch(
     const sumKredit = otherRows.reduce((s, d) => s + (parseFloat(d.kredit) || 0), 0)
 
     if (posisi === 'debet') {
-      // akun default di debit → nominalnya = total kredit lawan
+      // akun default di debit -> nominalnya = total kredit lawan
       formData.value.details[0].debit = sumKredit
       formData.value.details[0].kredit = 0
     } else if (posisi === 'kredit') {
-      // akun default di kredit → nominalnya = total debit lawan
+      // akun default di kredit -> nominalnya = total debit lawan
       formData.value.details[0].kredit = sumDebit
       formData.value.details[0].debit = 0
     }
@@ -877,11 +949,11 @@ const getPrimaryDefaultText = () => {
 }
 
 const getAyatSilangDebitText = () => {
-  return akunDefault.value?.debet ? getAkunLabel(akunDefault.value.debet) : 'Ayat silang'
+  return akunSistemConfig.value ? `${akunSistemConfig.value.akun_kode} - ${akunSistemConfig.value.akun_nama}` : 'Ayat silang'
 }
 
 const getAyatSilangKreditText = () => {
-  return akunDefault.value?.kredit ? getAkunLabel(akunDefault.value.kredit) : 'Ayat silang'
+  return akunSistemConfig.value ? `${akunSistemConfig.value.akun_kode} - ${akunSistemConfig.value.akun_nama}` : 'Ayat silang'
 }
 
 
@@ -1044,7 +1116,7 @@ const generateNoBuktiBySelectedAkun = async (isSilang = false) => {
       } else {
         formData.value.no_bukti = res.no_bukti_full || ''
         if (formData.value.no_bukti) {
-          await fetchAkunDefault(6, formData.value.no_bukti)
+          applyAkunDefault()
         }
       }
       return
@@ -1137,7 +1209,7 @@ const autoInitTanpaLawan = async (jenis) => {
     const tanggalParts = formData.value.tanggal.split('-')
     const res = await jurnalUmumService.getAkunDefault(
       jenis,
-      matchingBukti.kode,           // ← ini yang tadinya null, sekarang diisi kode template
+      matchingBukti.kode,           // <- ini yang tadinya null, sekarang diisi kode template
       null,
       parseInt(tanggalParts[1]),
       parseInt(tanggalParts[0])
@@ -1189,6 +1261,16 @@ watch(selectedJenisJurnal, async (newJenis) => {
       await autoInitTanpaLawan(newJenis)
     }
   }
+
+  // Pengaturan Akun Sistem berlaku untuk semua jenis jurnal (bukan hanya jenis 6)
+  if (newJenis) {
+    await getPengaturanAkunSistem(newJenis)
+    if (akunSistemConfig.value) {
+      applyAkunDefault()
+    }
+  } else {
+    akunSistemConfig.value = null
+  }
 })
 
 
@@ -1208,6 +1290,7 @@ const fetchAkunDefault = async (jenis, bukti) => {
     if (formData.value.details.length === 0) formData.value.details = [createEmptyDetail()]
     return
   }
+  if (jenis == 6) return // pengaturan default ayat silang sudah diambil lewat getPengaturanAkunSistem(6)
   if (jenis == 7 && !selectedKategoriJenis.value) return
   try {
     const tanggalParts = formData.value.tanggal.split('-')
@@ -1229,13 +1312,16 @@ const fetchAkunDefault = async (jenis, bukti) => {
 
 
 const applyAkunDefault = () => {
-  if (!akunDefault.value || selectedJenisJurnal.value == 5) return
+  if (selectedJenisJurnal.value == 5) return
 
   if (selectedJenisJurnal.value == 6) {
-    const debetAkunData = akunDefault.value.debet || akunDefault.value
-    const kreditAkunData = akunDefault.value.kredit || akunDefault.value
-    const debet = findAkunFromOptions(debetAkunData)
-    const kredit = findAkunFromOptions(kreditAkunData)
+    if (!akunSistemConfig.value) return
+
+    const ayatSilangAkun = {
+      id: akunSistemConfig.value.akun_id,
+      kode_akun: akunSistemConfig.value.akun_kode,
+      nama_akun: akunSistemConfig.value.akun_nama
+    }
 
     const manualJurnal1 = formData.value.details[1] || createEmptyDetail()
     const manualJurnal2 = formData.value.details_silang[0] || createEmptyDetail()
@@ -1243,18 +1329,18 @@ const applyAkunDefault = () => {
     const selectedManualJurnal2 = selectedAkun.value['s_0']
 
     formData.value.details = [
-      { akun_id: debet.id, debit: formData.value.details[0]?.debit || 0, kredit: formData.value.details[0]?.kredit || 0 },
+      { akun_id: ayatSilangAkun.id, debit: formData.value.details[0]?.debit || 0, kredit: formData.value.details[0]?.kredit || 0 },
       { ...manualJurnal1 }
     ]
     formData.value.details_silang = [
       { ...manualJurnal2 },
-      { akun_id: kredit.id, debit: formData.value.details_silang[1]?.debit || 0, kredit: formData.value.details_silang[1]?.kredit || 0 }
+      { akun_id: ayatSilangAkun.id, debit: formData.value.details_silang[1]?.debit || 0, kredit: formData.value.details_silang[1]?.kredit || 0 }
     ]
 
-    selectedAkun.value[0] = debet.akun
-    searchQueries.value[0] = `${debet.akun.kode_akun} - ${debet.akun.nama_akun}`
-    selectedAkun.value['s_1'] = kredit.akun
-    searchQueries.value['s_1'] = `${kredit.akun.kode_akun} - ${kredit.akun.nama_akun}`
+    selectedAkun.value[0] = ayatSilangAkun
+    searchQueries.value[0] = `${ayatSilangAkun.kode_akun} - ${ayatSilangAkun.nama_akun}`
+    selectedAkun.value['s_1'] = ayatSilangAkun
+    searchQueries.value['s_1'] = `${ayatSilangAkun.kode_akun} - ${ayatSilangAkun.nama_akun}`
     if (selectedManualJurnal1) {
       selectedAkun.value[1] = selectedManualJurnal1
       searchQueries.value[1] = `${selectedManualJurnal1.kode_akun || selectedManualJurnal1.kode || ''} - ${selectedManualJurnal1.nama_akun || ''}`
@@ -1265,6 +1351,7 @@ const applyAkunDefault = () => {
     }
 
   } else {
+    if (!akunDefault.value) return
     const defaultAkun = findAkunFromOptions(akunDefault.value)
     const manualDetail = formData.value.details[1] || createEmptyDetail()
     const selectedManualDetail = selectedAkun.value[1]
@@ -1353,7 +1440,7 @@ const handleKategoriJenisChange = async () => {
     const tanggalParts = formData.value.tanggal.split('-')
     const res = await jurnalUmumService.getAkunDefault(
       7,
-      matchingBukti.kode,           // ← diisi kode template, bukan null lagi
+      matchingBukti.kode,           // <- diisi kode template, bukan null lagi
       selectedKategoriJenis.value,
       parseInt(tanggalParts[1]),
       parseInt(tanggalParts[0])
@@ -1560,6 +1647,8 @@ const resetForm = () => {
   showAkunCard.value = {}
   selectedAkun.value = {}
   resetVendorCustomerState() // NEW
+  akunSistemConfig.value = null
+  selectedAkunSistemPilihan.value = null
 }
 
 watch(() => props.showModal, async (newVal) => {
@@ -1579,6 +1668,10 @@ watch(() => props.showModal, async (newVal) => {
       selectedNoBuktiTujuan.value = props.editItem.no_bukti_silang || ''
       selectedJenisJurnal.value = String(props.editItem.no_jenis_jurnal || props.editItem.jenis_jurnal)
       selectedKategoriJenis.value = String(props.editItem.kategori_jenis || '')
+
+      if (selectedJenisJurnal.value) {
+        await getPengaturanAkunSistem(selectedJenisJurnal.value)
+      }
 
       // NEW: restore vendor/customer kalau ada di data edit
       if (props.editItem.vendor_customer_id) {
@@ -1639,6 +1732,11 @@ watch(() => formData.value.tanggal, (newVal, oldVal) => {
 })
 
 const handleSubmit = async () => {
+  if (selectedJenisJurnal.value == 6 && !akunSistemConfig.value) {
+    alert('Pengaturan Akun Sistem (Ayat Silang) belum diatur. Silakan atur akun terlebih dahulu!')
+    return
+  }
+
   // Validasi balance
   if (selectedJenisJurnal.value == 6) {
     if (Math.abs(balanceJurnal1.value) > 0.01 || Math.abs(balanceJurnal2.value) > 0.01) {
@@ -1755,6 +1853,80 @@ const handleSubmit = async () => {
   } finally {
     isSubmitting.value = false
   }
+}
+
+// Pengaturan Akun Sistem — generic, berlaku untuk semua jenis jurnal (1-7)
+// GET  /getDefaultPengaturan/{no_jenis_jurnal}
+//   -> { success: true, data: { is_configured: false, ... } }  ATAU
+//   -> { success: true, message: 'Pengaturan akun sistem belum tersedia' } (belum diatur)
+const getPengaturanAkunSistem = async (jenis) => {
+  if (!jenis) return
+  isLoadingAkunSistem.value = true
+  try {
+    const res = await api.request(`/getDefaultPengaturan/${jenis}`, { method: 'GET' }, 'ju')
+    if (res.success && res.data && res.data.is_configured) {
+      akunSistemConfig.value = res.data
+      if (!['5', '6'].includes(String(jenis))) {
+        akunDefault.value = {
+          ...res.data,
+          kode_akun: res.data.akun_kode,   // "10 10 100 90000"
+          nama_akun: res.data.akun_nama,   // "Ayat Silang Kas Dan Bank"
+        }
+      }
+    } else {
+      akunSistemConfig.value = null
+    }
+  } catch (err) {
+    console.error('Error getting pengaturan akun sistem:', err)
+    akunSistemConfig.value = null
+  } finally {
+    isLoadingAkunSistem.value = false
+  }
+}
+
+// POST /createPengaturanAkunSistem/{no_jenis_jurnal}  { akun_id }
+const createPengaturanAkunSistem = async () => {
+  if (!selectedAkunSistemPilihan.value) {
+    alert('Silakan pilih akun terlebih dahulu!')
+    return
+  }
+  if (!selectedJenisJurnal.value) return
+
+  isLoadingAkunSistem.value = true
+  try {
+    const res = await api.request(`/createPengaturanAkunSistem/${selectedJenisJurnal.value}`, {
+      method: 'POST',
+      body: JSON.stringify({ akun_id: selectedAkunSistemPilihan.value.id })
+    }, 'ju')
+
+    if (res.success) {
+      await getPengaturanAkunSistem(selectedJenisJurnal.value)
+      showAkunSistemModal.value = false
+      applyAkunDefault()
+      alert('Pengaturan akun sistem berhasil disimpan!')
+    } else {
+      alert(res.message || 'Gagal menyimpan pengaturan akun sistem!')
+    }
+  } catch (err) {
+    console.error('Error creating pengaturan akun sistem:', err)
+    alert('Terjadi kesalahan saat menyimpan pengaturan akun sistem!')
+  } finally {
+    isLoadingAkunSistem.value = false
+  }
+}
+
+const openAkunSistemModal = () => {
+  selectedAkunSistemPilihan.value = null
+  showAkunSistemModal.value = true
+}
+
+const closeAkunSistemModal = () => {
+  showAkunSistemModal.value = false
+  if (selectedJenisJurnal.value == 6 && !akunSistemConfig.value) {
+    // Jenis 6 (ayat silang) wajib memiliki pengaturan akun sistem agar bisa dipakai
+    selectedJenisJurnal.value = ''
+  }
+  selectedAkunSistemPilihan.value = null
 }
 
 onMounted(() => {
