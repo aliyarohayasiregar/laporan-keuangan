@@ -154,6 +154,7 @@ const formData = ref({
   is_active: true
 })
 
+
 const loadKelompokOptions = async () => {
   try {
     loadingKelompokOptions.value = true
@@ -317,11 +318,11 @@ const handleSubmit = () => {
 
 // ===== KODE FORMAT (dinamis, tidak hardcode) =====
 const kodeFormatPresets = [
-  { label: '1-2-2-4 (9 digit)', value: [1, 2, 2, 4] },
+  // { label: '1-2-2-4 (9 digit)', value: [1, 2, 2, 4] },
   { label: '2-2-3-5 (12 digit)', value: [2, 2, 3, 5] },
-  { label: '1-1-2-4 (8 digit)', value: [1, 1, 2, 4] },
-  { label: '2-1-3-4 (10 digit)', value: [2, 1, 3, 4] },
-  { label: '1-2-3-4 (10 digit)', value: [1, 2, 3, 4] },
+  // { label: '1-1-2-4 (8 digit)', value: [1, 1, 2, 4] },
+  // { label: '2-1-3-4 (10 digit)', value: [2, 1, 3, 4] },
+  // { label: '1-2-3-4 (10 digit)', value: [1, 2, 3, 4] },
 ]
 
 const detectedFormat = ref(null)      // hasil deteksi otomatis dari API
