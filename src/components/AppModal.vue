@@ -27,8 +27,8 @@
             <h3 :id="'modal-title-' + uid" class="modal-title">{{ title }}</h3>
   
             <!-- Message -->
-            <p class="modal-message" v-html="message"></p>
-  
+            <p v-if="allowHtml" class="modal-message" v-html="message"></p>
+            <p v-else class="modal-message">{{ message }}</p>  
             <!-- Footer -->
             <div class="modal-footer">
               <button
@@ -66,6 +66,7 @@
     },
     title: { type: String, default: 'Konfirmasi' },
     message: { type: String, default: '' },
+    allowHtml: { type: Boolean, default: false }, 
     confirmLabel: { type: String, default: 'OK' },
     cancelLabel: { type: String, default: 'Batal' },
     showCancel: { type: Boolean, default: false },

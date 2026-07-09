@@ -206,6 +206,11 @@ class KartuStokAPI {
     }, 'pb')
   }
 
+  // Tipe Akun API Methods
+  async getAllTipeAkun() {
+    return this.request('/getAllTipeAkun', {}, 'pb')
+  }
+
   // Nama Akun API Methods
   async getAllNamaAkun() {
     return this.request('/getAllNamaAkun', {}, 'pb')
@@ -282,6 +287,7 @@ class KartuStokAPI {
     }, 'ju')
   }
 
+  
   async getDataPosting(tahun, startBulan, endBulan, kode_akun = '') {
     let url = `/getDataPosting?start_bulan=${startBulan}&end_bulan=${endBulan}&tahun=${tahun}`
     if (kode_akun) {

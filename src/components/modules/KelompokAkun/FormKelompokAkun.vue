@@ -14,6 +14,20 @@
       <form @submit.prevent="handleSubmit" class="p-4 sm:p-6">
         <div class="space-y-4">
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Akun *</label>
+            <select v-model.number="formData.tipe_akun_id" required :disabled="loadingTipeAkun"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed">
+              <option :value="null" disabled>Pilih tipe akun</option>
+              <option v-for="tipe in tipeAkunOptions" :key="tipe.id" :value="tipe.id">
+                {{ tipe.kode_tipe_akun }} - {{ tipe.nama_tipe_akun }}
+              </option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              {{ loadingTipeAkun ? 'Memuat data tipe akun...' : 'Pilih tipe akun (Aset, Kewajiban, Ekuitas, dst)' }}
+            </p>
+          </div>
+
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Kode *</label>
 
             <div v-if="!isEdit && !detectedFormat && !loadingParentOptions" class="mb-2">
@@ -62,10 +76,12 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Level *</label>
-            <input v-model.number="formData.level" type="number" required min="0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Contoh: 1" />
-            <p class="text-xs text-gray-500 mt-1">Level hierarki akun (0 untuk parent tertinggi)</p>
+            <select v-model.number="formData.level" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option :value="null" disabled>Pilih level</option>
+              <option v-for="lvl in levelOptions" :key="lvl" :value="lvl">{{ lvl }}</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Level hierarki akun (1 untuk parent tertinggi)</p>
           </div>
 
           <div>
@@ -115,6 +131,26 @@ const isEdit = computed(() => !!props.editItem)
 const parentOptions = ref([])
 const loadingParentOptions = ref(false)
 
+// ===== TIPE AKUN =====
+const tipeAkunOptions = ref([])
+const loadingTipeAkun = ref(false)
+
+const loadTipeAkunOptions = async () => {
+  try {
+    loadingTipeAkun.value = true
+    const response = await api.getAllTipeAkun()
+    tipeAkunOptions.value = response.data || []
+  } catch (error) {
+    console.error('Error loading tipe akun:', error)
+    tipeAkunOptions.value = []
+  } finally {
+    loadingTipeAkun.value = false
+  }
+}
+
+// Ambil segmen-segmen kode dari sebuah string kode, mis. "10 10 100 00000" -> ["10","10","100","00000"]
+const getKodeSegments = (kode) => (kode || '').trim().split(' ').filter(s => s !== '')
+
 const filteredParentOptions = computed(() => {
   if (!parentOptions.value || !Array.isArray(parentOptions.value)) return []
 
@@ -129,21 +165,38 @@ const filteredParentOptions = computed(() => {
 
   if (currentLevel <= 0) return []
 
+  // Parent harus berada satu level di atas
   filtered = filtered.filter(p => p.level === currentLevel - 1)
 
-  if (currentKode) {
-    const kodeGroup = currentKode.split(' ')[0] || ''
-    filtered = filtered.filter(p => p.kode_group === kodeGroup)
+  // Cocokkan berdasarkan segmen kode yang sudah diketik, bukan field kode_group
+  // (field kode_group tidak selalu tersedia dari API, jadi kita bandingkan
+  // langsung segmen kode milik parent dengan segmen kode yang sedang diketik)
+  const typedSegments = getKodeSegments(currentKode)
+  const relevantSegmentCount = currentLevel - 1 // jumlah segmen yang jadi identitas parent
+
+  if (typedSegments.length > 0 && relevantSegmentCount > 0) {
+    const relevantSegments = typedSegments.slice(0, relevantSegmentCount)
+
+    // Hanya terapkan filter kalau semua segmen relevan sudah terisi penuh
+    if (relevantSegments.length === relevantSegmentCount) {
+      filtered = filtered.filter(p => {
+        const pSegments = getKodeSegments(p.kode)
+        return relevantSegments.every((seg, idx) => pSegments[idx] === seg)
+      })
+    }
   }
 
   return filtered.sort((a, b) => a.kode.localeCompare(b.kode))
 })
 
+const levelOptions = [1, 2, 3, 4]
+
 const formData = ref({
   kode: '',
   nama_kelompok_akun: '',
-  level: 0,
+  level: null,
   parent_id: null,
+  tipe_akun_id: null,
   saldo_normal: 'D'
 })
 
@@ -187,6 +240,7 @@ watch(() => props.editItem, (newItem) => {
       nama_kelompok_akun: newItem.nama_kelompok_akun,
       level: newItem.level,
       parent_id: newItem.parent_id,
+      tipe_akun_id: newItem.tipe_akun_id ?? null,
     }
   }
 })
@@ -195,6 +249,7 @@ watch(() => props.showModal, (show) => {
   if (show) {
     loadParentOptions()
     loadAllKelompokAkunForDetection() // <-- ini yang menentukan tampil/tidaknya pilihan format
+    loadTipeAkunOptions()
   } else {
     resetForm()
   }
@@ -204,8 +259,9 @@ const resetForm = () => {
   formData.value = {
     kode: '',
     nama_kelompok_akun: '',
-    level: 0,
-    parent_id: null
+    level: null,
+    parent_id: null,
+    tipe_akun_id: null
   }
 }
 
@@ -226,7 +282,11 @@ const handleKodeInput = (e) => {
 }
 
 const handleSubmit = async () => {
-  if (!(formData.value.kode || '').trim() || !(formData.value.nama_kelompok_akun || '').trim()) {
+  if (
+    !(formData.value.kode || '').trim() ||
+    !(formData.value.nama_kelompok_akun || '').trim() ||
+    !formData.value.tipe_akun_id
+  ) {
     await showAlert({
       type: 'warning',
       title: 'Field Wajib Diisi',
@@ -239,7 +299,8 @@ const handleSubmit = async () => {
   if (isEdit.value) {
     const submitData = {
       nama_kelompok_akun: (formData.value.nama_kelompok_akun || '').trim(),
-      saldo_normal: formData.value.saldo_normal
+      saldo_normal: formData.value.saldo_normal,
+      tipe_akun_id: formData.value.tipe_akun_id
     }
     console.log('Edit data:', submitData)
     emit('save', submitData)
@@ -249,6 +310,7 @@ const handleSubmit = async () => {
       nama_kelompok_akun: (formData.value.nama_kelompok_akun || '').trim(),
       level: formData.value.level,
       parent_id: formData.value.parent_id,
+      tipe_akun_id: formData.value.tipe_akun_id
     }
     console.log('Create data:', submitData)
     emit('save', submitData)

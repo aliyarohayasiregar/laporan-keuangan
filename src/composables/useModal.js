@@ -26,6 +26,7 @@ const openModal = (options) => {
       type: options.type || 'info',
       title: options.title || '',
       message: options.message || '',
+      allowHtml: options.allowHtml || false, 
       confirmLabel: options.confirmLabel || 'OK',
       cancelLabel: options.cancelLabel || 'Batal',
       showCancel: options.showCancel || false,
