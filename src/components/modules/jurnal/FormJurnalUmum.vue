@@ -1034,13 +1034,12 @@ const getPrimaryDefaultText = () => {
 }
 
 const getAyatSilangDebitText = () => {
-  return akunSistemConfig.value ? `${akunSistemConfig.value.akun_kode} - ${akunSistemConfig.value.akun_nama}` : 'Ayat silang'
+  return akunSistemConfig.value ? akunSistemConfig.value.label : 'Ayat silang'
 }
 
 const getAyatSilangKreditText = () => {
-  return akunSistemConfig.value ? `${akunSistemConfig.value.akun_kode} - ${akunSistemConfig.value.akun_nama}` : 'Ayat silang'
+  return akunSistemConfig.value ? akunSistemConfig.value.label : 'Ayat silang'
 }
-
 
 const shouldDisableDebit = (index, prefix = '') => {
   if (selectedJenisJurnal.value == 6) return index === 1
@@ -1479,42 +1478,40 @@ const applyAkunDefault = () => {
   if (selectedJenisJurnal.value == 5) return
 
   if (selectedJenisJurnal.value == 6) {
-    if (!akunSistemConfig.value) return
+  if (!akunSistemConfig.value) return
 
-    const ayatSilangAkun = {
-      id: akunSistemConfig.value.akun_id,
-      kode_akun: akunSistemConfig.value.akun_kode,
-      nama_akun: akunSistemConfig.value.akun_nama
-    }
+  const ayatSilangAkun = {
+    id: akunSistemConfig.value.id,
+    label: akunSistemConfig.value.label
+  }
 
-    const manualJurnal1 = formData.value.details[1] || createEmptyDetail()
-    const manualJurnal2 = formData.value.details_silang[0] || createEmptyDetail()
-    const selectedManualJurnal1 = selectedAkun.value[1]
-    const selectedManualJurnal2 = selectedAkun.value['s_0']
+  const manualJurnal1 = formData.value.details[1] || createEmptyDetail()
+  const manualJurnal2 = formData.value.details_silang[0] || createEmptyDetail()
+  const selectedManualJurnal1 = selectedAkun.value[1]
+  const selectedManualJurnal2 = selectedAkun.value['s_0']
 
-    formData.value.details = [
-      { akun_id: ayatSilangAkun.id, debit: formData.value.details[0]?.debit || 0, kredit: formData.value.details[0]?.kredit || 0 },
-      { ...manualJurnal1 }
-    ]
-    formData.value.details_silang = [
-      { ...manualJurnal2 },
-      { akun_id: ayatSilangAkun.id, debit: formData.value.details_silang[1]?.debit || 0, kredit: formData.value.details_silang[1]?.kredit || 0 }
-    ]
+  formData.value.details = [
+    { akun_id: ayatSilangAkun.id, debit: formData.value.details[0]?.debit || 0, kredit: formData.value.details[0]?.kredit || 0 },
+    { ...manualJurnal1 }
+  ]
+  formData.value.details_silang = [
+    { ...manualJurnal2 },
+    { akun_id: ayatSilangAkun.id, debit: formData.value.details_silang[1]?.debit || 0, kredit: formData.value.details_silang[1]?.kredit || 0 }
+  ]
 
-    selectedAkun.value[0] = ayatSilangAkun
-    searchQueries.value[0] = `${ayatSilangAkun.kode_akun} - ${ayatSilangAkun.nama_akun}`
-    selectedAkun.value['s_1'] = ayatSilangAkun
-    searchQueries.value['s_1'] = `${ayatSilangAkun.kode_akun} - ${ayatSilangAkun.nama_akun}`
-    if (selectedManualJurnal1) {
-      selectedAkun.value[1] = selectedManualJurnal1
-      searchQueries.value[1] = `${selectedManualJurnal1.kode_akun || selectedManualJurnal1.kode || ''} - ${selectedManualJurnal1.nama_akun || ''}`
-    }
-    if (selectedManualJurnal2) {
-      selectedAkun.value['s_0'] = selectedManualJurnal2
-      searchQueries.value['s_0'] = `${selectedManualJurnal2.kode_akun || selectedManualJurnal2.kode || ''} - ${selectedManualJurnal2.nama_akun || ''}`
-    }
-
-  } else {
+  selectedAkun.value[0] = ayatSilangAkun
+  searchQueries.value[0] = ayatSilangAkun.label
+  selectedAkun.value['s_1'] = ayatSilangAkun
+  searchQueries.value['s_1'] = ayatSilangAkun.label
+  if (selectedManualJurnal1) {
+    selectedAkun.value[1] = selectedManualJurnal1
+    searchQueries.value[1] = `${selectedManualJurnal1.kode_akun || selectedManualJurnal1.kode || ''} - ${selectedManualJurnal1.nama_akun || ''}`
+  }
+  if (selectedManualJurnal2) {
+    selectedAkun.value['s_0'] = selectedManualJurnal2
+    searchQueries.value['s_0'] = `${selectedManualJurnal2.kode_akun || selectedManualJurnal2.kode || ''} - ${selectedManualJurnal2.nama_akun || ''}`
+  }
+} else {
     if (!akunDefault.value) return
     const defaultAkun = findAkunFromOptions(akunDefault.value)
     const manualDetail = formData.value.details[1] || createEmptyDetail()
