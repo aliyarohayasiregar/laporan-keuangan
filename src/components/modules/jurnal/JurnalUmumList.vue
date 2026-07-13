@@ -109,8 +109,8 @@
                     </path>
                   </svg>
                   <p class="text-lg font-medium">Tidak ada jurnal umum</p>
-                  <p class="text-sm text-gray-400">Debug: paginatedJurnals.length = {{ paginatedJurnals?.length || 0 }}</p>
-                  <p class="text-sm text-gray-400">Debug: jurnals.length = {{ jurnals?.length || 0 }}</p>
+                  <!-- <p class="text-sm text-gray-400">Debug: paginatedJurnals.length = {{ paginatedJurnals?.length || 0 }}</p>
+                  <p class="text-sm text-gray-400">Debug: jurnals.length = {{ jurnals?.length || 0 }}</p> -->
                 </div>
               </td>
             </tr>

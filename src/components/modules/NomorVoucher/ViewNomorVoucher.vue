@@ -66,7 +66,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <span class="text-sm text-gray-700">
-                  Nomor voucher ini {{ displayData.status === 'aktif' ? 'sedang aktif' : 'tidak aktif' }} dan dapat digunakan untuk transaksi.
+                  Nomor voucher ini {{ displayData.status === 'aktif' ? 'sedang aktif dan dapat digunakan' : 'nonaktif dan tidak dapat digunakan' }} untuk transaksi.
                 </span>
               </div>
             </div>
@@ -119,15 +119,16 @@ const displayData = computed(() => {
 })
 
 // Beberapa kemungkinan nama field tanggal, tergantung bentuk response API.
-// Ini menjaga agar tanggal tetap tampil walau backend memakai penamaan yang sedikit berbeda.
+// Backend nomor voucher (getNoBukti) pakai field "dibuat" — ditaruh paling depan
+// supaya jadi prioritas utama, sisanya tetap dijaga sebagai fallback untuk modul lain.
 const createdAtValue = computed(() => {
   const d = displayData.value || {}
-  return d.created_at || d.createdAt || d.tanggal_dibuat || d.CreatedAt || null
+  return d.dibuat || d.created_at || d.createdAt || d.tanggal_dibuat || d.CreatedAt || null
 })
 
 const updatedAtValue = computed(() => {
   const d = displayData.value || {}
-  return d.updated_at || d.updatedAt || d.tanggal_diperbarui || d.UpdatedAt || null
+  return d.diperbarui || d.updated_at || d.updatedAt || d.tanggal_diperbarui || d.UpdatedAt || null
 })
 
 // Function to fetch fresh data from API
