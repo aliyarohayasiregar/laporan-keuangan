@@ -73,7 +73,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Kelompok Akun *</label>
-            <select v-model.number="formData.kelompok_akun_id" required :disabled="loadingKelompokOptions"
+            <select v-model.number="formData.kelompok_akun_id" required :disabled="loadingKelompokOptions || isEdit"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100">
               <option value="">Pilih Kelompok Akun</option>
               <option v-for="kelompok in filteredKelompokOptions" :key="kelompok?.id || kelompok?.ID || Math.random()"
@@ -82,7 +82,7 @@
               </option>
             </select>
             <p class="text-xs text-gray-500 mt-1">
-              {{ loadingKelompokOptions ? 'Memuat kelompok akun...' : ((formData.kode || '').trim() ? 'Kelompok akun yang sesuai dengan kode Anda' : 'Pilih kelompok akun untuk akun ini') }}
+              {{ isEdit ? 'Kelompok akun tidak dapat diubah saat edit' : (loadingKelompokOptions ? 'Memuat kelompok akun...' : ((formData.kode || '').trim() ? 'Kelompok akun yang sesuai dengan kode Anda' : 'Pilih kelompok akun untuk akun ini')) }}
             </p>
           </div>
 
@@ -241,6 +241,7 @@ watch(() => props.formError, (newError) => {
 })
 
 watch(() => props.showModal, (show) => {
+  errorMessage.value = ''
   if (show) {
     loadKelompokOptions()
   } else {
@@ -293,11 +294,11 @@ const handleSubmit = () => {
 
   // Send different data based on create vs edit mode
   if (isEdit.value) {
-    // Edit mode - send all fields except kode
+    // Edit mode - kirim persis sesuai body API editNamaAkun: nama_akun, deskripsi, is_active
     const submitData = {
-      nama_akun: formData.value.nama_akun,
-      deskripsi: formData.value.deskripsi,
-      is_active: formData.value.is_active
+      nama_akun: (formData.value.nama_akun || '').trim(),
+      deskripsi: formData.value.deskripsi || '',
+      is_active: !!formData.value.is_active
     }
     console.log('Edit mode submit data:', submitData)
     emit('save', submitData)

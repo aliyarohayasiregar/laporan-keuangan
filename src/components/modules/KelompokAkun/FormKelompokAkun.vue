@@ -81,7 +81,7 @@
               <option :value="null" disabled>Pilih level</option>
               <option v-for="lvl in levelOptions" :key="lvl" :value="lvl">{{ lvl }}</option>
             </select>
-            <p class="text-xs text-gray-500 mt-1">Level hierarki akun (1 untuk parent tertinggi)</p>
+            <p class="text-xs text-gray-500 mt-1">Level hierarki kelompok akun (1 untuk parent tertinggi, maks. 3 — level 4 dipakai saat membuat Nama Akun)</p>
           </div>
 
           <div>
@@ -189,7 +189,9 @@ const filteredParentOptions = computed(() => {
   return filtered.sort((a, b) => a.kode.localeCompare(b.kode))
 })
 
-const levelOptions = [1, 2, 3, 4]
+// Level kelompok akun dibatasi 1-3. Level 4 khusus dipakai saat membuat Nama Akun,
+// bukan Kelompok Akun, sehingga tidak ditampilkan di sini.
+const levelOptions = [1, 2, 3]
 
 const formData = ref({
   kode: '',
@@ -266,17 +268,30 @@ const resetForm = () => {
 }
 
 const handleKodeInput = (e) => {
+  // Kelompok Akun cuma sampai level 3, jadi segmen terakhir (level 4, 5 digit)
+  // default-nya "00000". Tetap manual: kalau user mau, dia bisa ketik sendiri
+  // digit di segmen terakhir itu, sisa yang belum diketik otomatis diisi "0".
+  const editableSegments = kodeFormat.value.slice(0, -1)
+  const editableDigits = editableSegments.reduce((a, b) => a + b, 0)
+  const lastSegmentLen = kodeFormat.value[kodeFormat.value.length - 1]
+
   let val = (e.target.value || '').replace(/\s/g, '').replace(/\D/g, '')
   val = val.substring(0, totalKodeDigits.value)
 
   let formatted = ''
   let pos = 0
-  kodeFormat.value.forEach((len, idx) => {
+  editableSegments.forEach((len, idx) => {
     if (val.length > pos) {
       formatted += (idx > 0 ? ' ' : '') + val.substring(pos, pos + len)
     }
     pos += len
   })
+
+  if (val.length >= editableDigits) {
+    const lastSegmentTyped = val.substring(editableDigits, editableDigits + lastSegmentLen)
+    const lastSegmentValue = lastSegmentTyped.padEnd(lastSegmentLen, '0')
+    formatted += (formatted ? ' ' : '') + lastSegmentValue
+  }
 
   formData.value.kode = formatted
 }
@@ -373,7 +388,14 @@ const kodeFormat = computed(() => {
 
 const totalKodeDigits = computed(() => kodeFormat.value.reduce((a, b) => a + b, 0))
 const kodeMaxLength = computed(() => totalKodeDigits.value + (kodeFormat.value.length - 1))
-const kodeFormatExample = computed(() => kodeFormat.value.map(len => '1'.repeat(len)).join(' '))
+
+// Contoh format kode: semua segmen pakai "1" kecuali segmen terakhir (ujungnya) pakai "0" semua,
+// mis. format 2-2-3-5 -> contoh "11 11 111 00000"
+const kodeFormatExample = computed(() =>
+  kodeFormat.value
+    .map((len, idx) => (idx === kodeFormat.value.length - 1 ? '0'.repeat(len) : '1'.repeat(len)))
+    .join(' ')
+)
 
 const handlePresetChange = () => {
   isCustomFormat.value = selectedPresetLabel.value === 'custom'

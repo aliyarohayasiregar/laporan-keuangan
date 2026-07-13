@@ -238,23 +238,30 @@ const handleEdit = (akun) => {
   showFormModal.value = true
 }
 
+// Ambil pesan error yang aman ditampilkan ke user.
+// Kalau error-nya bukan dari response API (mis. bug kode kayak "xxx is not a function",
+// atau error JS internal lain), JANGAN tampilkan teks mentahnya ke user — cukup log ke
+// console buat developer, dan user cuma lihat pesan generik yang jelas.
+const extractUserMessage = (err, fallback) => {
+  if (err?.response?.data?.message) {
+    return err.response.data.message
+  }
+  // Tidak ada response dari server sama sekali → ini error di sisi frontend (bug kode,
+  // network putus, dsb), bukan pesan dari API. Jangan tampilkan err.message mentah-mentah.
+  return fallback
+}
+
 const handleSaveForm = async (formData) => {
   try {
     if (editingItem.value) {
-      await api.updateNamaAkun(editingItem.value.id, formData)
+      await api.editNamaAkun(editingItem.value.id, formData)
     } else {
       await api.createNamaAkun(formData)
     }
     await loadNamaAkun()
     handleCloseForm()
   } catch (err) {
-    // Extract specific error message from API response
-    let errorMessage = 'Gagal menyimpan data nama akun'
-    if (err.response && err.response.data && err.response.data.message) {
-      errorMessage = err.response.data.message
-    } else if (err.message) {
-      errorMessage = err.message
-    }
+    const errorMessage = extractUserMessage(err, 'Gagal menyimpan data nama akun. Silakan coba lagi atau hubungi admin.')
     await showError(errorMessage)
     console.error('Error saving nama akun:', err)
   }
@@ -278,23 +285,14 @@ const handleToggleStatus = async (akun) => {
   if (!ok) return
 
   try {
-    await api.updateNamaAkun(akun.id, {
-      kode: akun.kode,
+    await api.editNamaAkun(akun.id, {
       nama_akun: akun.nama_akun,
-      kelompok_akun_id: akun.kelompok_akun_id,
-      normal_balance: akun.normal_balance,
-      is_active: !akun.is_active,
-      deskripsi: akun.deskripsi
+      deskripsi: akun.deskripsi,
+      is_active: !akun.is_active
     })
     await loadNamaAkun()
   } catch (err) {
-    // Extract specific error message from API response
-    let errorMessage = 'Gagal mengubah status nama akun'
-    if (err.response && err.response.data && err.response.data.message) {
-      errorMessage = err.response.data.message
-    } else if (err.message) {
-      errorMessage = err.message
-    }
+    const errorMessage = extractUserMessage(err, 'Gagal mengubah status nama akun. Silakan coba lagi atau hubungi admin.')
     await showError(errorMessage)
     console.error('Error toggling nama akun status:', err)
   }
@@ -314,13 +312,7 @@ const handleDelete = async (akun) => {
     await api.deleteNamaAkun(akun.id)
     await loadNamaAkun()
   } catch (err) {
-    // Extract specific error message from API response
-    let errorMessage = 'Gagal menghapus data nama akun'
-    if (err.response && err.response.data && err.response.data.message) {
-      errorMessage = err.response.data.message
-    } else if (err.message) {
-      errorMessage = err.message
-    }
+    const errorMessage = extractUserMessage(err, 'Gagal menghapus data nama akun. Silakan coba lagi atau hubungi admin.')
     await showError(errorMessage)
     console.error('Error deleting nama akun:', err)
   }
