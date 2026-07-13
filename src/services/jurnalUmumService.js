@@ -75,6 +75,24 @@ class JurnalUmumService {
       { value: 4, label: 'Customer Bayar' }
     ]
   }
+
+  async getDaftarBankAktif() {
+    try {
+      return await api.request('/getDaftarBankAktif', { method: 'GET' }, 'ju')
+    } catch (error) {
+      console.error('Error fetching daftar bank aktif:', error)
+      throw error
+    }
+  }
+
+  async getAyatSilangPermissions() {
+    try {
+      return await api.request('/getAyatSilangPermissions', { method: 'GET' }, 'ju')
+    } catch (error) {
+      console.error('Error fetching ayat silang permissions:', error)
+      throw error
+    }
+  }
 }
 
 export default new JurnalUmumService()

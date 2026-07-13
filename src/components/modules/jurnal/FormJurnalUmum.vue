@@ -27,8 +27,8 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
 
-          <!-- Pengaturan Akun Sistem: tampil untuk semua jenis jurnal ketika belum dikonfigurasi -->
-          <div v-if="selectedJenisJurnal && !akunSistemConfig && !isLoadingAkunSistem"
+          <!-- Pengaturan Akun Sistem: hanya jenis 1 (Kas Masuk), 2 (Kas Keluar), 6 (Ayat Silang) -->
+          <div v-if="needsAkunSistemConfig && selectedJenisJurnal && !akunSistemConfig && !isLoadingAkunSistem"
             class="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
             <p class="text-sm text-amber-800">
               Akun sistem untuk jenis jurnal ini belum diatur.
@@ -483,10 +483,21 @@
                   <tr v-for="(detail, index) in formData.details" :key="index">
                     <td class="px-4 py-2">
                       <div class="relative inline-block w-full">
-                        <!-- Baris akun fixed (Kas/Persediaan/Penjualan/Utang/Piutang induk), berlaku untuk semua jenis termasuk 7 -->
+                        <!-- Baris akun default: Kas (1/2) dari pengaturan sistem -->
                         <div v-if="index === 0 && shouldShowLockedDefaultRow">
                           <input :value="getPrimaryDefaultText()" type="text" readonly
                             class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" />
+                        </div>
+                        <!-- Baris akun bank (3/4): pilih bank aktif -->
+                        <div v-else-if="index === 0 && isBankJenis">
+                          <select v-model="selectedBankId" @change="handleBankChange"
+                            class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
+                            :disabled="isLoadingBank">
+                            <option value="">{{ isLoadingBank ? 'Memuat bank...' : 'Pilih Bank' }}</option>
+                            <option v-for="bank in daftarBankAktif" :key="bank.id" :value="bank.id">
+                              {{ bank.kode_akun }} - {{ bank.nama_akun }}
+                            </option>
+                          </select>
                         </div>
                         <div v-else class="relative inline-block w-full">
                           <div @click="() => toggleAkunCard(index)"
@@ -556,7 +567,7 @@
                     </td>
                     <td class="px-4 py-2 text-center">
                       <button type="button" @click="removeDetail(index)"
-                        :disabled="shouldShowLockedDefaultRow && index === 0"
+                        :disabled="usesDefaultAccountRow && index === 0"
                         class="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -666,15 +677,16 @@
 
       <div class="p-6">
         <p class="text-sm text-gray-600 mb-4">
-          Silakan pilih akun default yang akan digunakan untuk jenis jurnal ini.
+          {{ akunSistemModalMessage }}
         </p>
 
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Akun</label>
           <select v-model="selectedAkunSistemPilihan"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            <option value="">-- Pilih Akun --</option>
-            <option v-for="akun in props.namaAkunOptions" :key="akun.id" :value="akun">
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            :disabled="isLoadingAkunSistemOptions">
+            <option value="">{{ isLoadingAkunSistemOptions ? 'Memuat akun...' : '-- Pilih Akun --' }}</option>
+            <option v-for="akun in akunSistemOptions" :key="akun.id" :value="akun">
               {{ akun.kode_akun }} - {{ akun.nama_akun }}
             </option>
           </select>
@@ -690,6 +702,34 @@
             {{ isLoadingAkunSistem ? 'Menyimpan...' : 'Simpan' }}
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Alert (pengganti browser alert()) -->
+  <div v-if="showAlertModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]">
+    <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4">
+      <div class="p-6 text-center">
+        <div class="mx-auto flex items-center justify-center w-12 h-12 rounded-full mb-4"
+          :class="alertType === 'success' ? 'bg-green-100' : 'bg-red-100'">
+          <svg v-if="alertType === 'success'" class="w-6 h-6 text-green-600" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <svg v-else class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+          {{ alertType === 'success' ? 'Berhasil' : 'Perhatian' }}
+        </h3>
+        <p class="text-sm text-gray-600 mb-6 whitespace-pre-line">{{ alertMessage }}</p>
+        <button @click="closeAlertModal"
+          class="w-full px-4 py-2 rounded-lg text-white font-medium transition-colors"
+          :class="alertType === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'">
+          OK
+        </button>
       </div>
     </div>
   </div>
@@ -715,6 +755,30 @@ const emit = defineEmits(['close', 'save'])
 
 const isEdit = computed(() => !!props.editItem)
 const isSubmitting = ref(false)
+
+// ===== Modal Alert (pengganti browser alert()) =====
+const showAlertModal = ref(false)
+const alertMessage = ref('')
+const alertType = ref('error') // 'success' | 'error'
+let alertOnCloseCallback = null
+
+const showAlert = (message, type = 'error', onClose = null) => {
+  alertMessage.value = message
+  alertType.value = type
+  alertOnCloseCallback = onClose
+  showAlertModal.value = true
+}
+
+const closeAlertModal = () => {
+  showAlertModal.value = false
+  if (typeof alertOnCloseCallback === 'function') {
+    const cb = alertOnCloseCallback
+    alertOnCloseCallback = null
+    cb()
+  }
+}
+// ===== END Modal Alert =====
+
 const selectedNoBukti = ref('')
 const selectedNoBuktiTujuan = ref('')
 const selectedJenisJurnal = ref('')
@@ -732,6 +796,13 @@ const showAkunSistemModal = ref(false)
 const isLoadingAkunSistem = ref(false)
 const akunSistemConfig = ref(null)
 const selectedAkunSistemPilihan = ref(null)
+const akunSistemOptions = ref([])
+const isLoadingAkunSistemOptions = ref(false)
+
+// Bank (jenis jurnal 3 & 4)
+const daftarBankAktif = ref([])
+const selectedBankId = ref('')
+const isLoadingBank = ref(false)
 
 // ===== NEW: Vendor/Customer (khusus jenis jurnal 7) =====
 // Kategori 1 = Beli Barang ke Vendor, 2 = Bayar ke Vendor -> Vendor
@@ -858,8 +929,24 @@ const filteredNomorBuktiList = computed(() => {
 
 const usesManualVoucherSelection = computed(() => String(selectedJenisJurnal.value) === '5')
 const usesAutoNoBuktiGeneration = computed(() => !!selectedJenisJurnal.value && !usesManualVoucherSelection.value)
-const shouldShowLockedDefaultRow = computed(() => !!selectedJenisJurnal.value && selectedJenisJurnal.value != 5 && selectedJenisJurnal.value != 6)
+const isBankJenis = computed(() => ['3', '4'].includes(String(selectedJenisJurnal.value)))
+const needsAkunSistemConfig = computed(() => ['1', '2', '6'].includes(String(selectedJenisJurnal.value)))
+const usesDefaultAccountRow = computed(() =>
+  !!selectedJenisJurnal.value && !['5', '6'].includes(String(selectedJenisJurnal.value))
+)
+const shouldShowLockedDefaultRow = computed(() => usesDefaultAccountRow.value && !isBankJenis.value)
 const showAkunDefaultRow = computed(() => akunDefault.value && selectedJenisJurnal.value != 5)
+
+const akunSistemModalMessage = computed(() => {
+  const jenis = String(selectedJenisJurnal.value)
+  let keyword = 'kas'
+  if (jenis !== '6') {
+    const options = jurnalUmumService.getJenisJurnalOptions()
+    const selected = options.find(opt => String(opt.value) === jenis)
+    keyword = selected?.label?.split(' ')[0]?.toLowerCase() || 'kas'
+  }
+  return `Silahkan pilih akun default (${keyword}) yang akan digunakan sebagai akun default jenis jurnal ini.`
+})
 
 const formatNumber = (num) => {
   if (num === null || num === undefined || num === '') return '0,00'
@@ -888,11 +975,11 @@ const getExpectedDefaultPosisi = () => {
 
 // Auto-hitung nominal baris akun default (index 0) = total dari semua baris lawan (index >= 1)
 watch(
-  () => shouldShowLockedDefaultRow.value && selectedJenisJurnal.value != 6
+  () => usesDefaultAccountRow.value && selectedJenisJurnal.value != 6
     ? formData.value.details.slice(1).map(d => `${d.debit}|${d.kredit}`).join(',')
     : null,
   () => {
-    if (!shouldShowLockedDefaultRow.value || selectedJenisJurnal.value == 6) return
+    if (!usesDefaultAccountRow.value || selectedJenisJurnal.value == 6) return
     if (!formData.value.details[0]) return
 
     const posisi = getExpectedDefaultPosisi()
@@ -901,11 +988,9 @@ watch(
     const sumKredit = otherRows.reduce((s, d) => s + (parseFloat(d.kredit) || 0), 0)
 
     if (posisi === 'debet') {
-      // akun default di debit -> nominalnya = total kredit lawan
       formData.value.details[0].debit = sumKredit
       formData.value.details[0].kredit = 0
     } else if (posisi === 'kredit') {
-      // akun default di kredit -> nominalnya = total debit lawan
       formData.value.details[0].kredit = sumDebit
       formData.value.details[0].debit = 0
     }
@@ -915,21 +1000,21 @@ watch(
 
 
 watch(() => getExpectedDefaultPosisi(), (posisi) => {
-  if (!shouldShowLockedDefaultRow.value || !posisi) return
+  if (!usesDefaultAccountRow.value || !posisi) return
   formData.value.details.slice(1).forEach(d => {
-    if (posisi === 'debet') d.debit = 0    // lawan isi kredit -> paksa debit lawan 0
-    else if (posisi === 'kredit') d.kredit = 0  // lawan isi debit -> paksa kredit lawan 0
+    if (posisi === 'debet') d.debit = 0
+    else if (posisi === 'kredit') d.kredit = 0
   })
 })
 
 const getDisplayDebit = (index) => {
-  if (index === 0 && shouldShowLockedDefaultRow.value) {
+  if (index === 0 && usesDefaultAccountRow.value) {
     return formatNumberInput(formData.value.details[0]?.debit)
   }
   return shouldDisableDebit(index) ? '0' : formatNumberInput(formData.value.details[index]?.debit)
 }
 const getDisplayKredit = (index) => {
-  if (index === 0 && shouldShowLockedDefaultRow.value) {
+  if (index === 0 && usesDefaultAccountRow.value) {
     return formatNumberInput(formData.value.details[0]?.kredit)
   }
   return shouldDisableKredit(index) ? '0' : formatNumberInput(formData.value.details[index]?.kredit)
@@ -961,13 +1046,13 @@ const shouldDisableDebit = (index, prefix = '') => {
   if (selectedJenisJurnal.value == 6) return index === 1
   const key = prefix === '' ? index : `${prefix}${index}`
 
-  // Baris akun default (index 0): selalu dikunci, nominal auto dari lawan
-  if (index === 0 && shouldShowLockedDefaultRow.value) {
+  // Baris akun default/bank (index 0): selalu dikunci, nominal auto dari lawan
+  if (index === 0 && usesDefaultAccountRow.value) {
     return true
   }
 
   // Baris lawan: sisi yang boleh diisi = kebalikan dari posisi akun default
-  if (shouldShowLockedDefaultRow.value) {
+  if (usesDefaultAccountRow.value) {
     const defaultPosisi = getExpectedDefaultPosisi()
     if (defaultPosisi === 'debet') return true   // default di debit -> lawan wajib isi kredit
     if (defaultPosisi === 'kredit') return false // default di kredit -> lawan wajib isi debit
@@ -983,11 +1068,11 @@ const shouldDisableKredit = (index, prefix = '') => {
   if (selectedJenisJurnal.value == 6) return index === 0
   const key = prefix === '' ? index : `${prefix}${index}`
 
-  if (index === 0 && shouldShowLockedDefaultRow.value) {
+  if (index === 0 && usesDefaultAccountRow.value) {
     return true
   }
 
-  if (shouldShowLockedDefaultRow.value) {
+  if (usesDefaultAccountRow.value) {
     const defaultPosisi = getExpectedDefaultPosisi()
     if (defaultPosisi === 'kredit') return true
     if (defaultPosisi === 'debet') return false
@@ -1030,12 +1115,77 @@ const resetDetailSelections = () => {
   showAkunCard.value = {}
 }
 
+const resetBankState = () => {
+  selectedBankId.value = ''
+  daftarBankAktif.value = []
+}
+
+const fetchDaftarBankAktif = async () => {
+  isLoadingBank.value = true
+  try {
+    const res = await jurnalUmumService.getDaftarBankAktif()
+    if (res.success) daftarBankAktif.value = res.data || []
+  } catch (err) {
+    console.error('Error fetch daftar bank aktif:', err)
+    daftarBankAktif.value = []
+  } finally {
+    isLoadingBank.value = false
+  }
+}
+
+const handleBankChange = async () => {
+  const bank = daftarBankAktif.value.find(b => String(b.id) === String(selectedBankId.value))
+  if (!bank) {
+    formData.value.details[0].akun_id = ''
+    selectedAkun.value[0] = null
+    searchQueries.value[0] = ''
+    formData.value.no_bukti = ''
+    return
+  }
+
+  const posisi = String(selectedJenisJurnal.value) === '3' ? 'debet' : 'kredit'
+  const akun = {
+    id: bank.id,
+    kode_akun: bank.kode_akun,
+    nama_akun: bank.nama_akun,
+    posisi_akun: posisi
+  }
+  formData.value.details[0].akun_id = bank.id
+  selectedAkun.value[0] = akun
+  searchQueries.value[0] = getAkunLabel(akun)
+
+  if (!isEdit.value && usesAutoNoBuktiGeneration.value) {
+    await generateNoBuktiBySelectedAkun()
+  }
+}
+
+const fetchAkunSistemOptions = async () => {
+  isLoadingAkunSistemOptions.value = true
+  akunSistemOptions.value = []
+  try {
+    if (String(selectedJenisJurnal.value) === '6') {
+      const res = await jurnalUmumService.getAyatSilangPermissions()
+      if (res.success) akunSistemOptions.value = res.data || []
+    } else {
+      akunSistemOptions.value = props.namaAkunOptions
+    }
+  } catch (err) {
+    console.error('Error fetch akun sistem options:', err)
+    if (String(selectedJenisJurnal.value) !== '6') {
+      akunSistemOptions.value = props.namaAkunOptions
+    }
+  } finally {
+    isLoadingAkunSistemOptions.value = false
+  }
+}
+
 const initializeDetailsForJenis = (jenis = selectedJenisJurnal.value) => {
   const jenisValue = String(jenis || '')
   akunDefault.value = null
   formData.value.no_bukti = ''
   formData.value.no_bukti_silang = ''
   resetDetailSelections()
+  resetBankState()
 
   if (jenisValue === '6') {
     formData.value.details = [createEmptyDetail(), createEmptyDetail()]
@@ -1082,6 +1232,16 @@ const getNoBuktiPayloadByAkun = (isSilang = false) => {
 
   if (jenis === 7 && !selectedKategoriJenis.value) return null
 
+  if (['3', '4'].includes(String(jenis))) {
+    const bankAkunId = formData.value.details[0]?.akun_id
+    if (!bankAkunId) return null
+    return {
+      no_jenis_jurnal: jenis,
+      akun_id: parseInt(bankAkunId),
+      tanggal
+    }
+  }
+
   const akunId = formData.value.details[1]?.akun_id
   if (!akunId) return null
 
@@ -1106,7 +1266,7 @@ const generateNoBuktiBySelectedAkun = async (isSilang = false) => {
   try {
     const res = await jurnalUmumService.generateNoBuktiByAkun(payload)
     if (!res.success) {
-      alert(res.message || 'Gagal generate nomor bukti!')
+      showAlert(res.message || 'Gagal generate nomor bukti!', 'error')
       return
     }
 
@@ -1128,7 +1288,7 @@ const generateNoBuktiBySelectedAkun = async (isSilang = false) => {
     }
   } catch (err) {
     console.error('Error generate no bukti by akun:', err)
-    alert('Terjadi kesalahan saat generate nomor bukti!')
+    showAlert('Terjadi kesalahan saat generate nomor bukti!', 'error')
   } finally {
     isGeneratingNoBukti.value = false
   }
@@ -1257,13 +1417,17 @@ watch(selectedJenisJurnal, async (newJenis) => {
     if (newJenis == 5 && selectedNoBukti.value) {
       await fetchAkunDefault(newJenis, selectedNoBukti.value)
     }
-    if (['1', '2', '3', '4'].includes(String(newJenis)) && formData.value.tanggal) {
+    if (['1', '2'].includes(String(newJenis)) && formData.value.tanggal) {
       await autoInitTanpaLawan(newJenis)
+    }
+    if (['3', '4'].includes(String(newJenis))) {
+      selectedBankId.value = ''
+      await fetchDaftarBankAktif()
     }
   }
 
-  // Pengaturan Akun Sistem berlaku untuk semua jenis jurnal (bukan hanya jenis 6)
-  if (newJenis) {
+  // Pengaturan Akun Sistem hanya untuk jenis 1, 2, 6
+  if (needsAkunSistemConfig.value && newJenis) {
     await getPengaturanAkunSistem(newJenis)
     if (akunSistemConfig.value) {
       applyAkunDefault()
@@ -1393,12 +1557,12 @@ const generateNoBukti = async () => {
       formData.value.no_bukti = res.no_bukti_full
       await fetchAkunDefault(selectedJenisJurnal.value, selectedNoBukti.value)
     } else {
-      alert(res.message || 'Gagal generate nomor bukti!')
+      showAlert(res.message || 'Gagal generate nomor bukti!', 'error')
       selectedNoBukti.value = ''
     }
   } catch (err) {
     console.error('Error generate no bukti:', err)
-    alert('Terjadi kesalahan saat generate nomor bukti!')
+    showAlert('Terjadi kesalahan saat generate nomor bukti!', 'error')
     selectedNoBukti.value = ''
   } finally {
     isGeneratingNoBukti.value = false
@@ -1503,7 +1667,7 @@ const openVoucherPreview = async () => {
     }
 
     if (!template) {
-      alert(`Template voucher kategori "${category}" tidak ditemukan!`)
+      showAlert(`Template voucher kategori "${category}" tidak ditemukan!`, 'error')
       return
     }
 
@@ -1514,7 +1678,7 @@ const openVoucherPreview = async () => {
     showVoucherModal.value = true
   } catch (err) {
     console.error('Error load template:', err)
-    alert('Gagal memuat template voucher')
+    showAlert('Gagal memuat template voucher', 'error')
   } finally {
     isLoadingTemplate.value = false
   }
@@ -1600,7 +1764,7 @@ const handleDownloadPDF = async () => {
   setTimeout(async () => {
     try {
       const element = document.getElementById('voucher-print-area')
-      if (!element) { alert('Area voucher tidak ditemukan!'); return }
+      if (!element) { showAlert('Area voucher tidak ditemukan!', 'error'); return }
 
       const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
       const imgData = canvas.toDataURL('image/png')
@@ -1623,7 +1787,7 @@ const handleDownloadPDF = async () => {
       pdf.save(`voucher-${activeVoucherPreviewData.value.no_voucher || 'nota'}.pdf`)
     } catch (err) {
       console.error('Error download PDF:', err)
-      alert('Gagal mendownload PDF voucher!')
+      showAlert('Gagal mendownload PDF voucher!', 'error')
     }
   }, 300)
 }
@@ -1669,8 +1833,12 @@ watch(() => props.showModal, async (newVal) => {
       selectedJenisJurnal.value = String(props.editItem.no_jenis_jurnal || props.editItem.jenis_jurnal)
       selectedKategoriJenis.value = String(props.editItem.kategori_jenis || '')
 
-      if (selectedJenisJurnal.value) {
+      if (needsAkunSistemConfig.value && selectedJenisJurnal.value) {
         await getPengaturanAkunSistem(selectedJenisJurnal.value)
+      }
+
+      if (isBankJenis.value) {
+        await fetchDaftarBankAktif()
       }
 
       // NEW: restore vendor/customer kalau ada di data edit
@@ -1698,6 +1866,9 @@ watch(() => props.showModal, async (newVal) => {
         setAkunFromDetails(formData.value.details_silang, 's_')
       } else {
         setAkunFromDetails(formData.value.details, '')
+        if (isBankJenis.value && formData.value.details[0]?.akun_id) {
+          selectedBankId.value = formData.value.details[0].akun_id
+        }
       }
     } else if (props.preselectedData) {
       resetForm()
@@ -1708,8 +1879,11 @@ watch(() => props.showModal, async (newVal) => {
     const jenis = String(props.preselectedData.jenis_jurnal)
     selectedJenisJurnal.value = jenis
     await nextTick()
-    if (['1', '2', '3', '4'].includes(jenis) && formData.value.tanggal) {
+    if (['1', '2'].includes(jenis) && formData.value.tanggal) {
       await autoInitTanpaLawan(jenis)
+    }
+    if (['3', '4'].includes(jenis)) {
+      await fetchDaftarBankAktif()
     }
   }
 
@@ -1732,43 +1906,51 @@ watch(() => formData.value.tanggal, (newVal, oldVal) => {
 })
 
 const handleSubmit = async () => {
+  if (['1', '2'].includes(String(selectedJenisJurnal.value)) && !akunSistemConfig.value) {
+    showAlert('Pengaturan Akun Sistem belum diatur. Silakan atur akun terlebih dahulu!', 'error')
+    return
+  }
   if (selectedJenisJurnal.value == 6 && !akunSistemConfig.value) {
-    alert('Pengaturan Akun Sistem (Ayat Silang) belum diatur. Silakan atur akun terlebih dahulu!')
+    showAlert('Pengaturan Akun Sistem (Ayat Silang) belum diatur. Silakan atur akun terlebih dahulu!', 'error')
+    return
+  }
+  if (isBankJenis.value && !selectedBankId.value) {
+    showAlert('Silakan pilih bank terlebih dahulu di detail jurnal!', 'error')
     return
   }
 
   // Validasi balance
   if (selectedJenisJurnal.value == 6) {
     if (Math.abs(balanceJurnal1.value) > 0.01 || Math.abs(balanceJurnal2.value) > 0.01) {
-      alert('Total Debit dan Kredit di kedua jurnal harus seimbang (Balance)!')
+      showAlert('Total Debit dan Kredit di kedua jurnal harus seimbang (Balance)!', 'error')
       return
     }
   } else {
     if (Math.abs(balance.value) > 0.01) {
-      alert('Total Debit dan Kredit harus seimbang (Balance)!')
+      showAlert('Total Debit dan Kredit harus seimbang (Balance)!', 'error')
       return
     }
   }
 
   if (selectedJenisJurnal.value == 5 && !selectedNoBukti.value) {
-    alert('Silakan pilih Nomor Voucher!')
+    showAlert('Silakan pilih Nomor Voucher!', 'error')
     return
   }
   if (selectedJenisJurnal.value != 5 && !formData.value.no_bukti) {
-    alert('Nomor bukti belum tergenerate. Silakan pilih akun terlebih dahulu!')
+    showAlert('Nomor bukti belum tergenerate. Silakan pilih akun terlebih dahulu!', 'error')
     return
   }
   if (selectedJenisJurnal.value == 6 && !formData.value.no_bukti_silang) {
-    alert('Nomor bukti jurnal 2 belum tergenerate. Silakan pilih akun jurnal 2 terlebih dahulu!')
+    showAlert('Nomor bukti jurnal 2 belum tergenerate. Silakan pilih akun jurnal 2 terlebih dahulu!', 'error')
     return
   }
   if (selectedJenisJurnal.value == 7 && !selectedKategoriJenis.value) {
-    alert('Silakan pilih Kategori Transaksi!')
+    showAlert('Silakan pilih Kategori Transaksi!', 'error')
     return
   }
   // NEW: validasi vendor/customer wajib dipilih untuk jenis 7
   if (selectedJenisJurnal.value == 7 && !selectedVendorCustomerId.value) {
-    alert(`Silakan pilih ${isKategoriVendor.value ? 'Vendor' : 'Customer'}!`)
+    showAlert(`Silakan pilih ${isKategoriVendor.value ? 'Vendor' : 'Customer'}!`, 'error')
     return
   }
 
@@ -1781,7 +1963,7 @@ const handleSubmit = async () => {
   }
 
   if (emptyRows.length > 0) {
-    alert(`Baris ${emptyRows.join(', ')} belum memiliki akun. Silakan pilih akun terlebih dahulu.`)
+    showAlert(`Baris ${emptyRows.join(', ')} belum memiliki akun. Silakan pilih akun terlebih dahulu.`, 'error')
     return
   }
 
@@ -1838,29 +2020,28 @@ const handleSubmit = async () => {
     }
 
     if (res.success) {
-      alert(res.message || (isEdit.value ? 'Jurnal Umum berhasil diperbarui' : 'Jurnal Umum berhasil disimpan'))
-      emit('save')
-      emit('close')
+      showAlert(res.message || (isEdit.value ? 'Jurnal Umum berhasil diperbarui' : 'Jurnal Umum berhasil disimpan'), 'success', () => {
+        emit('save')
+        emit('close')
+      })
     } else {
-      alert(res.message || 'Gagal menyimpan jurnal')
+      showAlert(res.message || 'Gagal menyimpan jurnal', 'error')
     }
   } catch (err) {
     console.error(err)
     let errorMsg = 'Terjadi kesalahan sistem'
     if (err.responseData?.message) errorMsg = err.responseData.message
     else if (err.message) errorMsg = err.message
-    alert(errorMsg)
+    showAlert(errorMsg, 'error')
   } finally {
     isSubmitting.value = false
   }
 }
 
-// Pengaturan Akun Sistem — generic, berlaku untuk semua jenis jurnal (1-7)
+// Pengaturan Akun Sistem — hanya jenis 1, 2, 6
 // GET  /getDefaultPengaturan/{no_jenis_jurnal}
-//   -> { success: true, data: { is_configured: false, ... } }  ATAU
-//   -> { success: true, message: 'Pengaturan akun sistem belum tersedia' } (belum diatur)
 const getPengaturanAkunSistem = async (jenis) => {
-  if (!jenis) return
+  if (!jenis || !['1', '2', '6'].includes(String(jenis))) return
   isLoadingAkunSistem.value = true
   try {
     const res = await api.request(`/getDefaultPengaturan/${jenis}`, { method: 'GET' }, 'ju')
@@ -1887,7 +2068,7 @@ const getPengaturanAkunSistem = async (jenis) => {
 // POST /createPengaturanAkunSistem/{no_jenis_jurnal}  { akun_id }
 const createPengaturanAkunSistem = async () => {
   if (!selectedAkunSistemPilihan.value) {
-    alert('Silakan pilih akun terlebih dahulu!')
+    showAlert('Silakan pilih akun terlebih dahulu!', 'error')
     return
   }
   if (!selectedJenisJurnal.value) return
@@ -1903,20 +2084,21 @@ const createPengaturanAkunSistem = async () => {
       await getPengaturanAkunSistem(selectedJenisJurnal.value)
       showAkunSistemModal.value = false
       applyAkunDefault()
-      alert('Pengaturan akun sistem berhasil disimpan!')
+      showAlert('Pengaturan akun sistem berhasil disimpan!', 'success')
     } else {
-      alert(res.message || 'Gagal menyimpan pengaturan akun sistem!')
+      showAlert(res.message || 'Gagal menyimpan pengaturan akun sistem!', 'error')
     }
   } catch (err) {
     console.error('Error creating pengaturan akun sistem:', err)
-    alert('Terjadi kesalahan saat menyimpan pengaturan akun sistem!')
+    showAlert('Terjadi kesalahan saat menyimpan pengaturan akun sistem!', 'error')
   } finally {
     isLoadingAkunSistem.value = false
   }
 }
 
-const openAkunSistemModal = () => {
+const openAkunSistemModal = async () => {
   selectedAkunSistemPilihan.value = null
+  await fetchAkunSistemOptions()
   showAkunSistemModal.value = true
 }
 
