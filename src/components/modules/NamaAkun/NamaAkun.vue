@@ -271,7 +271,7 @@ const handleToggleStatus = async (akun) => {
   const ok = await showConfirm({
     type: 'warning',
     title: akun.is_active ? 'Non-aktifkan Akun' : 'Aktifkan Akun',
-    message: `Apakah Anda yakin ingin ${action} akun <strong>${akun.nama_akun}</strong>?`,
+    message: `Apakah Anda yakin ingin ${action} akun ${akun.nama_akun}?`,
     confirmLabel: 'Ya, Lanjutkan',
     cancelLabel: 'Batal',
   })
@@ -304,7 +304,7 @@ const handleDelete = async (akun) => {
   const ok = await showConfirm({
     type: 'danger',
     title: 'Hapus Akun',
-    message: `Apakah Anda yakin ingin menghapus akun <strong>${akun.nama_akun}</strong>? Data yang dihapus tidak dapat dikembalikan.`,
+    message: `Apakah Anda yakin ingin menghapus akun ${akun.nama_akun}? Data yang dihapus tidak dapat dikembalikan.`,
     confirmLabel: 'Ya, Hapus',
     cancelLabel: 'Batal',
   })

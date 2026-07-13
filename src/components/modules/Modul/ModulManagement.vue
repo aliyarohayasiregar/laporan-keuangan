@@ -249,7 +249,7 @@ const deleteModul = async (modul) => {
   const ok = await showConfirm({
     type: 'danger',
     title: 'Hapus Modul',
-    message: `Apakah Anda yakin ingin menghapus modul <strong>${modul.nama_modul}</strong>?`,
+    message: `Apakah Anda yakin ingin menghapus modul ${modul.nama_modul}?`,
     confirmLabel: 'Hapus',
     cancelLabel: 'Batal'
   })

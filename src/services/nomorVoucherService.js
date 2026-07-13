@@ -38,7 +38,7 @@ class NomorVoucherService {
   // Update nomor bukti (if needed)
   async updateNoBukti(id, data) {
     try {
-      return await api.request(`/updateNoBukti/${id}`, {
+      return await api.request(`/editNoBukti/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data)
       }, 'nb')

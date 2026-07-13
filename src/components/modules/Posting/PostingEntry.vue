@@ -223,7 +223,7 @@ const handlePosting = async () => {
   const ok = await showConfirm({
     type: 'info',
     title: 'Konfirmasi Posting Entry',
-    message: `Apakah Anda yakin ingin melakukan posting entry untuk periode <strong>${bulanOptions[selectedMonth.value - 1]} ${selectedYear.value}</strong>?`,
+    message: `Apakah Anda yakin ingin melakukan posting entry untuk periode ${bulanOptions[selectedMonth.value - 1]} ${selectedYear.value}?`,
     confirmLabel: 'Ya, Posting',
     cancelLabel: 'Batal',
   })
@@ -260,7 +260,7 @@ const handleCancelPosting = async () => {
   const ok = await showConfirm({
     type: 'danger',
     title: 'Batalkan Posting Entry',
-    message: `Apakah Anda yakin ingin membatalkan posting entry untuk periode <strong>${bulanOptions[selectedMonth.value - 1]} ${selectedYear.value}</strong>? Semua data yang sudah diposting akan dikembalikan.`,
+    message: `Apakah Anda yakin ingin membatalkan posting entry untuk periode ${bulanOptions[selectedMonth.value - 1]} ${selectedYear.value}? Semua data yang sudah diposting akan dikembalikan.`,
     confirmLabel: 'Ya, Batalkan',
     cancelLabel: 'Tidak',
   })
@@ -304,7 +304,7 @@ const handlePostingFinal = async () => {
   const ok = await showConfirm({
     type: 'warning',
     title: 'Konfirmasi Posting Final',
-    message: `Apakah Anda yakin ingin melakukan posting final untuk tahun <strong>${selectedYear.value}</strong>?<br><br>Setelah posting final, tidak dapat melakukan posting atau revisi lagi untuk tahun ini.`,
+    message: `Apakah Anda yakin ingin melakukan posting final untuk tahun ${selectedYear.value}?<br><br>Setelah posting final, tidak dapat melakukan posting atau revisi lagi untuk tahun ini.`,
     confirmLabel: 'Ya, Posting Final',
     cancelLabel: 'Batal',
   })

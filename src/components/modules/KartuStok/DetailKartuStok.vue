@@ -444,9 +444,9 @@ const exportToPDF = async () => {
         </table>
         
         <div class="info" style="margin-top: 30px;">
-          <p><strong>Total Masuk:</strong> ${formatNumber(details.value.reduce((sum, d) => sum + (d.penambahan_banyak || 0), 0))}</p>
-          <p><strong>Total Keluar:</strong> ${formatNumber(details.value.reduce((sum, d) => sum + (d.pengurangan_banyak || 0), 0))}</p>
-          <p><strong>Sisa Stok:</strong> ${formatNumber(details.value[details.value.length - 1]?.saldo_banyak || 0)}</p>
+          <p>Total Masuk: ${formatNumber(details.value.reduce((sum, d) => sum + (d.penambahan_banyak || 0), 0))}</p>
+          <p>Total Keluar: ${formatNumber(details.value.reduce((sum, d) => sum + (d.pengurangan_banyak || 0), 0))}</p>
+          <p><Sisa Stok: ${formatNumber(details.value[details.value.length - 1]?.saldo_banyak || 0)}</p>
         </div>
       </body>
     </html>

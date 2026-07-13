@@ -762,7 +762,7 @@ const handleDelete = async (item) => {
   const ok = await showConfirm({
     type: 'danger',
     title: 'Hapus Barang',
-    message: `Apakah Anda yakin ingin menghapus <strong>${item.nama_barang}</strong>? Data yang dihapus tidak dapat dikembalikan.`,
+    message: `Apakah Anda yakin ingin menghapus <${item.nama_barang}? Data yang dihapus tidak dapat dikembalikan.`,
     confirmLabel: 'Ya, Hapus',
     cancelLabel: 'Batal',
   })

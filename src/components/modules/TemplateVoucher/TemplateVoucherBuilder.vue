@@ -611,7 +611,7 @@ const handleDelete = async () => {
   const ok = await showConfirm({
     type: 'danger',
     title: 'Hapus Template',
-    message: `Apakah Anda yakin ingin menghapus template <strong>${template.value.template_name}</strong>?`,
+    message: `Apakah Anda yakin ingin menghapus template ${template.value.template_name}?`,
     confirmLabel: 'Hapus',
     cancelLabel: 'Batal'
   })

@@ -23,10 +23,6 @@
             <h4 class="text-sm font-medium text-gray-900 mb-3">Informasi Nomor Voucher</h4>
             <div class="space-y-3">
               <div class="flex justify-between">
-                <span class="text-sm text-gray-600">ID:</span>
-                <span class="text-sm font-medium text-gray-900">#{{ displayData.id }}</span>
-              </div>
-              <div class="flex justify-between">
                 <span class="text-sm text-gray-600">Kode Voucher:</span>
                 <span class="text-sm font-medium text-gray-900">{{ displayData.kode }}</span>
               </div>
@@ -52,11 +48,11 @@
             <div class="space-y-3">
               <div class="flex justify-between">
                 <span class="text-sm text-gray-600">Dibuat:</span>
-                <span class="text-sm font-medium text-gray-900">{{ formatDate(displayData.created_at) }}</span>
+                <span class="text-sm font-medium text-gray-900">{{ formatDate(createdAtValue) }}</span>
               </div>
-              <div class="flex justify-between" v-if="displayData.updated_at && displayData.updated_at !== displayData.created_at">
+              <div class="flex justify-between" v-if="updatedAtValue && updatedAtValue !== createdAtValue">
                 <span class="text-sm text-gray-600">Diperbarui:</span>
-                <span class="text-sm font-medium text-gray-900">{{ formatDate(displayData.updated_at) }}</span>
+                <span class="text-sm font-medium text-gray-900">{{ formatDate(updatedAtValue) }}</span>
               </div>
             </div>
           </div>
@@ -122,6 +118,18 @@ const displayData = computed(() => {
   return freshData.value || props.nomorVoucher
 })
 
+// Beberapa kemungkinan nama field tanggal, tergantung bentuk response API.
+// Ini menjaga agar tanggal tetap tampil walau backend memakai penamaan yang sedikit berbeda.
+const createdAtValue = computed(() => {
+  const d = displayData.value || {}
+  return d.created_at || d.createdAt || d.tanggal_dibuat || d.CreatedAt || null
+})
+
+const updatedAtValue = computed(() => {
+  const d = displayData.value || {}
+  return d.updated_at || d.updatedAt || d.tanggal_diperbarui || d.UpdatedAt || null
+})
+
 // Function to fetch fresh data from API
 const fetchFreshData = async (id) => {
   try {
@@ -163,6 +171,7 @@ const handleClose = () => {
 const formatDate = (dateString) => {
   if (!dateString) return '-'
   const date = new Date(dateString)
+  if (isNaN(date.getTime())) return '-'
   return date.toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'long',

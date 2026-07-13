@@ -67,7 +67,7 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Kode</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Nama Kelompok Akun</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Level</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Kode Group</th>
+                <!-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Kode Group</th> -->
                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Aksi</th>
               </tr>
             </thead>
@@ -87,9 +87,9 @@
                     Level {{ kelompok.level }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <!-- <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900">{{ kelompok.kode_group }}</div>
-                </td>
+                </td> -->
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button v-if="hasPermission('kelompok akun', 'edit')" @click="handleEdit(kelompok)"
                     class="text-blue-600 hover:text-blue-900 mr-3">
@@ -482,7 +482,7 @@ const handleDelete = async (item) => {
   const ok = await showConfirm({
     type: 'danger',
     title: 'Hapus Kelompok Akun',
-    message: `Apakah Anda yakin ingin menghapus kelompok akun <strong>${item.nama_kelompok_akun}</strong>? Data yang dihapus tidak dapat dikembalikan.`,
+    message: `Apakah Anda yakin ingin menghapus kelompok akun ${item.nama_kelompok_akun}? Data yang dihapus tidak dapat dikembalikan.`,
     confirmLabel: 'Ya, Hapus',
     cancelLabel: 'Batal',
   })
@@ -502,7 +502,7 @@ const handleEditAccount = async (account) => {
   await showAlert({
     type: 'info',
     title: 'Info',
-    message: `Fitur edit akun <strong>${account.nama_akun}</strong> akan redirect ke halaman Nama Akun dengan mode edit.`,
+    message: `Fitur edit akun ${account.nama_akun} akan redirect ke halaman Nama Akun dengan mode edit.`,
     confirmLabel: 'OK',
   })
 }
@@ -512,7 +512,7 @@ const handleToggleAccountStatus = async (account) => {
   const ok = await showConfirm({
     type: 'warning',
     title: account.is_active ? 'Non-aktifkan Akun' : 'Aktifkan Akun',
-    message: `Apakah Anda yakin ingin ${action} akun <strong>${account.nama_akun}</strong>?`,
+    message: `Apakah Anda yakin ingin ${action} akun ${account.nama_akun}?`,
     confirmLabel: 'Ya, Lanjutkan',
     cancelLabel: 'Batal',
   })
@@ -538,7 +538,7 @@ const handleDeleteAccount = async (account) => {
   const ok = await showConfirm({
     type: 'danger',
     title: 'Hapus Akun',
-    message: `Apakah Anda yakin ingin menghapus akun <strong>${account.nama_akun}</strong>? Data yang dihapus tidak dapat dikembalikan.`,
+    message: `Apakah Anda yakin ingin menghapus akun ${account.nama_akun}? Data yang dihapus tidak dapat dikembalikan.`,
     confirmLabel: 'Ya, Hapus',
     cancelLabel: 'Batal',
   })

@@ -115,8 +115,8 @@
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Tahun</th>
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kode akun</th>
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Aksi</th>
-
+                  <th v-if="hasPermission('nomor voucher', 'edit')"
+                    class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Aksi</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -141,24 +141,16 @@
                       {{ item.status === 'aktif' ? 'Aktif' : 'Nonaktif' }}
                     </span>
                   </td>
-                  <td v-if="hasPermission('nomor voucher', 'edit') || hasPermission('nomor voucher', 'delete')"
+                  <td v-if="hasPermission('nomor voucher', 'edit')"
                     class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex gap-2">
-                      <button v-if="hasPermission('nomor voucher', 'edit')" @click="handleEdit(item)"
+                      <button @click="handleEdit(item)"
                         class="text-emerald-600 hover:text-emerald-900 transition-colors duration-200">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5h-1v1.5a.5.5 0 01-.5.5z"></path>
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13.5 10.5H19v8.5a1 1 0 001 1h-5.5a1 1 0 01-1-1V10.5z"></path>
-                        </svg>
-                      </button>
-                      <button v-if="hasPermission('nomor voucher', 'delete')" @click="handleDelete(item)"
-                        class="text-red-600 hover:text-red-900 transition-colors duration-200">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                          </path>
                         </svg>
                       </button>
                     </div>
@@ -220,7 +212,6 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, inject } from 'vue'
-import { showConfirm, showError } from '@/composables/useModal.js'
 import nomorVoucherService from '../../../services/nomorVoucherService.js'
 import FormNomorVoucher from './FormNomorVoucher.vue'
 import ViewNomorVoucher from './ViewNomorVoucher.vue'
@@ -357,28 +348,7 @@ const handleView = (item) => {
   showViewModal.value = true
 }
 
-const handleDelete = async (item) => {
-  const ok = await showConfirm({
-    type: 'danger',
-    title: 'Hapus Nomor Voucher',
-    message: `Apakah Anda yakin ingin menghapus nomor voucher ${item.kode}? Data yang dihapus tidak dapat dikembalikan.`,
-    confirmLabel: 'Ya, Hapus',
-    cancelLabel: 'Batal',
-  })
-  if (!ok) return
-
-  try {
-    const response = await nomorVoucherService.deleteNoBukti(item.id)
-    if (response.success) {
-      await fetchData()
-    } else {
-      await showError(response.message || 'Gagal menghapus nomor voucher.')
-    }
-  } catch (err) {
-    console.error('Error deleting nomor voucher:', err)
-    await showError(extractFriendlyErrorMessage(err))
-  }
-}
+// Fitur hapus dinonaktifkan sementara — API delete nomor voucher belum tersedia dari backend.
 
 const handleSave = async () => {
   await fetchData()

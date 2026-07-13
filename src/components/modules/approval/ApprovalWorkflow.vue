@@ -441,9 +441,9 @@ const toggleProcessStatus = async (process) => {
       currentStatus
         ? 'menonaktifkan'
         : 'mengaktifkan'
-    } proses <strong>${
+    } proses ${
       process.nama_proses || process.NamaProses
-    }</strong>?`,
+    }?`,
     confirmLabel: 'Ya',
     cancelLabel: 'Batal'
   })
@@ -489,7 +489,7 @@ const toggleStepStatus = async (step) => {
       step.is_active
         ? 'menonaktifkan'
         : 'mengaktifkan'
-    } step <strong>${step.nama_step}</strong>?`,
+    } step ${step.nama_step}?`,
     confirmLabel: 'Ya',
     cancelLabel: 'Batal'
   })
@@ -541,8 +541,8 @@ const deleteProcess = async (process) => {
     title: 'Hapus Proses Approval',
     message:
       stepCount > 0
-        ? `Proses <strong>${processName}</strong> memiliki <strong>${stepCount} step</strong> yang akan ikut terhapus. Lanjutkan?`
-        : `Apakah Anda yakin ingin menghapus proses <strong>${processName}</strong>?`,
+        ? `Proses ${processName} memiliki ${stepCount} step yang akan ikut terhapus. Lanjutkan?`
+        : `Apakah Anda yakin ingin menghapus proses ${processName}?`,
     confirmLabel: 'Hapus',
     cancelLabel: 'Batal'
   })
@@ -591,7 +591,7 @@ const deleteStep = async (step) => {
   const ok = await showConfirm({
     type: 'danger',
     title: 'Hapus Step Approval',
-    message: `Apakah Anda yakin ingin menghapus step <strong>${step.nama_step}</strong>?`,
+    message: `Apakah Anda yakin ingin menghapus step ${step.nama_step}?`,
     confirmLabel: 'Hapus',
     cancelLabel: 'Batal'
   })

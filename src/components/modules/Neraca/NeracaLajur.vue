@@ -598,7 +598,7 @@ const exportToPDF = () => {
         </table>
         
         <div class="info" style="margin-top: 30px;">
-          <p><strong>Dibuat pada:</strong> ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}</p>
+          <p>Dibuat pada: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}</p>
         </div>
       </body>
     </html>

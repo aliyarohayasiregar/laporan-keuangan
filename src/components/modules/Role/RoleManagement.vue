@@ -221,7 +221,7 @@ const handleToggleStatus = async (role) => {
     title: currentStatus ? 'Nonaktifkan Role' : 'Aktifkan Role',
     message: `Apakah Anda yakin ingin ${
       currentStatus ? 'menonaktifkan' : 'mengaktifkan'
-    } role <strong>${role.nama_role || role.NamaRole}</strong>?`,
+    } role ${role.nama_role || role.NamaRole}?`,
     confirmLabel: 'Ya',
     cancelLabel: 'Batal'
   })
@@ -249,7 +249,7 @@ const handleDelete = async (role) => {
   const ok = await showConfirm({
     type: 'danger',
     title: 'Hapus Role',
-    message: `Apakah Anda yakin ingin menghapus role <strong>${role.nama_role || role.NamaRole}</strong>?`,
+    message: `Apakah Anda yakin ingin menghapus role ${role.nama_role || role.NamaRole}?`,
     confirmLabel: 'Hapus',
     cancelLabel: 'Batal'
   })
