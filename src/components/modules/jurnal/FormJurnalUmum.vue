@@ -1871,6 +1871,12 @@ watch(() => formData.value.tanggal, async (newVal, oldVal) => {
         await fetchDaftarBankAktif()
       }
       if (['1', '2'].includes(String(selectedJenisJurnal.value)) && akunSistemConfig.value) {
+        // FIX: set ulang akunDefault dari akunSistemConfig sebelum applyAkunDefault
+        akunDefault.value = {
+          ...akunSistemConfig.value,
+          kode_akun: akunSistemConfig.value.akun_kode,
+          nama_akun: akunSistemConfig.value.akun_nama,
+        }
         applyAkunDefault()
         await generateNoBuktiJenis12(selectedJenisJurnal.value)
       }
