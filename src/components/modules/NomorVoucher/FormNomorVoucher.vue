@@ -245,19 +245,26 @@ watch(() => props.editItem, (newEditItem) => {
     formData.value = {
       kode: newEditItem.kode || '',
       tahun: newEditItem.tahun || new Date().getFullYear(),
-      id_akun: newEditItem.id_akun || '',
+      id_akun: newEditItem.akun_id || '',
       status: newEditItem.status || 'aktif'
     }
-    const found = akunOptions.value.find(o => o.id == newEditItem.id_akun)
+    let found = akunOptions.value.find(o => o.id == newEditItem.akun_id)
+    if (!found && newEditItem.akun_kode) {
+      found = akunOptions.value.find(o => o.kode === newEditItem.akun_kode)
+    }
     selectedAkun.value = found || null
   } else {
     resetForm()
   }
 }, { immediate: true })
 
-const handleClose = () => {
-  emit('close')
-}
+
+watch(akunOptions, (newOptions) => {
+  if (formData.value.id_akun && newOptions.length > 0) {
+    const found = newOptions.find(o => o.id == formData.value.id_akun)
+    if (found) selectedAkun.value = found
+  }
+})
 
 const handleSubmit = async () => {
   isSubmitting.value = true

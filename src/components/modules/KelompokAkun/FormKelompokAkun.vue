@@ -27,6 +27,19 @@
             </p>
           </div>
 
+          <div v-if="isTipeModal">
+  <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Ekuitas</label>
+  <select v-model="formData.kategori_ekuitas"
+    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    <option :value="null">Pilih kategori ekuitas</option>
+    <option value="Penambah">Penambah Modal (Setoran, laba Ditahan, dll)</option>
+    <option value="Pengurang">Pengurang Modal (Prive, Kerugian, dll)</option>
+  </select>
+  <p class="text-xs text-gray-500 mt-1">
+    Penambah Modal untuk setoran, laba ditahan, dll. Pengurang Modal untuk Prive, kerugian, dll.
+  </p>
+</div>
+
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Kode *</label>
 
@@ -189,6 +202,13 @@ const filteredParentOptions = computed(() => {
   return filtered.sort((a, b) => a.kode.localeCompare(b.kode))
 })
 
+const isTipeModal = computed(() => {
+  const selected = tipeAkunOptions.value.find(t => t.id === formData.value.tipe_akun_id)
+  if (!selected) return false
+  return selected.kode_tipe_akun === '3' // sesuaikan sama kode ekuitas di data kamu
+})
+
+
 // Level kelompok akun dibatasi 1-3. Level 4 khusus dipakai saat membuat Nama Akun,
 // bukan Kelompok Akun, sehingga tidak ditampilkan di sini.
 const levelOptions = [1, 2, 3]
@@ -199,7 +219,8 @@ const formData = ref({
   level: null,
   parent_id: null,
   tipe_akun_id: null,
-  saldo_normal: 'D'
+  saldo_normal: 'D',
+  kategori_ekuitas: null 
 })
 
 const allKelompokAkunRaw = ref([]) // dipakai HANYA untuk deteksi format kode, bukan untuk dropdown parent
@@ -243,6 +264,7 @@ watch(() => props.editItem, (newItem) => {
       level: newItem.level,
       parent_id: newItem.parent_id,
       tipe_akun_id: newItem.tipe_akun_id ?? null,
+      kategori_ekuitas: newItem.kategori_ekuitas ?? null, 
     }
   }
 })
@@ -254,6 +276,12 @@ watch(() => props.showModal, (show) => {
     loadTipeAkunOptions()
   } else {
     resetForm()
+  }
+})
+
+watch(() => formData.value.tipe_akun_id, () => {
+  if (!isTipeModal.value) {
+    formData.value.kategori_ekuitas = null
   }
 })
 
@@ -317,6 +345,12 @@ const handleSubmit = async () => {
       saldo_normal: formData.value.saldo_normal,
       tipe_akun_id: formData.value.tipe_akun_id
     }
+
+    // tambahan: ikut kirim kategori_ekuitas kalo ada isinya
+    if (formData.value.kategori_ekuitas) {
+      submitData.kategori_ekuitas = formData.value.kategori_ekuitas
+    }
+
     console.log('Edit data:', submitData)
     emit('save', submitData)
   } else {
@@ -327,6 +361,12 @@ const handleSubmit = async () => {
       parent_id: formData.value.parent_id,
       tipe_akun_id: formData.value.tipe_akun_id
     }
+
+    // tambahan: ikut kirim kategori_ekuitas kalo ada isinya
+    if (formData.value.kategori_ekuitas) {
+      submitData.kategori_ekuitas = formData.value.kategori_ekuitas
+    }
+
     console.log('Create data:', submitData)
     emit('save', submitData)
   }
