@@ -767,6 +767,7 @@ const selectedNoBukti = ref('')
 const selectedNoBuktiTujuan = ref('')
 const selectedJenisJurnal = ref('')
 const selectedKategoriJenis = ref('') // khusus jenis 7
+const selectedArahJenis5 = ref('') // khusus jenis 5
 const kategoriJenisOptions = jurnalUmumService.getKategoriJenisOptions()
 const nomorBuktiList = ref([])
 const isLoadingNomorBukti = ref(false)
@@ -956,13 +957,13 @@ const getExpectedDefaultPosisi = () => {
   return akunDefault.value?.posisi_akun || null
 }
 
-// Auto-hitung nominal baris akun default (index 0) = total dari semua baris lawan (index >= 1)
+// Auto-hitung nominal baris akun default (index 0) = selisih agar balance dengan semua baris lawan (index >= 1)
 watch(
-  () => usesDefaultAccountRow.value && selectedJenisJurnal.value != 6
+  () => usesDefaultAccountRow.value
     ? formData.value.details.slice(1).map(d => `${d.debit}|${d.kredit}`).join(',')
     : null,
   () => {
-    if (!usesDefaultAccountRow.value || selectedJenisJurnal.value == 6) return
+    if (!usesDefaultAccountRow.value) return
     if (!formData.value.details[0]) return
 
     const posisi = getExpectedDefaultPosisi()
@@ -971,24 +972,19 @@ watch(
     const sumKredit = otherRows.reduce((s, d) => s + (parseFloat(d.kredit) || 0), 0)
 
     if (posisi === 'debet') {
-      formData.value.details[0].debit = sumKredit
+      // Default di debit, isi selisih kredit - debit dari lawan
+      const selisih = sumKredit - sumDebit
+      formData.value.details[0].debit = selisih > 0 ? selisih : 0
       formData.value.details[0].kredit = 0
     } else if (posisi === 'kredit') {
-      formData.value.details[0].kredit = sumDebit
+      // Default di kredit, isi selisih debit - kredit dari lawan
+      const selisih = sumDebit - sumKredit
+      formData.value.details[0].kredit = selisih > 0 ? selisih : 0
       formData.value.details[0].debit = 0
     }
   },
   { immediate: true }
 )
-
-
-watch(() => getExpectedDefaultPosisi(), (posisi) => {
-  if (!usesDefaultAccountRow.value || !posisi) return
-  formData.value.details.slice(1).forEach(d => {
-    if (posisi === 'debet') d.debit = 0
-    else if (posisi === 'kredit') d.kredit = 0
-  })
-})
 
 const getDisplayDebit = (index) => {
   if (index === 0 && usesDefaultAccountRow.value) {
@@ -1004,6 +1000,9 @@ const getDisplayKredit = (index) => {
 }
 
 const getAkunDefaultText = () => {
+  if (selectedJenisJurnal.value == 6 && akunSistemConfig.value) {
+    return `${akunSistemConfig.value.akun_kode} - ${akunSistemConfig.value.akun_nama}`
+  }
   if (!akunDefault.value) return ''
   if (selectedJenisJurnal.value == 6 && akunDefault.value.debet) {
     return getAkunLabel(akunDefault.value.debet)
@@ -1017,51 +1016,32 @@ const getPrimaryDefaultText = () => {
 }
 
 const getAyatSilangDebitText = () => {
-  return akunSistemConfig.value ? akunSistemConfig.value.label : 'Ayat silang'
+  if (akunSistemConfig.value) {
+    return `${akunSistemConfig.value.akun_kode} - ${akunSistemConfig.value.akun_nama}`
+  }
+  return 'Ayat silang'
 }
 
 const getAyatSilangKreditText = () => {
-  return akunSistemConfig.value ? akunSistemConfig.value.label : 'Ayat silang'
+  if (akunSistemConfig.value) {
+    return `${akunSistemConfig.value.akun_kode} - ${akunSistemConfig.value.akun_nama}`
+  }
+  return 'Ayat silang'
 }
 
 const shouldDisableDebit = (index, prefix = '') => {
-  if (selectedJenisJurnal.value == 6) return index === 1
-  const key = prefix === '' ? index : `${prefix}${index}`
-
-  // Baris akun default/bank (index 0): selalu dikunci, nominal auto dari lawan
+  // Hanya disable untuk baris akun default/bank (index 0)
   if (index === 0 && usesDefaultAccountRow.value) {
     return true
   }
-
-  // Baris lawan: sisi yang boleh diisi = kebalikan dari posisi akun default
-  if (usesDefaultAccountRow.value) {
-    const defaultPosisi = getExpectedDefaultPosisi()
-    if (defaultPosisi === 'debet') return true   // default di debit -> lawan wajib isi kredit
-    if (defaultPosisi === 'kredit') return false // default di kredit -> lawan wajib isi debit
-  }
-
-  // Fallback (belum ada default row, mis. jenis 5)
-  const selectedAccount = selectedAkun.value[key]
-  if (selectedAccount) return selectedAccount.posisi_akun === 'kredit'
   return false
 }
 
 const shouldDisableKredit = (index, prefix = '') => {
-  if (selectedJenisJurnal.value == 6) return index === 0
-  const key = prefix === '' ? index : `${prefix}${index}`
-
+  // Hanya disable untuk baris akun default/bank (index 0)
   if (index === 0 && usesDefaultAccountRow.value) {
     return true
   }
-
-  if (usesDefaultAccountRow.value) {
-    const defaultPosisi = getExpectedDefaultPosisi()
-    if (defaultPosisi === 'kredit') return true
-    if (defaultPosisi === 'debet') return false
-  }
-
-  const selectedAccount = selectedAkun.value[key]
-  if (selectedAccount) return selectedAccount.posisi_akun === 'debet'
   return false
 }
 
@@ -1470,7 +1450,7 @@ watch(selectedJenisJurnal, async (newJenis) => {
         await generateNoBuktiJenis12(newJenis)
       }
     }
-  } else {
+  } else if (!needsAkunSistemConfig.value && newJenis) {
     akunSistemConfig.value = null
   }
 })
@@ -1805,12 +1785,12 @@ const resetForm = () => {
   selectedNoBuktiTujuan.value = ''
   selectedJenisJurnal.value = ''
   selectedKategoriJenis.value = ''
+  selectedArahJenis5.value = ''
   akunDefault.value = null
   searchQueries.value = {}
   showAkunCard.value = {}
   selectedAkun.value = {}
   resetVendorCustomerState() // NEW
-  akunSistemConfig.value = null
   selectedAkunSistemPilihan.value = null
 }
 

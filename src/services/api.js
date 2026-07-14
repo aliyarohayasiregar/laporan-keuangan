@@ -718,6 +718,29 @@ class KartuStokAPI {
     }, 'ju')
   }
 
+  // Pengaturan Akun API Methods
+  async getDefaultPengaturan(noJenisJurnal) {
+    return this.request(`/getDefaultPengaturan/${noJenisJurnal}`, {}, 'ju')
+  }
+
+  async createPengaturanAkunSistem(noJenisJurnal, pengaturanData) {
+    return this.request(`/createPengaturanAkunSistem/${noJenisJurnal}`, {
+      method: 'POST',
+      body: JSON.stringify(pengaturanData)
+    }, 'ju')
+  }
+
+  async editPengaturanAkunSistem(id, pengaturanData) {
+    return this.request(`/editPengaturanAkunSistem/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(pengaturanData)
+    }, 'ju')
+  }
+
+  async getAllPengaturanAkun() {
+    return this.request('/getAllPengaturanAkun', {}, 'ju')
+  }
+
 }
 
 import { ref } from 'vue'

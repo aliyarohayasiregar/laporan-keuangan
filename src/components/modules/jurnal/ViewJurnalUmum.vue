@@ -29,6 +29,10 @@
                 <span class="text-sm text-gray-600">Keterangan:</span>
                 <span class="text-sm font-medium text-gray-900">{{ displayJurnal.keterangan }}</span>
               </div>
+              <div v-if="displayJurnal.no_jenis_jurnal == 6 && displayJurnal.akun_sistem_kode" class="flex justify-between">
+                <span class="text-sm text-gray-600">Akun Sistem (Ayat Silang):</span>
+                <span class="text-sm font-medium text-gray-900">{{ displayJurnal.akun_sistem_kode }} - {{ displayJurnal.akun_sistem_nama }}</span>
+              </div>
               <div class="flex justify-between">
                 <span class="text-sm text-gray-600">Status:</span>
                 <span :class="[

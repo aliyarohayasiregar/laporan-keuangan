@@ -123,6 +123,11 @@ const router = createRouter({
       path: '/registrasi-approval',
       name: 'registrasi-approval',
       component: () => import('../components/modules/Dashboard/Dashboard.vue')
+    },
+    {
+      path: '/pengaturan-akun',
+      name: 'pengaturan-akun',
+      component: () => import('../components/modules/Dashboard/Dashboard.vue')
     }
   ]
 })
