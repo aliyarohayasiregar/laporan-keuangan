@@ -1348,44 +1348,73 @@ watch(activeAccountGroup, (newGroup) => {
   }
 })
 
-const autoInitTanpaLawan = async (jenis) => {
-  if (!formData.value.tanggal) return
+// const autoInitTanpaLawan = async (jenis) => {
+//   if (!formData.value.tanggal) return
+//   try {
+//     // pastikan daftar kode bukti (template) sudah ada
+//     if (nomorBuktiList.value.length === 0) {
+//       await fetchNomorBuktiList()
+//     }
+
+//     // cari kode template yang sesuai jenis jurnal ini
+//     const matchingBukti = nomorBuktiList.value.find(
+//       v => String(v.kelompok_jurnal) === String(jenis)
+//     )
+//     if (!matchingBukti) {
+//       console.warn(`Tidak ada kode no_bukti terdaftar untuk jenis jurnal ${jenis}`)
+//       return
+//     }
+
+//     const tanggalParts = formData.value.tanggal.split('-')
+//     const res = await jurnalUmumService.getAkunDefault(
+//       jenis,
+//       matchingBukti.kode,           // <- ini yang tadinya null, sekarang diisi kode template
+//       null,
+//       parseInt(tanggalParts[1]),
+//       parseInt(tanggalParts[0])
+//     )
+//     if (!res.success) {
+//       console.warn('getAkunDefault gagal:', res.message)
+//       return
+//     }
+
+//     akunDefault.value = res.data
+//     applyAkunDefault()
+
+//     const akunId = res.data.id_akun
+//     const tanggal = getTanggalPayload()
+//     if (!akunId || !tanggal) {
+//   console.warn('akunId atau tanggal kosong, generate no bukti dibatalkan', { akunId, tanggal })
+//   return
+// }
+//     isGeneratingNoBukti.value = true
+//     const genRes = await jurnalUmumService.generateNoBuktiByAkun({
+//       no_jenis_jurnal: parseInt(jenis),
+//       akun_id: parseInt(akunId),
+//       tanggal
+//     })
+//     if (genRes.success) {
+//       formData.value.no_bukti = genRes.no_bukti_full || ''
+//     } else {
+//       console.warn('generateNoBuktiByAkun gagal:', genRes.message)
+//     }
+//   } catch (err) {
+//     console.error('Error auto init jenis 1/2/3/4:', err)
+//   } finally {
+//     isGeneratingNoBukti.value = false
+//   }
+// }
+
+const generateNoBuktiJenis12 = async (jenis) => {
+  const akunId = akunSistemConfig.value?.akun_id
+  const tanggal = getTanggalPayload()
+  if (!akunId || !tanggal) {
+    console.warn('akunId atau tanggal kosong, generate no bukti dibatalkan', { akunId, tanggal })
+    return
+  }
+
+  isGeneratingNoBukti.value = true
   try {
-    // pastikan daftar kode bukti (template) sudah ada
-    if (nomorBuktiList.value.length === 0) {
-      await fetchNomorBuktiList()
-    }
-
-    // cari kode template yang sesuai jenis jurnal ini
-    const matchingBukti = nomorBuktiList.value.find(
-      v => String(v.kelompok_jurnal) === String(jenis)
-    )
-    if (!matchingBukti) {
-      console.warn(`Tidak ada kode no_bukti terdaftar untuk jenis jurnal ${jenis}`)
-      return
-    }
-
-    const tanggalParts = formData.value.tanggal.split('-')
-    const res = await jurnalUmumService.getAkunDefault(
-      jenis,
-      matchingBukti.kode,           // <- ini yang tadinya null, sekarang diisi kode template
-      null,
-      parseInt(tanggalParts[1]),
-      parseInt(tanggalParts[0])
-    )
-    if (!res.success) {
-      console.warn('getAkunDefault gagal:', res.message)
-      return
-    }
-
-    akunDefault.value = res.data
-    applyAkunDefault()
-
-    const akunId = res.data.id_akun
-    const tanggal = getTanggalPayload()
-    if (!akunId || !tanggal) return
-
-    isGeneratingNoBukti.value = true
     const genRes = await jurnalUmumService.generateNoBuktiByAkun({
       no_jenis_jurnal: parseInt(jenis),
       akun_id: parseInt(akunId),
@@ -1397,12 +1426,11 @@ const autoInitTanpaLawan = async (jenis) => {
       console.warn('generateNoBuktiByAkun gagal:', genRes.message)
     }
   } catch (err) {
-    console.error('Error auto init jenis 1/2/3/4:', err)
+    console.error('Error generate no bukti jenis 1/2:', err)
   } finally {
     isGeneratingNoBukti.value = false
   }
 }
-
 
 watch(selectedJenisJurnal, async (newJenis) => {
   if (!isEdit.value) {
@@ -1416,32 +1444,33 @@ watch(selectedJenisJurnal, async (newJenis) => {
     if (newJenis == 5 && selectedNoBukti.value) {
       await fetchAkunDefault(newJenis, selectedNoBukti.value)
     }
-    if (['1', '2'].includes(String(newJenis)) && formData.value.tanggal) {
-      await autoInitTanpaLawan(newJenis)
-    }
     if (['3', '4'].includes(String(newJenis))) {
       selectedBankId.value = ''
       await fetchDaftarBankAktif()
     }
   }
 
-  // Pengaturan Akun Sistem hanya untuk jenis 1, 2, 6
   if (needsAkunSistemConfig.value && newJenis) {
     await getPengaturanAkunSistem(newJenis)
     if (akunSistemConfig.value) {
       applyAkunDefault()
+      if (!isEdit.value && ['1', '2'].includes(String(newJenis)) && formData.value.tanggal) {
+        await generateNoBuktiJenis12(newJenis)
+      }
     }
   } else {
     akunSistemConfig.value = null
   }
 })
 
-
 const fetchNomorBuktiList = async () => {
   isLoadingNomorBukti.value = true
   try {
     const res = await jurnalUmumService.getAllNoBuktiJU()
-    if (res.success) nomorBuktiList.value = res.data
+    if (res.success) {
+      nomorBuktiList.value = res.data
+      console.log('DEBUG nomorBuktiList:', JSON.stringify(res.data, null, 2)) // <- tambahkan ini
+    }
   } finally {
     isLoadingNomorBukti.value = false
   }
@@ -1892,12 +1921,19 @@ watch(() => props.namaAkunOptions, (newOptions) => {
   }
 }, { deep: true })
 
-watch(() => formData.value.tanggal, (newVal, oldVal) => {
+watch(() => formData.value.tanggal, async (newVal, oldVal) => {
   if (!isEdit.value && newVal && newVal !== oldVal) {
     selectedNoBukti.value = ''
     selectedNoBuktiTujuan.value = ''
     if (selectedJenisJurnal.value) {
       initializeDetailsForJenis(selectedJenisJurnal.value)
+      if (['3', '4'].includes(String(selectedJenisJurnal.value))) {
+        await fetchDaftarBankAktif()
+      }
+      if (['1', '2'].includes(String(selectedJenisJurnal.value)) && akunSistemConfig.value) {
+        applyAkunDefault()
+        await generateNoBuktiJenis12(selectedJenisJurnal.value)
+      }
     }
   }
 })
