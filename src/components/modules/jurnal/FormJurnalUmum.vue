@@ -41,30 +41,27 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <template v-if="selectedJenisJurnal == 5">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Nomor Voucher *</label>
-                <select v-model="selectedNoBukti" @change="handleNoBuktiChange"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  :disabled="isLoadingNomorBukti || isEdit || isGeneratingNoBukti || !formData.tanggal">
-                  <option value="">Pilih No. Voucher</option>
-                  <option v-for="voucher in filteredNomorBuktiList" :key="voucher.kode" :value="voucher.kode">
-                    {{ voucher.kode }} {{ voucher.kelompok_jurnal ? `` : '' }}
-                  </option>
-                </select>
-                <p v-if="isLoadingNomorBukti || isGeneratingNoBukti || !formData.tanggal"
-                  class="text-xs text-blue-500 mt-1">
-                  {{ !formData.tanggal ? 'Pilih tanggal terlebih dahulu' : (isLoadingNomorBukti ? 'Memuat data voucher...'
-                  : 'Generating nomor bukti...') }}
-                </p>
-              </div>
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-2">Arah Transaksi *</label>
+    <select v-model="selectedArahJenis5" @change="handleArahJenis5Change"
+      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      :disabled="isEdit || isGeneratingNoBukti || !formData.tanggal">
+      <option value="">Pilih Arah</option>
+      <option value="debet">Debet</option>
+      <option value="kredit">Kredit</option>
+    </select>
+    <p v-if="isGeneratingNoBukti || !formData.tanggal" class="text-xs text-blue-500 mt-1">
+      {{ !formData.tanggal ? 'Pilih tanggal terlebih dahulu' : 'Generating nomor bukti...' }}
+    </p>
+  </div>
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Bukti</label>
-                <input :value="formData.no_bukti" type="text" readonly
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
-                  :placeholder="isGeneratingNoBukti ? 'Generating...' : ''" />
-              </div>
-            </template>
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Bukti</label>
+    <input :value="formData.no_bukti" type="text" readonly
+      class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
+      :placeholder="isGeneratingNoBukti ? 'Generating...' : ''" />
+  </div>
+</template>
 
             <template v-else-if="selectedJenisJurnal == 6">
               <div>
@@ -744,6 +741,7 @@ import VoucherPreview from '../TemplateVoucher/VoucherPreview.vue'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 
+
 const props = defineProps({
   showModal: { type: Boolean, required: true },
   editItem: { type: Object, default: null },
@@ -755,6 +753,9 @@ const emit = defineEmits(['close', 'save'])
 
 const isEdit = computed(() => !!props.editItem)
 const isSubmitting = ref(false)
+
+const selectedArahJenis5 = ref('')
+
 
 // ===== Modal Alert (pengganti browser alert()) =====
 const showAlertModal = ref(false)
@@ -927,8 +928,7 @@ const filteredNomorBuktiList = computed(() => {
   return nomorBuktiList.value.filter(v => String(v.kelompok_jurnal) === activeAccountGroup.value)
 })
 
-const usesManualVoucherSelection = computed(() => String(selectedJenisJurnal.value) === '5')
-const usesAutoNoBuktiGeneration = computed(() => !!selectedJenisJurnal.value && !usesManualVoucherSelection.value)
+const usesAutoNoBuktiGeneration = computed(() => !!selectedJenisJurnal.value)
 const isBankJenis = computed(() => ['3', '4'].includes(String(selectedJenisJurnal.value)))
 const needsAkunSistemConfig = computed(() => ['1', '2', '6'].includes(String(selectedJenisJurnal.value)))
 const usesDefaultAccountRow = computed(() =>
@@ -1432,17 +1432,51 @@ const generateNoBuktiJenis12 = async (jenis) => {
   }
 }
 
+const generateNoBuktiJenis5 = async () => {
+  const tanggal = getTanggalPayload()
+  if (!tanggal || !selectedArahJenis5.value) {
+    console.warn('tanggal atau arah kosong, generate no bukti jenis 5 dibatalkan', { tanggal, arah: selectedArahJenis5.value })
+    return
+  }
+
+  isGeneratingNoBukti.value = true
+  try {
+    const genRes = await jurnalUmumService.generateNoBuktiByAkun({
+      no_jenis_jurnal: 5,
+      tanggal,
+      arah: selectedArahJenis5.value
+    })
+    if (genRes.success) {
+      formData.value.no_bukti = genRes.no_bukti_full || ''
+    } else {
+      showAlert(genRes.message || 'Gagal generate nomor bukti!', 'error')
+    }
+  } catch (err) {
+    console.error('Error generate no bukti jenis 5:', err)
+    showAlert('Terjadi kesalahan saat generate nomor bukti!', 'error')
+  } finally {
+    isGeneratingNoBukti.value = false
+  }
+}
+
+const handleArahJenis5Change = async () => {
+  if (!selectedArahJenis5.value) {
+    formData.value.no_bukti = ''
+    return
+  }
+  await generateNoBuktiJenis5()
+}
+
+
 watch(selectedJenisJurnal, async (newJenis) => {
   if (!isEdit.value) {
     initializeDetailsForJenis(newJenis)
     selectedNoBukti.value = ''
     selectedNoBuktiTujuan.value = ''
+    selectedArahJenis5.value = ''
     if (newJenis != 7) {
       selectedKategoriJenis.value = ''
       resetVendorCustomerState()
-    }
-    if (newJenis == 5 && selectedNoBukti.value) {
-      await fetchAkunDefault(newJenis, selectedNoBukti.value)
     }
     if (['3', '4'].includes(String(newJenis))) {
       selectedBankId.value = ''
@@ -1565,45 +1599,6 @@ const applyAkunDefault = () => {
   }
 }
 
-const generateNoBukti = async () => {
-  if (!selectedNoBukti.value || !formData.value.tanggal) return
-  const tanggalFormat = getTanggalPayload()
-  if (!tanggalFormat) return
-
-  isGeneratingNoBukti.value = true
-  try {
-    const payload = { no_bukti: selectedNoBukti.value, tanggal: parseInt(tanggalFormat) }
-
-    const res = await api.request('/createNoBuktiGenerate', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    }, 'nb')
-
-    if (res.success) {
-      formData.value.no_bukti = res.no_bukti_full
-      await fetchAkunDefault(selectedJenisJurnal.value, selectedNoBukti.value)
-    } else {
-      showAlert(res.message || 'Gagal generate nomor bukti!', 'error')
-      selectedNoBukti.value = ''
-    }
-  } catch (err) {
-    console.error('Error generate no bukti:', err)
-    showAlert('Terjadi kesalahan saat generate nomor bukti!', 'error')
-    selectedNoBukti.value = ''
-  } finally {
-    isGeneratingNoBukti.value = false
-  }
-}
-
-const handleNoBuktiChange = async () => {
-  if (!selectedNoBukti.value) {
-    akunDefault.value = null
-    formData.value.no_bukti = ''
-    initializeDetailsForJenis(5)
-    return
-  }
-  await generateNoBukti()
-}
 
 // Handler saat kategori jenis dipilih (khusus jenis 7)
 const handleKategoriJenisChange = async () => {
@@ -1831,6 +1826,7 @@ const resetForm = () => {
   selectedNoBukti.value = ''
   selectedNoBuktiTujuan.value = ''
   selectedJenisJurnal.value = ''
+  selectedArahJenis5.value = ''
   selectedKategoriJenis.value = ''
   akunDefault.value = null
   searchQueries.value = {}
@@ -1934,6 +1930,9 @@ watch(() => formData.value.tanggal, async (newVal, oldVal) => {
         applyAkunDefault()
         await generateNoBuktiJenis12(selectedJenisJurnal.value)
       }
+      if (String(selectedJenisJurnal.value) === '5' && selectedArahJenis5.value) {
+        await generateNoBuktiJenis5()
+      }
     }
   }
 })
@@ -1965,15 +1964,16 @@ const handleSubmit = async () => {
     }
   }
 
-  if (selectedJenisJurnal.value == 5 && !selectedNoBukti.value) {
-    showAlert('Silakan pilih Nomor Voucher!', 'error')
-    return
-  }
-  if (selectedJenisJurnal.value != 5 && !formData.value.no_bukti) {
-    showAlert('Nomor bukti belum tergenerate. Silakan pilih akun terlebih dahulu!', 'error')
-    return
-  }
-  if (selectedJenisJurnal.value == 6 && !formData.value.no_bukti_silang) {
+  if (selectedJenisJurnal.value == 5 && !selectedArahJenis5.value) {
+  showAlert('Silakan pilih Arah Transaksi (Debet/Kredit)!', 'error')
+  return
+}
+if (!formData.value.no_bukti) {
+  showAlert('Nomor bukti belum tergenerate. Silakan pilih akun/arah terlebih dahulu!', 'error')
+  return
+}
+
+if (selectedJenisJurnal.value == 6 && !formData.value.no_bukti_silang) {
     showAlert('Nomor bukti jurnal 2 belum tergenerate. Silakan pilih akun jurnal 2 terlebih dahulu!', 'error')
     return
   }
