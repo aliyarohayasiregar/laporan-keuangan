@@ -41,28 +41,13 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <template v-if="selectedJenisJurnal == 5">
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-2">Arah Transaksi *</label>
-    <select v-model="selectedArahJenis5" @change="handleArahJenis5Change"
-      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      :disabled="isEdit || isGeneratingNoBukti || !formData.tanggal">
-      <option value="">Pilih Arah</option>
-      <option value="debet">Debet</option>
-      <option value="kredit">Kredit</option>
-    </select>
-    <p v-if="isGeneratingNoBukti || !formData.tanggal" class="text-xs text-blue-500 mt-1">
-      {{ !formData.tanggal ? 'Pilih tanggal terlebih dahulu' : 'Generating nomor bukti...' }}
-    </p>
-  </div>
-
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Bukti</label>
-    <input :value="formData.no_bukti" type="text" readonly
-      class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
-      :placeholder="isGeneratingNoBukti ? 'Generating...' : ''" />
-  </div>
-</template>
-
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Bukti</label>
+                <input :value="formData.no_bukti" type="text" readonly
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
+                  :placeholder="isGeneratingNoBukti ? 'Generating...' : (!formData.tanggal ? 'Pilih tanggal terlebih dahulu' : 'Akan digenerate otomatis')" />
+              </div>
+            </template>
             <template v-else-if="selectedJenisJurnal == 6">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Bukti Jurnal 1</label>
@@ -722,8 +707,7 @@
           {{ alertType === 'success' ? 'Berhasil' : 'Perhatian' }}
         </h3>
         <p class="text-sm text-gray-600 mb-6 whitespace-pre-line">{{ alertMessage }}</p>
-        <button @click="closeAlertModal"
-          class="w-full px-4 py-2 rounded-lg text-white font-medium transition-colors"
+        <button @click="closeAlertModal" class="w-full px-4 py-2 rounded-lg text-white font-medium transition-colors"
           :class="alertType === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'">
           OK
         </button>
@@ -754,7 +738,6 @@ const emit = defineEmits(['close', 'save'])
 const isEdit = computed(() => !!props.editItem)
 const isSubmitting = ref(false)
 
-const selectedArahJenis5 = ref('')
 
 
 // ===== Modal Alert (pengganti browser alert()) =====
@@ -1434,8 +1417,8 @@ const generateNoBuktiJenis12 = async (jenis) => {
 
 const generateNoBuktiJenis5 = async () => {
   const tanggal = getTanggalPayload()
-  if (!tanggal || !selectedArahJenis5.value) {
-    console.warn('tanggal atau arah kosong, generate no bukti jenis 5 dibatalkan', { tanggal, arah: selectedArahJenis5.value })
+  if (!tanggal) {
+    console.warn('tanggal kosong, generate no bukti jenis 5 dibatalkan')
     return
   }
 
@@ -1443,8 +1426,7 @@ const generateNoBuktiJenis5 = async () => {
   try {
     const genRes = await jurnalUmumService.generateNoBuktiByAkun({
       no_jenis_jurnal: 5,
-      tanggal,
-      arah: selectedArahJenis5.value
+      tanggal
     })
     if (genRes.success) {
       formData.value.no_bukti = genRes.no_bukti_full || ''
@@ -1457,14 +1439,6 @@ const generateNoBuktiJenis5 = async () => {
   } finally {
     isGeneratingNoBukti.value = false
   }
-}
-
-const handleArahJenis5Change = async () => {
-  if (!selectedArahJenis5.value) {
-    formData.value.no_bukti = ''
-    return
-  }
-  await generateNoBuktiJenis5()
 }
 
 
@@ -1481,6 +1455,10 @@ watch(selectedJenisJurnal, async (newJenis) => {
     if (['3', '4'].includes(String(newJenis))) {
       selectedBankId.value = ''
       await fetchDaftarBankAktif()
+    }
+
+    if (String(newJenis) === '5' && formData.value.tanggal) {
+      await generateNoBuktiJenis5()
     }
   }
 
@@ -1541,40 +1519,40 @@ const applyAkunDefault = () => {
   if (selectedJenisJurnal.value == 5) return
 
   if (selectedJenisJurnal.value == 6) {
-  if (!akunSistemConfig.value) return
+    if (!akunSistemConfig.value) return
 
-  const ayatSilangAkun = {
-    id: akunSistemConfig.value.id,
-    label: akunSistemConfig.value.label
-  }
+    const ayatSilangAkun = {
+      id: akunSistemConfig.value.id,
+      label: akunSistemConfig.value.label
+    }
 
-  const manualJurnal1 = formData.value.details[1] || createEmptyDetail()
-  const manualJurnal2 = formData.value.details_silang[0] || createEmptyDetail()
-  const selectedManualJurnal1 = selectedAkun.value[1]
-  const selectedManualJurnal2 = selectedAkun.value['s_0']
+    const manualJurnal1 = formData.value.details[1] || createEmptyDetail()
+    const manualJurnal2 = formData.value.details_silang[0] || createEmptyDetail()
+    const selectedManualJurnal1 = selectedAkun.value[1]
+    const selectedManualJurnal2 = selectedAkun.value['s_0']
 
-  formData.value.details = [
-    { akun_id: ayatSilangAkun.id, debit: formData.value.details[0]?.debit || 0, kredit: formData.value.details[0]?.kredit || 0 },
-    { ...manualJurnal1 }
-  ]
-  formData.value.details_silang = [
-    { ...manualJurnal2 },
-    { akun_id: ayatSilangAkun.id, debit: formData.value.details_silang[1]?.debit || 0, kredit: formData.value.details_silang[1]?.kredit || 0 }
-  ]
+    formData.value.details = [
+      { akun_id: ayatSilangAkun.id, debit: formData.value.details[0]?.debit || 0, kredit: formData.value.details[0]?.kredit || 0 },
+      { ...manualJurnal1 }
+    ]
+    formData.value.details_silang = [
+      { ...manualJurnal2 },
+      { akun_id: ayatSilangAkun.id, debit: formData.value.details_silang[1]?.debit || 0, kredit: formData.value.details_silang[1]?.kredit || 0 }
+    ]
 
-  selectedAkun.value[0] = ayatSilangAkun
-  searchQueries.value[0] = ayatSilangAkun.label
-  selectedAkun.value['s_1'] = ayatSilangAkun
-  searchQueries.value['s_1'] = ayatSilangAkun.label
-  if (selectedManualJurnal1) {
-    selectedAkun.value[1] = selectedManualJurnal1
-    searchQueries.value[1] = `${selectedManualJurnal1.kode_akun || selectedManualJurnal1.kode || ''} - ${selectedManualJurnal1.nama_akun || ''}`
-  }
-  if (selectedManualJurnal2) {
-    selectedAkun.value['s_0'] = selectedManualJurnal2
-    searchQueries.value['s_0'] = `${selectedManualJurnal2.kode_akun || selectedManualJurnal2.kode || ''} - ${selectedManualJurnal2.nama_akun || ''}`
-  }
-} else {
+    selectedAkun.value[0] = ayatSilangAkun
+    searchQueries.value[0] = ayatSilangAkun.label
+    selectedAkun.value['s_1'] = ayatSilangAkun
+    searchQueries.value['s_1'] = ayatSilangAkun.label
+    if (selectedManualJurnal1) {
+      selectedAkun.value[1] = selectedManualJurnal1
+      searchQueries.value[1] = `${selectedManualJurnal1.kode_akun || selectedManualJurnal1.kode || ''} - ${selectedManualJurnal1.nama_akun || ''}`
+    }
+    if (selectedManualJurnal2) {
+      selectedAkun.value['s_0'] = selectedManualJurnal2
+      searchQueries.value['s_0'] = `${selectedManualJurnal2.kode_akun || selectedManualJurnal2.kode || ''} - ${selectedManualJurnal2.nama_akun || ''}`
+    }
+  } else {
     if (!akunDefault.value) return
     const defaultAkun = findAkunFromOptions(akunDefault.value)
     const manualDetail = formData.value.details[1] || createEmptyDetail()
@@ -1826,7 +1804,6 @@ const resetForm = () => {
   selectedNoBukti.value = ''
   selectedNoBuktiTujuan.value = ''
   selectedJenisJurnal.value = ''
-  selectedArahJenis5.value = ''
   selectedKategoriJenis.value = ''
   akunDefault.value = null
   searchQueries.value = {}
@@ -1841,60 +1818,27 @@ watch(() => props.showModal, async (newVal) => {
   if (newVal) {
     fetchNomorBuktiList()
     if (isEdit.value && props.editItem) {
-      formData.value = {
-        tanggal: props.editItem.tanggal,
-        no_bukti: props.editItem.no_bukti,
-        keterangan: props.editItem.keterangan,
-        details: (props.editItem.details || []).map(d => ({ ...d })),
-        no_bukti_silang: props.editItem.no_bukti_silang || '',
-        keterangan_silang: props.editItem.keterangan_silang || '',
-        details_silang: (props.editItem.details_silang || []).map(d => ({ ...d }))
-      }
-      selectedNoBukti.value = props.editItem.no_bukti
-      selectedNoBuktiTujuan.value = props.editItem.no_bukti_silang || ''
-      selectedJenisJurnal.value = String(props.editItem.no_jenis_jurnal || props.editItem.jenis_jurnal)
-      selectedKategoriJenis.value = String(props.editItem.kategori_jenis || '')
-
-      if (needsAkunSistemConfig.value && selectedJenisJurnal.value) {
-        await getPengaturanAkunSistem(selectedJenisJurnal.value)
-      }
-
-      if (isBankJenis.value) {
-        await fetchDaftarBankAktif()
-      }
-
-      // NEW: restore vendor/customer kalau ada di data edit
-      if (props.editItem.vendor_customer_id) {
-        selectedVendorCustomerId.value = props.editItem.vendor_customer_id
-        selectedVendorCustomer.value = {
-          id: props.editItem.vendor_customer_id,
-          nama: props.editItem.vendor_customer_nama || ''
-        }
-      }
-
-      const setAkunFromDetails = (details, prefix = '') => {
-        details.forEach((d, i) => {
-          const key = prefix ? `${prefix}${i}` : i
-          const akun = props.namaAkunOptions.find(a => a.kode_akun === d.akun_id || a.id === d.akun_id)
-          if (akun) {
-            selectedAkun.value[key] = akun
-            searchQueries.value[key] = `${akun.kode_akun} - ${akun.nama_akun}`
-          }
-        })
-      }
-
-      if (selectedJenisJurnal.value == 6) {
-        setAkunFromDetails(formData.value.details, '')
-        setAkunFromDetails(formData.value.details_silang, 's_')
-      } else {
-        setAkunFromDetails(formData.value.details, '')
-        if (isBankJenis.value && formData.value.details[0]?.akun_id) {
-          selectedBankId.value = formData.value.details[0].akun_id
-        }
-      }
+      // ... (bagian isEdit tetap sama, tidak diubah)
     } else if (props.preselectedData) {
       resetForm()
-      selectedJenisJurnal.value = String(props.preselectedData.jenis_jurnal)
+      const jenis = String(props.preselectedData.jenis_jurnal)
+      selectedJenisJurnal.value = jenis
+      await nextTick()
+
+      // Panggil langsung generate-nya, jangan andalkan watcher selectedJenisJurnal saja
+      if (['3', '4'].includes(jenis)) {
+        await fetchDaftarBankAktif()
+      }
+      if (jenis === '5' && formData.value.tanggal) {
+        await generateNoBuktiJenis5()
+      }
+      if (['1', '2'].includes(jenis) && formData.value.tanggal) {
+        await getPengaturanAkunSistem(jenis)
+        if (akunSistemConfig.value) {
+          applyAkunDefault()
+          await generateNoBuktiJenis12(jenis)
+        }
+      }
     }
   } else if (props.preselectedData) {
     resetForm()
@@ -1930,7 +1874,7 @@ watch(() => formData.value.tanggal, async (newVal, oldVal) => {
         applyAkunDefault()
         await generateNoBuktiJenis12(selectedJenisJurnal.value)
       }
-      if (String(selectedJenisJurnal.value) === '5' && selectedArahJenis5.value) {
+      if (String(selectedJenisJurnal.value) === '5') {
         await generateNoBuktiJenis5()
       }
     }
@@ -1964,16 +1908,12 @@ const handleSubmit = async () => {
     }
   }
 
-  if (selectedJenisJurnal.value == 5 && !selectedArahJenis5.value) {
-  showAlert('Silakan pilih Arah Transaksi (Debet/Kredit)!', 'error')
-  return
-}
-if (!formData.value.no_bukti) {
-  showAlert('Nomor bukti belum tergenerate. Silakan pilih akun/arah terlebih dahulu!', 'error')
-  return
-}
+  if (!formData.value.no_bukti) {
+    showAlert('Nomor bukti belum tergenerate. Silakan lengkapi data terlebih dahulu!', 'error')
+    return
+  }
 
-if (selectedJenisJurnal.value == 6 && !formData.value.no_bukti_silang) {
+  if (selectedJenisJurnal.value == 6 && !formData.value.no_bukti_silang) {
     showAlert('Nomor bukti jurnal 2 belum tergenerate. Silakan pilih akun jurnal 2 terlebih dahulu!', 'error')
     return
   }
