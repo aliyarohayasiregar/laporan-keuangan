@@ -45,7 +45,7 @@
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Role</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -54,8 +54,10 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="role in filteredRoles" :key="role.id" class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ role.id }}</td>
+          <tr v-for="(role, index) in paginatedRoles" :key="role.id" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+            </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium text-gray-900">{{ role.nama_role || role.NamaRole }}</div>
             </td>
@@ -107,6 +109,11 @@
         <div class="text-gray-500 text-lg">Tidak ada data role</div>
         <div class="text-gray-400 text-sm mt-2">Silakan tambah role terlebih dahulu</div>
       </div>
+
+      <!-- Pagination -->
+      <Pagination v-if="filteredRoles.length > 0" :current-page="currentPage" :total-items="filteredRoles.length"
+        :items-per-page="itemsPerPage" @page-change="currentPage = $event" />
+
     </div>
 
     <!-- Role Form Modal -->
@@ -119,11 +126,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject } from 'vue'
+import { ref, computed, onMounted, inject, watch } from 'vue'
 import { showSuccess, showError, showConfirm, showWarning } from '@/composables/useModal.js'
 const hasPermission = inject('hasPermission', () => true)
 import RoleForm from './RoleForm.vue'
 import RolePermissionModal from './RolePermissionModal.vue'
+import Pagination from '../../Pagination.vue'
 import api from '../../../services/api.js'
 
 const searchQuery = ref('')
@@ -135,6 +143,20 @@ const selectedRole = ref(null)
 const roles = ref([])
 const loading = ref(false)
 const error = ref(null)
+
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
+const paginatedRoles = computed(() => {
+  const filtered = filteredRoles.value || []
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filtered.slice(start, end)
+})
+
+watch([searchQuery, statusFilter], () => {
+  currentPage.value = 1
+})
 
 const filteredRoles = computed(() => {
   let filtered = roles.value || []
@@ -166,10 +188,10 @@ const loadRoles = async () => {
       roles.value = response.data
     } else {
       await showError('Gagal memuat data role')
-        }
+    }
   } catch (err) {
     await showError('Gagal memuat data role')
-        console.error('Error loading roles:', err)
+    console.error('Error loading roles:', err)
   } finally {
     loading.value = false
   }
@@ -219,9 +241,8 @@ const handleToggleStatus = async (role) => {
   const ok = await showConfirm({
     type: 'warning',
     title: currentStatus ? 'Nonaktifkan Role' : 'Aktifkan Role',
-    message: `Apakah Anda yakin ingin ${
-      currentStatus ? 'menonaktifkan' : 'mengaktifkan'
-    } role ${role.nama_role || role.NamaRole}?`,
+    message: `Apakah Anda yakin ingin ${currentStatus ? 'menonaktifkan' : 'mengaktifkan'
+      } role ${role.nama_role || role.NamaRole}?`,
     confirmLabel: 'Ya',
     cancelLabel: 'Batal'
   })
@@ -308,6 +329,8 @@ const formatDate = (dateString) => {
     year: 'numeric'
   })
 }
+
+
 
 onMounted(() => {
   loadRoles()

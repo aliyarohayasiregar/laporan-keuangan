@@ -37,7 +37,7 @@
         <p class="mt-2 text-gray-600">Memuat data modul...</p>
       </div>
 
-      <div v-else-if="filteredModuls.length === 0" class="p-8 text-center">
+      <div v-else-if="paginatedModuls.length === 0" class="p-8 text-center">
         <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -51,7 +51,7 @@
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID
+                No
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Nama Modul
@@ -68,9 +68,9 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="modul in filteredModuls" :key="modul.id" class="hover:bg-gray-50">
+            <tr v-for="(modul, index) in paginatedModuls" :key="modul.id" class="hover:bg-gray-50">
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ modul.id }}
+                {{ (currentPage - 1) * itemsPerPage + index + 1 }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-gray-900">{{ modul.nama_modul }}</div>
@@ -101,6 +101,8 @@
           </tbody>
         </table>
       </div>
+      <Pagination v-if="!loading && filteredModuls.length > 0" :current-page="currentPage"
+        :total-items="filteredModuls.length" :items-per-page="itemsPerPage" @page-change="currentPage = $event" />
     </div>
 
     <!-- Add/Edit Modal -->
@@ -138,12 +140,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject } from 'vue'
-
+import { ref, computed, onMounted, inject, watch } from 'vue'
 const hasPermission = inject('hasPermission', () => true)
 import api from '../../../services/api.js'
 import { showSuccess, showError, showConfirm, showWarning } from '@/composables/useModal.js'
-
+import Pagination from '../../Pagination.vue'
 
 // State
 const moduls = ref([])
@@ -154,9 +155,24 @@ const showEditModal = ref(false)
 const editingModul = ref(null)
 const submitting = ref(false)
 
+// Pagination State
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
 // Form data
 const formData = ref({
   nama_modul: ''
+})
+
+const paginatedModuls = computed(() => {
+  const filtered = filteredModuls.value || []
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filtered.slice(start, end)
+})
+
+watch(searchQuery, () => {
+  currentPage.value = 1
 })
 
 // Computed

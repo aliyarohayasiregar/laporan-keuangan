@@ -161,28 +161,9 @@
           </div>
 
           <!-- Pagination -->
-          <div v-if="totalPages > 1" class="bg-gray-50 px-6 py-4 border-t border-gray-200">
-            <div class="flex items-center justify-between">
-              <div class="text-sm text-gray-700">
-                Menampilkan {{ (currentPage - 1) * itemsPerPage + 1 }} hingga {{ Math.min(currentPage * itemsPerPage,
-                  filteredData.length) }} dari {{ filteredData.length }} data
-              </div>
-              <div class="flex gap-2">
-                <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1"
-                  class="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
-                  Previous
-                </button>
-                <span class="px-4 py-2 text-sm text-gray-700">
-                  Page {{ currentPage }} of {{ totalPages }}
-                </span>
-                <button @click="currentPage = Math.min(totalPages, currentPage + 1)"
-                  :disabled="currentPage === totalPages"
-                  class="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
+          <!-- Pagination -->
+<Pagination v-if="filteredData.length > 0" :current-page="currentPage" :total-items="filteredData.length"
+  :items-per-page="itemsPerPage" @page-change="currentPage = $event" />
         </div>
 
         <!-- Empty State -->
@@ -215,6 +196,8 @@ import { ref, computed, onMounted, watch, inject } from 'vue'
 import nomorVoucherService from '../../../services/nomorVoucherService.js'
 import FormNomorVoucher from './FormNomorVoucher.vue'
 import ViewNomorVoucher from './ViewNomorVoucher.vue'
+import Pagination from '../../Pagination.vue'
+
 
 const hasPermission = inject('hasPermission', () => true)
 

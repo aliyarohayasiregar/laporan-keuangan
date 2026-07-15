@@ -44,6 +44,7 @@
             <table class="min-w-full divide-y divide-gray-300">
               <thead class="bg-gray-50">
                 <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama User
@@ -58,7 +59,10 @@
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="req in requests" :key="req.id_user_pendaftar" class="hover:bg-gray-50">
+                <tr v-for="(req, index) in paginatedRequests" :key="req.id_user_pendaftar" class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+                  </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {{ formatDate(req.tanggal_pendaftaran) }}
                   </td>
@@ -93,6 +97,8 @@
               </tbody>
             </table>
           </div>
+          <Pagination v-if="requests.length > 0" :current-page="currentPage" :total-items="requests.length"
+            :items-per-page="itemsPerPage" @page-change="currentPage = $event" />
         </div>
       </div>
     </div>
@@ -161,10 +167,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '../../../services/api.js'
 import { getAuthData } from '../../../utils/auth.js'
 import { showSuccess, showError } from '@/composables/useModal.js'
+import Pagination from '../../Pagination.vue'
+
 const requests = ref([])
 const loading = ref(false)
 const error = ref(null)
@@ -175,7 +183,19 @@ const selectedRequest = ref(null)
 const currentAction = ref('')
 const catatan = ref('')
 
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
 const authData = getAuthData()
+
+const paginatedRequests = computed(() => {
+  const data = requests.value || []
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return data.slice(start, end)
+})
+
+
 
 const fetchRequests = async () => {
   loading.value = true
@@ -183,6 +203,7 @@ const fetchRequests = async () => {
   try {
     const response = await api.getDaftarApprovalRegistrasi()
     requests.value = response.data || []
+    currentPage.value = 1
   } catch (err) {
     error.value = 'Gagal memuat daftar pengajuan registrasi.'
     console.error(err)

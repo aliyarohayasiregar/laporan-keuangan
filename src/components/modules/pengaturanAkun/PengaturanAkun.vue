@@ -33,7 +33,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="item in pengaturanList" :key="item.no_jenis_jurnal" class="hover:bg-gray-50">
+          <tr v-for="item in paginatedPengaturan" :key="item.no_jenis_jurnal" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.no_jenis_jurnal }}</td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium text-gray-900">{{ item.nama_jenis_jurnal }}</div>
@@ -61,6 +61,8 @@
           </tr>
         </tbody>
       </table>
+      <Pagination v-if="pengaturanList.length > 0" :current-page="currentPage" :total-items="pengaturanList.length"
+        :items-per-page="itemsPerPage" @page-change="currentPage = $event" />
     </div>
 
     <!-- Form Modal -->
@@ -74,6 +76,7 @@ import { ref, computed, onMounted, inject } from 'vue'
 
 const hasPermission = inject('hasPermission', () => true)
 import FormPengaturanAkun from './FormPengaturanAkun.vue'
+import Pagination from '../../Pagination.vue'
 import api from '../../../services/api.js'
 
 const loading = ref(false)
@@ -81,6 +84,9 @@ const error = ref(null)
 const showFormModal = ref(false)
 const editingItem = ref(null)
 const namaAkunOptions = ref([])
+
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Jenis jurnal yang bisa diatur: 1, 2, 6
 const jenisJurnalList = ref([
@@ -90,6 +96,13 @@ const jenisJurnalList = ref([
 ])
 
 const pengaturanList = ref([])
+
+const paginatedPengaturan = computed(() => {
+  const list = pengaturanList.value || []
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return list.slice(start, end)
+})
 
 const loadPengaturan = async () => {
   loading.value = true
