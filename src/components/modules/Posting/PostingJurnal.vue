@@ -206,7 +206,7 @@
                       <h3 class="text-xl font-bold text-gray-900 mb-1">
                         {{ akun.kode_akun }} - {{ akun.nama_akun }}
                       </h3>
-                      <p class="text-sm text-gray-600">Akun ID: {{ akun.akun_id }}</p>
+                      <!-- <p class="text-sm text-gray-600">Akun ID: {{ akun.akun_id }}</p> -->
                     </div>
                   </div>
                 </div>

@@ -55,6 +55,19 @@
     </div>
   </div>
 </div>
+<!-- Search & Filter -->
+<div v-if="!loading && !error" class="bg-white rounded-lg shadow p-4">
+  <div class="flex flex-col sm:flex-row gap-4">
+    <div class="flex-1">
+      <input v-model="searchQuery" type="text" placeholder="Cari kode, keterangan, atau no. voucher..."
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" />
+    </div>
+    
+  </div>
+</div>
+
+<!-- Loading State -->
+
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -287,16 +300,9 @@ const paginatedJurnals = computed(() => {
   const filtered = filteredJurnals.value || []
   const start = (currentPage.value - 1) * itemsPerPage.value
   const end = start + itemsPerPage.value
-
-  console.log('Debug - jurnals.value:', jurnals.value)
-  console.log('Debug - filteredJurnals.value:', filteredJurnals.value)
-  console.log('Debug - filtered:', filtered)
-  console.log('Debug - start:', start, 'end:', end)
-
-  const result = filtered.slice(start, end)
-  console.log('Debug - paginatedJurnals result:', result)
-  return result
+  return filtered.slice(start, end)
 })
+
 
 const truncateText = (text, maxLength = 30) => {
   if (!text) return ''
@@ -487,6 +493,10 @@ onMounted(() => {
   fetchNomorBuktiList()
 
   window.addEventListener('openJurnalUmumForm', handleOpenForm)
+})
+
+watch([searchQuery, selectedStatus], () => {
+  currentPage.value = 1
 })
 
 watch(() => route.query.ref, (newRef) => {

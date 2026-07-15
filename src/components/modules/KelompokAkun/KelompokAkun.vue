@@ -38,12 +38,12 @@
           <option value="1">Level 1</option>
           <option value="2">Level 2</option>
         </select>
-        <select v-model="balanceFilter"
+        <!-- <select v-model="balanceFilter"
           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
           <option value="">Semua Balance</option>
           <option value="D">Debit</option>
           <option value="K">Kredit</option>
-        </select>
+        </select> -->
       </div>
 
       <!-- Loading State -->
