@@ -228,6 +228,15 @@ const fetchAkun = async () => {
   }
 }
 
+const handleClose = () => {
+  emit('close')
+  resetForm()
+}
+
+onMounted(() => {
+  fetchAkun()
+})
+
 const resetForm = () => {
   formData.value = {
     kode: '',
