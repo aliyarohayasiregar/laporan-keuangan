@@ -64,6 +64,21 @@ class KartuStokAPI {
     const baseUrl = this.getApiBase(apiType)
     const url = `${baseUrl}${endpoint}`
 
+    // Public endpoints that don't need security checks
+    const publicEndpoints = ['/login', '/register', '/forgot-password']
+    const isPublicEndpoint = publicEndpoints.some(ep => endpoint.includes(ep))
+
+    // Rate limiting check (skip for public endpoints)
+    if (!isPublicEndpoint) {
+      const rateLimitKey = `${apiType}:${endpoint}`
+      if (!apiRateLimiter.canMakeRequest(rateLimitKey)) {
+        const remaining = apiRateLimiter.getRemainingRequests(rateLimitKey)
+        const error = new Error(`Rate limit exceeded. Please wait before making more requests. Remaining: ${remaining}`)
+        error.status = 429
+        throw error
+      }
+    }
+
     // Get auth token using utility function
     const token = getAuthToken()
     let headers = {
@@ -71,37 +86,98 @@ class KartuStokAPI {
       ...options.headers
     }
 
-    // Add authorization header if token exists (except for login/register endpoints)
-    const publicEndpoints = ['/login', '/register']
-    if (token && !publicEndpoints.includes(endpoint)) {
+    // Add authorization header if token exists (except for public endpoints)
+    if (token && !isPublicEndpoint) {
       headers['Authorization'] = `Bearer ${token}`
+    }
+
+    // Add CSRF token for state-changing requests (skip for public endpoints)
+    if (!isPublicEndpoint && options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase())) {
+      headers['X-CSRF-Token'] = getCSRFToken()
+    }
+
+    // Sanitize request body (skip for public endpoints like login)
+    let body = options.body
+    if (!isPublicEndpoint && body && typeof body === 'string') {
+      try {
+        const parsedBody = JSON.parse(body)
+        const sanitizedBody = sanitizeObject(parsedBody)
+        body = JSON.stringify(sanitizedBody)
+      } catch (e) {
+        // If not JSON, sanitize as text
+        body = sanitizeText(body)
+      }
     }
 
     const config = {
       headers,
+      body,
       ...options
     }
 
     try {
       const response = await fetch(url, config)
 
+      // Check security headers (skip for public endpoints)
+      if (!isPublicEndpoint) {
+        const securityIssues = checkSecurityHeaders(response.headers)
+        if (securityIssues.length > 0 && import.meta.env.DEV) {
+          console.warn('Security headers missing:', securityIssues)
+        }
+      }
+
+      // Handle 401 Unauthorized - distinguish between login errors and token expiry
+      if (response.status === 401) {
+        // If this is a login endpoint, let the error message pass through
+        if (isPublicEndpoint) {
+          const errorData = await response.json().catch(() => ({}))
+          const errorMessage = errorData.message || 'Authentication failed'
+          const error = new Error(errorMessage)
+          error.status = 401
+          error.responseData = errorData
+          throw error
+        }
+        
+        // For other endpoints, treat as token expiry
+        console.warn('Token expired or invalid, logging out...')
+        const { logout } = await import('../utils/auth.js')
+        logout()
+        throw new Error('Session expired. Please login again.')
+      }
+
+      // Handle 429 Rate Limit
+      if (response.status === 429) {
+        const error = new Error('Too many requests. Please try again later.')
+        error.status = 429
+        throw error
+      }
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('API Error Response:', errorData)
-        const error = new Error(`HTTP error! status: ${response.status} - ${JSON.stringify(errorData)}`)
-        error.responseData = errorData
+        const sanitizedError = sanitizeError({
+          status: response.status,
+          message: errorData.message || 'Request failed',
+          data: errorData
+        })
+        console.error('API Error Response:', sanitizedError)
+        const error = new Error(sanitizedError.message)
+        error.status = sanitizedError.status
+        error.responseData = sanitizedError.data
         throw error
       }
 
       const data = await response.json()
 
       if (!data.success) {
-        throw new Error(data.message || 'API request failed')
+        // Don't sanitize error messages for public endpoints to preserve user feedback
+        const errorMessage = isPublicEndpoint ? (data.message || 'API request failed') : sanitizeText(data.message || 'API request failed')
+        throw new Error(errorMessage)
       }
 
       return data
     } catch (error) {
-      console.error('API Error:', error)
+      const sanitizedError = sanitizeError(error)
+      console.error('API Error:', sanitizedError)
       throw error
     }
   }
@@ -745,6 +821,14 @@ class KartuStokAPI {
 
 import { ref } from 'vue'
 import { getAuthToken } from '../utils/auth.js'
+import { 
+  sanitizeObject, 
+  sanitizeText, 
+  apiRateLimiter, 
+  sanitizeError, 
+  checkSecurityHeaders,
+  getCSRFToken 
+} from '../utils/security.js'
 
 const apiInstance = new KartuStokAPI()
 export default apiInstance
