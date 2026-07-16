@@ -123,13 +123,13 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span :class="[
-                    item.status === 'posted'
+                    item.status === 'posted' || item.status === 'closed'
                       ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800'
                       : 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800'
                   ]">
                     <span class="w-2 h-2 mr-1.5 rounded-full"
-                      :class="item.status === 'posted' ? 'bg-green-400' : 'bg-gray-400'"></span>
-                    {{ item.status === 'posted' ? 'Posted' : 'Not Posted' }}
+                      :class="item.status === 'posted' || item.status === 'closed' ? 'bg-green-400' : 'bg-gray-400'"></span>
+                    {{ item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : 'Not Posted' }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

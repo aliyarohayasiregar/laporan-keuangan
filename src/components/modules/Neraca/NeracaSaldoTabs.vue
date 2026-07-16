@@ -160,7 +160,7 @@
               <div class="flex items-center justify-between mb-4">
                 <span class="text-xs font-medium text-emerald-600 uppercase">Total Debit</span>
               </div>
-              <h3 class="text-xl font-bold text-emerald-700">{{ formatNumber(aggregateTotals.debit) }}</h3>
+              <h3 :class="['font-bold text-emerald-700', getFontSizeClass(aggregateTotals.debit)]">{{ formatNumber(aggregateTotals.debit) }}</h3>
               <p class="text-sm text-gray-600 mt-1">Akumulasi Debet</p>
             </div>
 
@@ -168,7 +168,7 @@
               <div class="flex items-center justify-between mb-4">
                 <span class="text-xs font-medium text-red-600 uppercase">Total Kredit</span>
               </div>
-              <h3 class="text-xl font-bold text-red-700">{{ formatNumber(aggregateTotals.kredit) }}</h3>
+              <h3 :class="['font-bold text-red-700', getFontSizeClass(aggregateTotals.kredit)]">{{ formatNumber(aggregateTotals.kredit) }}</h3>
               <p class="text-sm text-gray-600 mt-1">Akumulasi Kredit</p>
             </div>
 
@@ -359,6 +359,17 @@ const formatNumber = (num) => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).replace('.', ',')
+}
+
+const getFontSizeClass = (num) => {
+  if (!num) return 'text-xl'
+  const number = Number(num || 0)
+  const digitCount = Math.floor(Math.log10(number)) + 1
+  
+  if (digitCount <= 6) return 'text-xl'      // < 1 juta
+  if (digitCount <= 9) return 'text-lg'      // < 1 miliar  
+  if (digitCount <= 12) return 'text-base'   // < 1 triliun
+  return 'text-sm'                            // >= 1 triliun
 }
 
 const loadNeracaSaldo = async () => {
