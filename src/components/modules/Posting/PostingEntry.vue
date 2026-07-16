@@ -304,7 +304,7 @@ const handlePostingFinal = async () => {
   const ok = await showConfirm({
     type: 'warning',
     title: 'Konfirmasi Posting Final',
-    message: `Apakah Anda yakin ingin melakukan posting final untuk tahun ${selectedYear.value}?<br><br>Setelah posting final, tidak dapat melakukan posting atau revisi lagi untuk tahun ini.`,
+    message: `Apakah Anda yakin ingin melakukan posting final untuk tahun ${selectedYear.value}?Setelah posting final, tidak dapat melakukan posting atau revisi lagi untuk tahun ini.`,
     confirmLabel: 'Ya, Posting Final',
     cancelLabel: 'Batal',
   })
