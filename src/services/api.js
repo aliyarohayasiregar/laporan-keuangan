@@ -69,6 +69,8 @@ class KartuStokAPI {
     const isPublicEndpoint = publicEndpoints.some(ep => endpoint.includes(ep))
 
     // Rate limiting check (skip for public endpoints)
+    // Temporarily disabled to debug network issues
+    /*
     if (!isPublicEndpoint) {
       const rateLimitKey = `${apiType}:${endpoint}`
       if (!apiRateLimiter.canMakeRequest(rateLimitKey)) {
@@ -78,6 +80,7 @@ class KartuStokAPI {
         throw error
       }
     }
+    */
 
     // Get auth token using utility function
     const token = getAuthToken()
@@ -92,22 +95,28 @@ class KartuStokAPI {
     }
 
     // Add CSRF token for state-changing requests (skip for public endpoints)
+    // Temporarily disabled to debug network issues
+    /*
     if (!isPublicEndpoint && options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase())) {
       headers['X-CSRF-Token'] = getCSRFToken()
     }
+    */
 
     // Sanitize request body (skip for public endpoints like login)
+    // Temporarily disabled to debug network issues
     let body = options.body
+    /*
     if (!isPublicEndpoint && body && typeof body === 'string') {
       try {
         const parsedBody = JSON.parse(body)
         const sanitizedBody = sanitizeObject(parsedBody)
         body = JSON.stringify(sanitizedBody)
       } catch (e) {
-        // If not JSON, sanitize as text
-        body = sanitizeText(body)
+        // If not JSON, don't sanitize to avoid breaking the request
+        console.warn('Failed to parse/sanitize body, using original:', e)
       }
     }
+    */
 
     const config = {
       headers,
