@@ -46,6 +46,20 @@
                 <input :value="formData.no_bukti" type="text" readonly
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
                   :placeholder="isGeneratingNoBukti ? 'Generating...' : (!formData.tanggal ? 'Pilih tanggal terlebih dahulu' : 'Akan digenerate otomatis')" />
+                <div v-if="!formData.no_bukti && !isGeneratingNoBukti && formData.tanggal" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p class="text-sm text-amber-800 mb-2">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Nomor bukti belum tersedia. Silakan setup nomor voucher untuk jenis transaksi ini terlebih dahulu.
+                  </p>
+                  <button @click="$router.push('/nomor-voucher')" class="inline-flex items-center px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Ke Menu Nomor Voucher
+                  </button>
+                </div>
               </div>
             </template>
             <template v-else-if="selectedJenisJurnal == 6">
@@ -54,6 +68,20 @@
                 <input :value="formData.no_bukti" type="text" readonly
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
                   :placeholder="isGeneratingNoBukti ? 'Generating...' : 'Akan digenerate otomatis setelah pilih akun jurnal 1'" />
+                <div v-if="!formData.no_bukti && !isGeneratingNoBukti && formData.tanggal" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p class="text-sm text-amber-800 mb-2">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Nomor bukti jurnal 1 belum tersedia. Silakan setup nomor voucher untuk jenis transaksi ini.
+                  </p>
+                  <button @click="$router.push('/nomor-voucher')" class="inline-flex items-center px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Ke Menu Nomor Voucher
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -61,6 +89,20 @@
                 <input :value="formData.no_bukti_silang" type="text" readonly
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-green-700"
                   :placeholder="isGeneratingNoBukti ? 'Generating...' : 'Akan digenerate otomatis setelah pilih akun jurnal 2'" />
+                <div v-if="!formData.no_bukti_silang && !isGeneratingNoBukti && formData.tanggal" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p class="text-sm text-amber-800 mb-2">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Nomor bukti jurnal 2 belum tersedia. Silakan setup nomor voucher untuk jenis transaksi ini.
+                  </p>
+                  <button @click="$router.push('/nomor-voucher')" class="inline-flex items-center px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Ke Menu Nomor Voucher
+                  </button>
+                </div>
               </div>
             </template>
 
@@ -70,6 +112,20 @@
                 <input :value="formData.no_bukti" type="text" readonly
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
                   :placeholder="isGeneratingNoBukti ? 'Generating...' : 'Akan digenerate otomatis setelah pilih akun'" />
+                <div v-if="!formData.no_bukti && !isGeneratingNoBukti && formData.tanggal" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p class="text-sm text-amber-800 mb-2">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Nomor bukti belum tersedia. Silakan setup nomor voucher untuk jenis transaksi ini terlebih dahulu.
+                  </p>
+                  <button @click="$router.push('/nomor-voucher')" class="inline-flex items-center px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Ke Menu Nomor Voucher
+                  </button>
+                </div>
               </div>
             </template>
           </div>

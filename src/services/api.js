@@ -69,7 +69,7 @@ class KartuStokAPI {
     const isPublicEndpoint = publicEndpoints.some(ep => endpoint.includes(ep))
 
     // Rate limiting check (skip for public endpoints)
-    // Temporarily disabled to debug network issues
+    // Disabled - causing network issues
     /*
     if (!isPublicEndpoint) {
       const rateLimitKey = `${apiType}:${endpoint}`
@@ -95,7 +95,7 @@ class KartuStokAPI {
     }
 
     // Add CSRF token for state-changing requests (skip for public endpoints)
-    // Temporarily disabled to debug network issues
+    // Disabled - server doesn't support CSRF token validation
     /*
     if (!isPublicEndpoint && options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase())) {
       headers['X-CSRF-Token'] = getCSRFToken()
@@ -103,9 +103,9 @@ class KartuStokAPI {
     */
 
     // Sanitize request body (skip for public endpoints like login)
-    // Temporarily disabled to debug network issues
-    let body = options.body
+    // Disabled - causing network issues
     /*
+    let body = options.body
     if (!isPublicEndpoint && body && typeof body === 'string') {
       try {
         const parsedBody = JSON.parse(body)
@@ -117,6 +117,7 @@ class KartuStokAPI {
       }
     }
     */
+    let body = options.body
 
     const config = {
       headers,
