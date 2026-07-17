@@ -46,7 +46,7 @@
                 <input :value="formData.no_bukti" type="text" readonly
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
                   :placeholder="isGeneratingNoBukti ? 'Generating...' : (!formData.tanggal ? 'Pilih tanggal terlebih dahulu' : 'Akan digenerate otomatis')" />
-                <div v-if="!formData.no_bukti && !isGeneratingNoBukti && formData.tanggal" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <div v-if="!formData.no_bukti && !isGeneratingNoBukti && formData.tanggal && shouldShowVoucherButton" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p class="text-sm text-amber-800 mb-2">
                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -68,7 +68,7 @@
                 <input :value="formData.no_bukti" type="text" readonly
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
                   :placeholder="isGeneratingNoBukti ? 'Generating...' : 'Akan digenerate otomatis setelah pilih akun jurnal 1'" />
-                <div v-if="!formData.no_bukti && !isGeneratingNoBukti && formData.tanggal" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <div v-if="!formData.no_bukti && !isGeneratingNoBukti && formData.tanggal && shouldShowVoucherButton" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p class="text-sm text-amber-800 mb-2">
                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -89,7 +89,7 @@
                 <input :value="formData.no_bukti_silang" type="text" readonly
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-green-700"
                   :placeholder="isGeneratingNoBukti ? 'Generating...' : 'Akan digenerate otomatis setelah pilih akun jurnal 2'" />
-                <div v-if="!formData.no_bukti_silang && !isGeneratingNoBukti && formData.tanggal" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <div v-if="!formData.no_bukti_silang && !isGeneratingNoBukti && formData.tanggal && shouldShowVoucherButton" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p class="text-sm text-amber-800 mb-2">
                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -112,7 +112,7 @@
                 <input :value="formData.no_bukti" type="text" readonly
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed font-mono font-bold text-blue-700"
                   :placeholder="isGeneratingNoBukti ? 'Generating...' : 'Akan digenerate otomatis setelah pilih akun'" />
-                <div v-if="!formData.no_bukti && !isGeneratingNoBukti && formData.tanggal" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <div v-if="!formData.no_bukti && !isGeneratingNoBukti && formData.tanggal && shouldShowVoucherButton" class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p class="text-sm text-amber-800 mb-2">
                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -533,7 +533,7 @@
                             :disabled="isLoadingBank">
                             <option value="">{{ isLoadingBank ? 'Memuat bank...' : 'Pilih Bank' }}</option>
                             <option v-for="bank in daftarBankAktif" :key="bank.id" :value="bank.id">
-                              {{ bank.kode_akun }} - {{ bank.nama_akun }}
+                              {{ bank.kode_akun }} - {{ bank.nama_akun }} ({{ bank.nomor_voucer }})
                             </option>
                           </select>
                         </div>
@@ -1137,6 +1137,24 @@ const resetBankState = () => {
   selectedBankId.value = ''
   daftarBankAktif.value = []
 }
+
+// Computed property to determine if voucher button should be shown
+const shouldShowVoucherButton = computed(() => {
+  const jenis = String(selectedJenisJurnal.value || '')
+  // For bank journal types (3 & 4), only show button if no active banks
+  if (['3', '4'].includes(jenis)) {
+    return daftarBankAktif.value.length === 0
+  }
+  // For journal type 6 (ayat silang), only show button if no akun selected for either jurnal
+  if (jenis === '6') {
+    // Check if akun is selected for jurnal 1 or jurnal 2
+    const hasAkunJurnal1 = formData.value.details[0]?.akun_id
+    const hasAkunJurnal2 = formData.value.details[1]?.akun_id
+    return !hasAkunJurnal1 && !hasAkunJurnal2
+  }
+  // For other journal types, always show button
+  return true
+})
 
 const fetchDaftarBankAktif = async () => {
   isLoadingBank.value = true
