@@ -492,7 +492,13 @@ const handleDelete = async (item) => {
     await api.deleteKelompokAkun(item.id)
     await Promise.all([loadTableData(), loadTreeData()])
   } catch (err) {
-    await showError('Gagal menghapus data kelompok akun.')
+    let errorMessage = 'Gagal menghapus data kelompok akun.'
+    if (err.response && err.response.data && err.response.data.message) {
+      errorMessage = err.response.data.message
+    } else if (err.message) {
+      errorMessage = err.message
+    }
+    await showError(errorMessage)
     console.error('Error deleting kelompok akun:', err)
   }
 }
@@ -548,7 +554,13 @@ const handleDeleteAccount = async (account) => {
     await api.deleteNamaAkun(account.id)
     await loadTreeData()
   } catch (err) {
-    treeError.value = 'Gagal menghapus data nama akun'
+    let errorMessage = 'Gagal menghapus data nama akun'
+    if (err.response && err.response.data && err.response.data.message) {
+      errorMessage = err.response.data.message
+    } else if (err.message) {
+      errorMessage = err.message
+    }
+    treeError.value = errorMessage
     console.error('Error deleting account:', err)
   }
 }
