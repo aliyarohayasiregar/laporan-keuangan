@@ -236,56 +236,14 @@
                                 class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" />
                             </div>
                             <div v-else class="relative inline-block w-full">
-                              <div @click="() => toggleAkunCard(index)"
-                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer hover:border-blue-400 transition-colors bg-white">
-                                <div v-if="selectedAkun[index]" class="flex items-center justify-between">
-                                  <span class="text-gray-900">{{ getAkunLabel(selectedAkun[index]) }}</span>
-                                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7">
-                                    </path>
-                                  </svg>
-                                </div>
-                                <div v-else class="flex items-center justify-between text-gray-500">
-                                  <span>Pilih akun...</span>
-                                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7">
-                                    </path>
-                                  </svg>
-                                </div>
-                              </div>
-                              <div v-show="showAkunCard[index]"
-                                class="absolute z-[999999] bg-white border border-gray-300 rounded-lg shadow-xl w-full"
-                                style="top: calc(100% + 4px); left: 0; min-width: 350px;">
-                                <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-                                  <div class="flex items-center justify-between">
-                                    <h5 class="text-sm font-medium text-gray-900">Pilih Akun</h5>
-                                    <button @click="() => closeAkunCard(index)"
-                                      class="text-gray-400 hover:text-gray-600">
-                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M6 18L18 6M6 6l12 12"></path>
-                                      </svg>
-                                    </button>
-                                  </div>
-                                  <div class="mt-2">
-                                    <input v-model="searchQueries[index]" type="text" placeholder="Cari akun..."
-                                      class="w-full px-3 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent">
-                                  </div>
-                                </div>
-                                <div class="max-h-48 overflow-y-auto">
-                                  <div v-for="akun in filteredAkunOptions(index)" :key="akun.id"
-                                    @click="selectAkun(index, akun)"
-                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
-                                    <div class="text-sm font-medium text-gray-900">
-                                      {{ akun.kode_akun || akun.kode || akun.no_akun || '-' }}
-                                    </div>
-                                    <div class="text-xs text-gray-600">{{ akun.nama_akun || akun.nama }}</div>
-                                  </div>
-                                </div>
-                              </div>
+                              <select v-model="selectedBankId" @change="(e) => handleBankChange(e, index)"
+                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
+                                :disabled="isLoadingBank">
+                                <option value="">{{ isLoadingBank ? 'Memuat bank...' : 'Pilih Bank' }}</option>
+                                <option v-for="bank in daftarBankAktif" :key="bank.id" :value="bank.id">
+                                  {{ bank.kode_akun }} - {{ bank.nama_akun }} ({{ bank.nomor_voucer }})
+                                </option>
+                              </select>
                             </div>
                           </div>
                         </td>
@@ -386,60 +344,19 @@
                       <tr v-for="(detail, index) in formData.details_silang" :key="index">
                         <td class="px-4 py-2">
                           <div class="relative inline-block w-full">
-                            <div v-if="index === 1">
+                            <div v-if="index === 0">
                               <input :value="getAyatSilangKreditText()" type="text" readonly
                                 class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" />
                             </div>
                             <div v-else class="relative inline-block w-full">
-                              <div @click="() => toggleAkunCard(index, true)"
-                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer hover:border-blue-400 transition-colors bg-white">
-                                <div v-if="selectedAkun['s_' + index]" class="flex items-center justify-between">
-                                  <span class="text-gray-900">{{ selectedAkun['s_' + index].kode_akun }} - {{
-                                    selectedAkun['s_' + index].nama_akun }}</span>
-                                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7">
-                                    </path>
-                                  </svg>
-                                </div>
-                                <div v-else class="flex items-center justify-between text-gray-500">
-                                  <span>Pilih akun...</span>
-                                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7">
-                                    </path>
-                                  </svg>
-                                </div>
-                              </div>
-                              <div v-show="showAkunCard['s_' + index]"
-                                class="absolute z-[999999] bg-white border border-gray-300 rounded-lg shadow-xl w-full"
-                                style="top: calc(100% + 4px); left: 0; min-width: 350px;">
-                                <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-                                  <div class="flex items-center justify-between">
-                                    <h5 class="text-sm font-medium text-gray-900">Pilih Akun</h5>
-                                    <button @click="() => closeAkunCard('s_' + index)"
-                                      class="text-gray-400 hover:text-gray-600">
-                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M6 18L18 6M6 6l12 12"></path>
-                                      </svg>
-                                    </button>
-                                  </div>
-                                  <div class="mt-2">
-                                    <input v-model="searchQueries['s_' + index]" type="text" placeholder="Cari akun..."
-                                      class="w-full px-3 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent">
-                                  </div>
-                                </div>
-                                <div class="max-h-48 overflow-y-auto">
-                                  <div v-for="akun in filteredAkunOptions('s_' + index)" :key="akun.id"
-                                    @click="selectAkun(index, akun, true)"
-                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
-                                    <div class="text-sm font-medium text-gray-900">{{ akun.kode_akun }}</div>
-                                    <div class="text-xs text-gray-600">{{ akun.nama_akun }}</div>
-                                  </div>
-                                </div>
-                              </div>
+                              <select v-model="selectedBankIdJurnal2" @change="(e) => handleBankChange(e, 's_' + index)"
+                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
+                                :disabled="isLoadingBank">
+                                <option value="">{{ isLoadingBank ? 'Memuat bank...' : 'Pilih Bank' }}</option>
+                                <option v-for="bank in daftarBankAktif" :key="bank.id" :value="bank.id">
+                                  {{ bank.kode_akun }} - {{ bank.nama_akun }} ({{ bank.nomor_voucer }})
+                                </option>
+                              </select>
                             </div>
                           </div>
                         </td>
@@ -526,17 +443,18 @@
                           <input :value="getPrimaryDefaultText()" type="text" readonly
                             class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" />
                         </div>
-                        <!-- Baris akun bank (3/4): pilih bank aktif -->
+                        <!-- Baris akun bank (3/4/6): pilih bank aktif -->
                         <div v-else-if="index === 0 && isBankJenis">
-                          <select v-model="selectedBankId" @change="handleBankChange"
+                          <select v-model="selectedBankId" @change="(e) => handleBankChange(e, 0)"
                             class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
                             :disabled="isLoadingBank">
-                            <option value="">{{ isLoadingBank ? 'Memuat bank...' : 'Pilih Bank' }}</option>
+                            <option value="">{{ isLoadingBank ? 'Memuat bank...' : 'Pilih Bank (Jurnal 1)' }}</option>
                             <option v-for="bank in daftarBankAktif" :key="bank.id" :value="bank.id">
                               {{ bank.kode_akun }} - {{ bank.nama_akun }} ({{ bank.nomor_voucer }})
                             </option>
                           </select>
                         </div>
+               
                         <div v-else class="relative inline-block w-full">
                           <div @click="() => toggleAkunCard(index)"
                             class="w-full px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer hover:border-blue-400 transition-colors bg-white">
@@ -840,9 +758,10 @@ const selectedAkunSistemPilihan = ref(null)
 const akunSistemOptions = ref([])
 const isLoadingAkunSistemOptions = ref(false)
 
-// Bank (jenis jurnal 3 & 4)
+// Bank (jenis jurnal 3, 4 & 6)
 const daftarBankAktif = ref([])
 const selectedBankId = ref('')
+const selectedBankIdJurnal2 = ref('')
 const isLoadingBank = ref(false)
 
 // ===== NEW: Vendor/Customer (khusus jenis jurnal 7) =====
@@ -1042,6 +961,50 @@ watch(
   { immediate: true }
 )
 
+// Auto-hitung nominal untuk journal type 6 (ayat silang) - jurnal 1
+watch(
+  () => selectedJenisJurnal.value == 6
+    ? formData.value.details.slice(1).map(d => `${d.debit}|${d.kredit}`).join(',')
+    : null,
+  () => {
+    if (selectedJenisJurnal.value != 6) return
+    if (!formData.value.details[0]) return
+
+    // Untuk journal type 6, default di debit (ayat silang)
+    const otherRows = formData.value.details.slice(1)
+    const sumDebit = otherRows.reduce((s, d) => s + (parseFloat(d.debit) || 0), 0)
+    const sumKredit = otherRows.reduce((s, d) => s + (parseFloat(d.kredit) || 0), 0)
+
+    // Default di debit, isi selisih kredit - debit dari lawan
+    const selisih = sumKredit - sumDebit
+    formData.value.details[0].debit = selisih > 0 ? selisih : 0
+    formData.value.details[0].kredit = 0
+  },
+  { immediate: true }
+)
+
+// Auto-hitung nominal untuk journal type 6 (ayat silang) - jurnal 2
+watch(
+  () => selectedJenisJurnal.value == 6
+    ? formData.value.details_silang.slice(1).map(d => `${d.debit}|${d.kredit}`).join(',')
+    : null,
+  () => {
+    if (selectedJenisJurnal.value != 6) return
+    if (!formData.value.details_silang[0]) return
+
+    // Untuk journal type 6 jurnal 2, default di kredit (ayat silang)
+    const otherRows = formData.value.details_silang.slice(1)
+    const sumDebit = otherRows.reduce((s, d) => s + (parseFloat(d.debit) || 0), 0)
+    const sumKredit = otherRows.reduce((s, d) => s + (parseFloat(d.kredit) || 0), 0)
+
+    // Default di kredit, isi selisih debit - kredit dari lawan
+    const selisih = sumDebit - sumKredit
+    formData.value.details_silang[0].kredit = selisih > 0 ? selisih : 0
+    formData.value.details_silang[0].debit = 0
+  },
+  { immediate: true }
+)
+
 const getDisplayDebit = (index) => {
   if (index === 0 && usesDefaultAccountRow.value) {
     return formatNumberInput(formData.value.details[0]?.debit)
@@ -1086,16 +1049,24 @@ const getAyatSilangKreditText = () => {
 }
 
 const shouldDisableDebit = (index, prefix = '') => {
-  // Hanya disable untuk baris akun default/bank (index 0)
+  // Disable untuk baris akun default/bank (index 0)
   if (index === 0 && usesDefaultAccountRow.value) {
+    return true
+  }
+  // Disable untuk journal type 6 (ayat silang) index 0 di kedua jurnal
+  if (selectedJenisJurnal.value == 6 && index === 0) {
     return true
   }
   return false
 }
 
 const shouldDisableKredit = (index, prefix = '') => {
-  // Hanya disable untuk baris akun default/bank (index 0)
+  // Disable untuk baris akun default/bank (index 0)
   if (index === 0 && usesDefaultAccountRow.value) {
+    return true
+  }
+  // Disable untuk journal type 6 (ayat silang) index 0 di kedua jurnal
+  if (selectedJenisJurnal.value == 6 && index === 0) {
     return true
   }
   return false
@@ -1135,13 +1106,14 @@ const resetDetailSelections = () => {
 
 const resetBankState = () => {
   selectedBankId.value = ''
+  selectedBankIdJurnal2.value = ''
   daftarBankAktif.value = []
 }
 
 // Computed property to determine if voucher button should be shown
 const shouldShowVoucherButton = computed(() => {
   const jenis = String(selectedJenisJurnal.value || '')
-  // For bank journal types (3 & 4), only show button if no active banks
+  // For bank journal types (3, 4), only show button if no active banks
   if (['3', '4'].includes(jenis)) {
     return daftarBankAktif.value.length === 0
   }
@@ -1149,7 +1121,7 @@ const shouldShowVoucherButton = computed(() => {
   if (jenis === '6') {
     // Check if akun is selected for jurnal 1 or jurnal 2
     const hasAkunJurnal1 = formData.value.details[0]?.akun_id
-    const hasAkunJurnal2 = formData.value.details[1]?.akun_id
+    const hasAkunJurnal2 = formData.value.details_silang[1]?.akun_id
     return !hasAkunJurnal1 && !hasAkunJurnal2
   }
   // For other journal types, always show button
@@ -1169,13 +1141,27 @@ const fetchDaftarBankAktif = async () => {
   }
 }
 
-const handleBankChange = async () => {
-  const bank = daftarBankAktif.value.find(b => String(b.id) === String(selectedBankId.value))
+const handleBankChange = async (e, index = 0) => {
+  const isSilang = typeof index === 'string' && index.startsWith('s_')
+  const actualIndex = isSilang ? parseInt(index.replace('s_', '')) : index
+  const bankId = isSilang ? selectedBankIdJurnal2.value : (actualIndex === 0 ? selectedBankId.value : selectedBankId.value)
+  const bank = daftarBankAktif.value.find(b => String(b.id) === String(bankId))
+  
   if (!bank) {
-    formData.value.details[0].akun_id = ''
-    selectedAkun.value[0] = null
-    searchQueries.value[0] = ''
-    formData.value.no_bukti = ''
+    if (isSilang) {
+      formData.value.details_silang[actualIndex].akun_id = ''
+      selectedAkun.value[index] = null
+      searchQueries.value[index] = ''
+    } else {
+      formData.value.details[index].akun_id = ''
+      selectedAkun.value[index] = null
+      searchQueries.value[index] = ''
+      if (actualIndex === 0) {
+        formData.value.no_bukti = ''
+      } else {
+        formData.value.no_bukti_silang = ''
+      }
+    }
     return
   }
 
@@ -1186,12 +1172,23 @@ const handleBankChange = async () => {
     nama_akun: bank.nama_akun,
     posisi_akun: posisi
   }
-  formData.value.details[0].akun_id = bank.id
-  selectedAkun.value[0] = akun
-  searchQueries.value[0] = getAkunLabel(akun)
-
-  if (!isEdit.value && usesAutoNoBuktiGeneration.value) {
-    await generateNoBuktiBySelectedAkun()
+  
+  if (isSilang) {
+    formData.value.details_silang[actualIndex].akun_id = bank.id
+    selectedAkun.value[index] = akun
+    searchQueries.value[index] = getAkunLabel(akun)
+    // Generate no bukti for jurnal 2 when bank is selected
+    if (!isEdit.value && usesAutoNoBuktiGeneration.value && selectedJenisJurnal.value == 6) {
+      await generateNoBuktiBySelectedAkun(true)
+    }
+  } else {
+    formData.value.details[index].akun_id = bank.id
+    selectedAkun.value[index] = akun
+    searchQueries.value[index] = getAkunLabel(akun)
+    // Generate no bukti for jurnal 1 when bank is selected
+    if (!isEdit.value && usesAutoNoBuktiGeneration.value && selectedJenisJurnal.value == 6) {
+      await generateNoBuktiBySelectedAkun(false)
+    }
   }
 }
 
@@ -1256,7 +1253,8 @@ const getNoBuktiPayloadByAkun = (isSilang = false) => {
   if (!jenis) return null
 
   if (jenis === 6) {
-    const akunId = isSilang ? formData.value.details_silang[0]?.akun_id : formData.value.details[1]?.akun_id
+    // For journal type 6, use the bank account ID from the selected bank
+    const akunId = isSilang ? selectedBankIdJurnal2.value : selectedBankId.value
     if (!akunId) return null
     return {
       no_jenis_jurnal: 6,
@@ -1506,8 +1504,9 @@ watch(selectedJenisJurnal, async (newJenis) => {
       selectedKategoriJenis.value = ''
       resetVendorCustomerState()
     }
-    if (['3', '4'].includes(String(newJenis))) {
+    if (['3', '4', '6'].includes(String(newJenis))) {
       selectedBankId.value = ''
+      selectedBankIdJurnal2.value = ''
       await fetchDaftarBankAktif()
     }
 
@@ -1880,7 +1879,7 @@ watch(() => props.showModal, async (newVal) => {
       await nextTick()
 
       // Panggil langsung generate-nya, jangan andalkan watcher selectedJenisJurnal saja
-      if (['3', '4'].includes(jenis)) {
+      if (['3', '4', '6'].includes(jenis)) {
         await fetchDaftarBankAktif()
       }
       if (jenis === '5' && formData.value.tanggal) {
@@ -1902,7 +1901,7 @@ watch(() => props.showModal, async (newVal) => {
     if (['1', '2'].includes(jenis) && formData.value.tanggal) {
       await autoInitTanpaLawan(jenis)
     }
-    if (['3', '4'].includes(jenis)) {
+    if (['3', '4', '6'].includes(jenis)) {
       await fetchDaftarBankAktif()
     }
   }
@@ -1921,7 +1920,7 @@ watch(() => formData.value.tanggal, async (newVal, oldVal) => {
     selectedNoBuktiTujuan.value = ''
     if (selectedJenisJurnal.value) {
       initializeDetailsForJenis(selectedJenisJurnal.value)
-      if (['3', '4'].includes(String(selectedJenisJurnal.value))) {
+      if (['3', '4', '6'].includes(String(selectedJenisJurnal.value))) {
         await fetchDaftarBankAktif()
       }
       if (['1', '2'].includes(String(selectedJenisJurnal.value)) && akunSistemConfig.value) {
@@ -1942,17 +1941,15 @@ watch(() => formData.value.tanggal, async (newVal, oldVal) => {
 })
 
 const handleSubmit = async () => {
-  if (['1', '2'].includes(String(selectedJenisJurnal.value)) && !akunSistemConfig.value) {
+  if (['1', '2', '6'].includes(String(selectedJenisJurnal.value)) && !akunSistemConfig.value) {
     showAlert('Pengaturan Akun Sistem belum diatur. Silakan atur akun terlebih dahulu!', 'error')
     return
   }
-  if (selectedJenisJurnal.value == 6 && !akunSistemConfig.value) {
-    showAlert('Pengaturan Akun Sistem (Ayat Silang) belum diatur. Silakan atur akun terlebih dahulu!', 'error')
-    return
-  }
-  if (isBankJenis.value && !selectedBankId.value) {
-    showAlert('Silakan pilih bank terlebih dahulu di detail jurnal!', 'error')
-    return
+  if (isBankJenis.value) {
+    if (!selectedBankId.value) {
+      showAlert('Silakan pilih bank terlebih dahulu di detail jurnal!', 'error')
+      return
+    }
   }
 
   // Validasi balance
