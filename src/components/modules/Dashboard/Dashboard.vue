@@ -35,7 +35,7 @@
               {{ authData?.user?.name || 'User' }}
             </p>
             <p class="text-xs text-gray-500 truncate">
-              {{ authData?.role?.name || 'Staff' }}
+              {{ authData?.role?.name }}
             </p>
           </div>
         </div>
