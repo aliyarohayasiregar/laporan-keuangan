@@ -25,6 +25,21 @@
 
         <div class="space-y-4">
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Kelompok Akun *</label>
+            <select v-model.number="formData.kelompok_akun_id" required :disabled="loadingKelompokOptions || isEdit"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100">
+              <option value="">Pilih Kelompok Akun</option>
+              <option v-for="kelompok in filteredKelompokOptions" :key="kelompok?.id || kelompok?.ID || Math.random()"
+                :value="kelompok?.id">
+                {{ (kelompok?.kode || '') }} - {{ (kelompok?.nama_kelompok_akun || '') }}
+              </option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              {{ isEdit ? 'Kelompok akun tidak dapat diubah saat edit' : (loadingKelompokOptions ? 'Memuat kelompok akun...' : 'Pilih kelompok akun untuk auto-fill kode level 1-3') }}
+            </p>
+          </div>
+
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Kode *</label>
 
             <!-- Pilihan format HANYA muncul kalau belum ada data kelompok akun sama sekali & mode create -->
@@ -62,6 +77,9 @@
             <p v-else-if="detectedFormat" class="text-xs text-gray-400 mt-1">
               Format otomatis dari Kelompok Akun yang sudah ada: {{ kodeFormat.join('-') }}
             </p>
+            <p v-else-if="formData.kelompok_akun_id" class="text-xs text-blue-500 mt-1">
+              Kode level 1-3 otomatis dari kelompok akun, tinggal tambahkan digit level 4
+            </p>
           </div>
 
           <div>
@@ -69,21 +87,6 @@
             <input v-model="formData.nama_akun" type="text" required
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Contoh: Bank Mandiri" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Kelompok Akun *</label>
-            <select v-model.number="formData.kelompok_akun_id" required :disabled="loadingKelompokOptions || isEdit"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100">
-              <option value="">Pilih Kelompok Akun</option>
-              <option v-for="kelompok in filteredKelompokOptions" :key="kelompok?.id || kelompok?.ID || Math.random()"
-                :value="kelompok?.id">
-                {{ (kelompok?.kode || '') }} - {{ (kelompok?.nama_kelompok_akun || '') }}
-              </option>
-            </select>
-            <p class="text-xs text-gray-500 mt-1">
-              {{ isEdit ? 'Kelompok akun tidak dapat diubah saat edit' : (loadingKelompokOptions ? 'Memuat kelompok akun...' : ((formData.kode || '').trim() ? 'Kelompok akun yang sesuai dengan kode Anda' : 'Pilih kelompok akun untuk akun ini')) }}
-            </p>
           </div>
 
           <div>
@@ -246,6 +249,20 @@ watch(() => props.showModal, (show) => {
     loadKelompokOptions()
   } else {
     resetForm()
+  }
+})
+
+// Auto-fill kode when kelompok akun is selected
+watch(() => formData.value.kelompok_akun_id, (newKelompokId) => {
+  if (!isEdit.value && newKelompokId && kelompokOptions.value.length > 0) {
+    const selectedKelompok = kelompokOptions.value.find(k => k.id === newKelompokId)
+    if (selectedKelompok && selectedKelompok.kode) {
+      // Auto-fill with kelompok kode (level 1-3 only), user fills level 4
+      // Take only first 3 segments of kelompok kode
+      const segments = selectedKelompok.kode.split(' ').filter(s => s !== '')
+      const level1to3 = segments.slice(0, 3).join(' ')
+      formData.value.kode = level1to3
+    }
   }
 })
 
