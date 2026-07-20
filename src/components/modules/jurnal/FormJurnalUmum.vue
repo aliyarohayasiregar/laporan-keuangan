@@ -1567,7 +1567,9 @@ const fetchAkunDefault = async (jenis, bukti) => {
     if (formData.value.details.length === 0) formData.value.details = [createEmptyDetail()]
     return
   }
+  
   if (jenis == 6) return // pengaturan default ayat silang sudah diambil lewat getPengaturanAkunSistem(6)
+  if (['3', '4'].includes(String(jenis))) return
   if (jenis == 7 && !selectedKategoriJenis.value) return
   try {
     const tanggalParts = formData.value.tanggal.split('-')
@@ -1938,24 +1940,36 @@ watch(() => formData.value.tanggal, async (newVal, oldVal) => {
   if (!isEdit.value && newVal && newVal !== oldVal) {
     selectedNoBukti.value = ''
     selectedNoBuktiTujuan.value = ''
-    if (selectedJenisJurnal.value) {
-      initializeDetailsForJenis(selectedJenisJurnal.value)
-      if (['3', '4', '6'].includes(String(selectedJenisJurnal.value))) {
-        await fetchDaftarBankAktif()
+
+    const jenis = String(selectedJenisJurnal.value || '')
+    if (!jenis) return
+
+    // Hanya reset nomor bukti (karena tergenerate berdasarkan tanggal),
+    // JANGAN reset detail/akun/bank yang sudah dipilih user.
+    formData.value.no_bukti = ''
+    formData.value.no_bukti_silang = ''
+
+    if (['3', '4', '6'].includes(jenis)) {
+      // Regenerate no bukti pakai bank yang SUDAH dipilih, tanpa reset pilihan bank
+      if (selectedBankId.value) {
+        await generateNoBuktiBySelectedAkun(false)
       }
-      if (['1', '2'].includes(String(selectedJenisJurnal.value)) && akunSistemConfig.value) {
-        // FIX: set ulang akunDefault dari akunSistemConfig sebelum applyAkunDefault
-        akunDefault.value = {
-          ...akunSistemConfig.value,
-          kode_akun: akunSistemConfig.value.akun_kode,
-          nama_akun: akunSistemConfig.value.akun_nama,
-        }
-        applyAkunDefault()
-        await generateNoBuktiJenis12(selectedJenisJurnal.value)
+      if (jenis === '6' && selectedBankIdJurnal2.value) {
+        await generateNoBuktiBySelectedAkun(true)
       }
-      if (String(selectedJenisJurnal.value) === '5') {
-        await generateNoBuktiJenis5()
+    } else if (['1', '2'].includes(jenis) && akunSistemConfig.value) {
+      akunDefault.value = {
+        ...akunSistemConfig.value,
+        kode_akun: akunSistemConfig.value.akun_kode,
+        nama_akun: akunSistemConfig.value.akun_nama,
       }
+      applyAkunDefault()
+      await generateNoBuktiJenis12(jenis)
+    } else if (jenis === '5') {
+      await generateNoBuktiJenis5()
+    } else if (jenis === '7' && selectedKategoriJenis.value && formData.value.details[1]?.akun_id) {
+      // Akun lawan sudah dipilih sebelumnya, tinggal regenerate no bukti
+      await generateNoBuktiBySelectedAkun(false)
     }
   }
 })
