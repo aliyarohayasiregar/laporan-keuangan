@@ -4,7 +4,7 @@
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Pengaturan Akun Sistem</h1>
-        <p class="text-gray-600 mt-1">Kelola akun sistem untuk jenis jurnal 1, 2, dan 6</p>
+        <p class="text-gray-600 mt-1">Kelola akun sistem untuk jenis jurnal</p>
       </div>
     </div>
 
@@ -26,8 +26,8 @@
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Jenis</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Akun Sistem</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode Akun</th>
+            <!-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Akun Sistem</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode Akun</th> -->
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
           </tr>
@@ -40,12 +40,12 @@
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium text-gray-900">{{ item.nama_jenis_jurnal }}</div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <!-- <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm text-gray-900">{{ item.nama_akun || '-' }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            </td> -->
+            <!-- <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm text-gray-900">{{ item.kode_akun || '-' }}</div>
-            </td>
+            </td> -->
             <td class="px-6 py-4 whitespace-nowrap">
               <span :class="[
                 'px-2 py-1 text-xs rounded-full font-medium',
