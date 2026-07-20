@@ -28,30 +28,30 @@
           </div>
 
           <div v-if="isTipeModal">
-  <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Ekuitas</label>
-  <select v-model="formData.kategori_ekuitas"
-    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-    <option :value="null">Pilih kategori ekuitas</option>
-    <option value="Penambah">Penambah Modal (Setoran, laba Ditahan, dll)</option>
-    <option value="Pengurang">Pengurang Modal (Prive, Kerugian, dll)</option>
-  </select>
-  <p class="text-xs text-gray-500 mt-1">
-    Penambah Modal untuk setoran, laba ditahan, dll. Pengurang Modal untuk Prive, kerugian, dll.
-  </p>
-</div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Ekuitas</label>
+            <select v-model="formData.kategori_ekuitas"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option :value="null">Pilih kategori ekuitas</option>
+              <option value="Penambah">Penambah Modal (Setoran, laba Ditahan, dll)</option>
+              <option value="Pengurang">Pengurang Modal (Prive, Kerugian, dll)</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              Penambah Modal untuk setoran, laba ditahan, dll. Pengurang Modal untuk Prive, kerugian, dll.
+            </p>
+          </div>
 
           <div v-if="isTipeAset">
-  <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Aset</label>
-  <select v-model="formData.kategori_aset"
-    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-    <option :value="null">Pilih kategori aset</option>
-    <option value="aset_tetap">Aset Tetap</option>
-    <option value="aset_lancar">Aset Lancar</option>
-  </select>
-  <p class="text-xs text-gray-500 mt-1">
-    Kategori aset untuk klasifikasi jenis aset (opsional)
-  </p>
-</div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Aset</label>
+            <select v-model="formData.kategori_aset"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option :value="null">Pilih kategori aset</option>
+              <option value="aset_tetap">Aset Tetap</option>
+              <option value="aset_lancar">Aset Lancar</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              Kategori aset untuk klasifikasi jenis aset (opsional)
+            </p>
+          </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Level *</label>
@@ -60,7 +60,8 @@
               <option :value="null" disabled>Pilih level</option>
               <option v-for="lvl in levelOptions" :key="lvl" :value="lvl">{{ lvl }}</option>
             </select>
-            <p class="text-xs text-gray-500 mt-1">Level hierarki kelompok akun (1 untuk parent tertinggi, maks. 3 — level 4 dipakai saat membuat Nama Akun)</p>
+            <p class="text-xs text-gray-500 mt-1">Level hierarki kelompok akun (1 untuk parent tertinggi, maks. 3 —
+              level 4 dipakai saat membuat Nama Akun)</p>
           </div>
 
           <div>

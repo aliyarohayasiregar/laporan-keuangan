@@ -448,7 +448,7 @@
                           <select v-model="selectedBankId" @change="(e) => handleBankChange(e, 0)"
                             class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
                             :disabled="isLoadingBank">
-                            <option value="">{{ isLoadingBank ? 'Memuat bank...' : 'Pilih Bank (Jurnal 1)' }}</option>
+                            <option value="">{{ isLoadingBank ? 'Memuat bank...' : 'Pilih Bank' }}</option>
                             <option v-for="bank in daftarBankAktif" :key="bank.id" :value="bank.id">
                               {{ bank.kode_akun }} - {{ bank.nama_akun }} ({{ bank.nomor_voucer }})
                             </option>
@@ -1147,6 +1147,8 @@ const handleBankChange = async (e, index = 0) => {
   const bankId = isSilang ? selectedBankIdJurnal2.value : (actualIndex === 0 ? selectedBankId.value : selectedBankId.value)
   const bank = daftarBankAktif.value.find(b => String(b.id) === String(bankId))
   
+  console.log('handleBankChange called:', { isSilang, actualIndex, bankId, jenisJurnal: selectedJenisJurnal.value })
+  
   if (!bank) {
     if (isSilang) {
       formData.value.details_silang[actualIndex].akun_id = ''
@@ -1185,8 +1187,16 @@ const handleBankChange = async (e, index = 0) => {
     formData.value.details[index].akun_id = bank.id
     selectedAkun.value[index] = akun
     searchQueries.value[index] = getAkunLabel(akun)
-    // Generate no bukti for jurnal 1 when bank is selected
-    if (!isEdit.value && usesAutoNoBuktiGeneration.value && selectedJenisJurnal.value == 6) {
+    // Generate no bukti for jurnal 1 when bank is selected (types 3, 4, 6)
+    console.log('Checking voucher generation condition:', {
+      isEdit: isEdit.value,
+      usesAutoNoBuktiGeneration: usesAutoNoBuktiGeneration.value,
+      jenisJurnal: selectedJenisJurnal.value,
+      shouldGenerate: !isEdit.value && usesAutoNoBuktiGeneration.value && ['3', '4', '6'].includes(String(selectedJenisJurnal.value))
+    })
+    if (!isEdit.value && usesAutoNoBuktiGeneration.value && ['3', '4', '6'].includes(String(selectedJenisJurnal.value))) {
+      // Small delay to ensure formData is updated
+      await new Promise(resolve => setTimeout(resolve, 100))
       await generateNoBuktiBySelectedAkun(false)
     }
   }
@@ -1267,8 +1277,12 @@ const getNoBuktiPayloadByAkun = (isSilang = false) => {
   if (jenis === 7 && !selectedKategoriJenis.value) return null
 
   if (['3', '4'].includes(String(jenis))) {
-    const bankAkunId = formData.value.details[0]?.akun_id
-    if (!bankAkunId) return null
+    // For bank journal types, use selectedBankId directly
+    const bankAkunId = selectedBankId.value
+    if (!bankAkunId) {
+      console.log('No bank selected for voucher generation', { jenis, selectedBankId: selectedBankId.value })
+      return null
+    }
     return {
       no_jenis_jurnal: jenis,
       akun_id: parseInt(bankAkunId),
@@ -1294,11 +1308,16 @@ const getNoBuktiPayloadByAkun = (isSilang = false) => {
 
 const generateNoBuktiBySelectedAkun = async (isSilang = false) => {
   const payload = getNoBuktiPayloadByAkun(isSilang)
-  if (!payload) return
+  if (!payload) {
+    console.log('No payload generated for voucher generation', { isSilang, jenis: selectedJenisJurnal.value })
+    return
+  }
 
+  console.log('Generating voucher with payload:', payload)
   isGeneratingNoBukti.value = true
   try {
     const res = await jurnalUmumService.generateNoBuktiByAkun(payload)
+    console.log('Voucher generation response:', res)
     if (!res.success) {
       showAlert(res.message || 'Gagal generate nomor bukti!', 'error')
       return
@@ -1316,6 +1335,7 @@ const generateNoBuktiBySelectedAkun = async (isSilang = false) => {
       return
     }
 
+    // For journal types 3, 4, and others
     formData.value.no_bukti = res.no_bukti_full || ''
     if (formData.value.no_bukti) {
       await fetchAkunDefault(payload.no_jenis_jurnal, formData.value.no_bukti)
