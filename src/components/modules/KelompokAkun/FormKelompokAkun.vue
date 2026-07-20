@@ -40,6 +40,43 @@
   </p>
 </div>
 
+          <div v-if="isTipeAset">
+  <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Aset</label>
+  <select v-model="formData.kategori_aset"
+    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    <option :value="null">Pilih kategori aset</option>
+    <option value="aset_tetap">Aset Tetap</option>
+    <option value="aset_lancar">Aset Lancar</option>
+  </select>
+  <p class="text-xs text-gray-500 mt-1">
+    Kategori aset untuk klasifikasi jenis aset (opsional)
+  </p>
+</div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Level *</label>
+            <select v-model.number="formData.level" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option :value="null" disabled>Pilih level</option>
+              <option v-for="lvl in levelOptions" :key="lvl" :value="lvl">{{ lvl }}</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Level hierarki kelompok akun (1 untuk parent tertinggi, maks. 3 — level 4 dipakai saat membuat Nama Akun)</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Parent ID</label>
+            <select v-model.number="formData.parent_id" :disabled="loadingParentOptions"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed">
+              <option :value="null">Tidak ada (Akun Utama)</option>
+              <option v-for="parent in filteredParentOptions" :key="parent?.id || Math.random()" :value="parent?.id">
+                {{ (parent?.kode || '') }} - {{ (parent?.nama_kelompok_akun || '') }}
+              </option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              {{ loadingParentOptions ? 'Memuat data parent...' : 'Pilih parent akun jika ini adalah sub-akun' }}
+            </p>
+          </div>
+
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Kode *</label>
 
@@ -85,30 +122,6 @@
             <input v-model="formData.nama_kelompok_akun" type="text" required
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Contoh: Aset Lancar" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Level *</label>
-            <select v-model.number="formData.level" required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <option :value="null" disabled>Pilih level</option>
-              <option v-for="lvl in levelOptions" :key="lvl" :value="lvl">{{ lvl }}</option>
-            </select>
-            <p class="text-xs text-gray-500 mt-1">Level hierarki kelompok akun (1 untuk parent tertinggi, maks. 3 — level 4 dipakai saat membuat Nama Akun)</p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Parent ID</label>
-            <select v-model.number="formData.parent_id" :disabled="loadingParentOptions"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed">
-              <option :value="null">Tidak ada (Akun Utama)</option>
-              <option v-for="parent in filteredParentOptions" :key="parent?.id || Math.random()" :value="parent?.id">
-                {{ (parent?.kode || '') }} - {{ (parent?.nama_kelompok_akun || '') }}
-              </option>
-            </select>
-            <p class="text-xs text-gray-500 mt-1">
-              {{ loadingParentOptions ? 'Memuat data parent...' : 'Pilih parent akun jika ini adalah sub-akun' }}
-            </p>
           </div>
         </div>
 
@@ -208,6 +221,12 @@ const isTipeModal = computed(() => {
   return selected.kode_tipe_akun === '3' // sesuaikan sama kode ekuitas di data kamu
 })
 
+const isTipeAset = computed(() => {
+  const selected = tipeAkunOptions.value.find(t => t.id === formData.value.tipe_akun_id)
+  if (!selected) return false
+  return selected.kode_tipe_akun === '1' // sesuaikan sama kode aset di data kamu
+})
+
 
 // Level kelompok akun dibatasi 1-3. Level 4 khusus dipakai saat membuat Nama Akun,
 // bukan Kelompok Akun, sehingga tidak ditampilkan di sini.
@@ -220,7 +239,8 @@ const formData = ref({
   parent_id: null,
   tipe_akun_id: null,
   saldo_normal: 'D',
-  kategori_ekuitas: null 
+  kategori_ekuitas: null,
+  kategori_aset: null
 })
 
 const allKelompokAkunRaw = ref([]) // dipakai HANYA untuk deteksi format kode, bukan untuk dropdown parent
@@ -264,7 +284,8 @@ watch(() => props.editItem, (newItem) => {
       level: newItem.level,
       parent_id: newItem.parent_id,
       tipe_akun_id: newItem.tipe_akun_id ?? null,
-      kategori_ekuitas: newItem.kategori_ekuitas ?? null, 
+      kategori_ekuitas: newItem.kategori_ekuitas ?? null,
+      kategori_aset: newItem.kategori_aset ?? null,
     }
   }
 })
@@ -283,6 +304,9 @@ watch(() => formData.value.tipe_akun_id, () => {
   if (!isTipeModal.value) {
     formData.value.kategori_ekuitas = null
   }
+  if (!isTipeAset.value) {
+    formData.value.kategori_aset = null
+  }
 })
 
 const resetForm = () => {
@@ -291,7 +315,9 @@ const resetForm = () => {
     nama_kelompok_akun: '',
     level: null,
     parent_id: null,
-    tipe_akun_id: null
+    tipe_akun_id: null,
+    kategori_ekuitas: null,
+    kategori_aset: null
   }
 }
 
@@ -351,6 +377,11 @@ const handleSubmit = async () => {
       submitData.kategori_ekuitas = formData.value.kategori_ekuitas
     }
 
+    // tambahan: ikut kirim kategori_aset kalo ada isinya
+    if (formData.value.kategori_aset) {
+      submitData.kategori_aset = formData.value.kategori_aset
+    }
+
     console.log('Edit data:', submitData)
     emit('save', submitData)
   } else {
@@ -365,6 +396,11 @@ const handleSubmit = async () => {
     // tambahan: ikut kirim kategori_ekuitas kalo ada isinya
     if (formData.value.kategori_ekuitas) {
       submitData.kategori_ekuitas = formData.value.kategori_ekuitas
+    }
+
+    // tambahan: ikut kirim kategori_aset kalo ada isinya
+    if (formData.value.kategori_aset) {
+      submitData.kategori_aset = formData.value.kategori_aset
     }
 
     console.log('Create data:', submitData)

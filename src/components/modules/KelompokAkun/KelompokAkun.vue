@@ -406,7 +406,13 @@ const loadTableData = async () => {
       tableError.value = 'Gagal memuat data kelompok akun'
     }
   } catch (err) {
-    tableError.value = 'Gagal memuat data kelompok akun'
+    let errorMessage = 'Gagal memuat data kelompok akun'
+    if (err.response && err.response.data && err.response.data.message) {
+      errorMessage = err.response.data.message
+    } else if (err.message) {
+      errorMessage = err.message
+    }
+    tableError.value = errorMessage
     console.error('Error loading table data:', err)
   } finally {
     tableLoading.value = false
@@ -424,7 +430,13 @@ const loadTreeData = async () => {
       treeError.value = 'Gagal memuat data tree'
     }
   } catch (err) {
-    treeError.value = 'Gagal memuat data tree'
+    let errorMessage = 'Gagal memuat data tree'
+    if (err.response && err.response.data && err.response.data.message) {
+      errorMessage = err.response.data.message
+    } else if (err.message) {
+      errorMessage = err.message
+    }
+    treeError.value = errorMessage
     console.error('Error loading tree data:', err)
   } finally {
     treeLoading.value = false
@@ -535,7 +547,13 @@ const handleToggleAccountStatus = async (account) => {
     })
     await loadTreeData()
   } catch (err) {
-    treeError.value = 'Gagal mengubah status nama akun'
+    let errorMessage = 'Gagal mengubah status nama akun'
+    if (err.response && err.response.data && err.response.data.message) {
+      errorMessage = err.response.data.message
+    } else if (err.message) {
+      errorMessage = err.message
+    }
+    treeError.value = errorMessage
     console.error('Error toggling account status:', err)
   }
 }
