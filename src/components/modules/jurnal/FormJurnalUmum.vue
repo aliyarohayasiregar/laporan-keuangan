@@ -1595,7 +1595,7 @@ const applyAkunDefault = () => {
     if (!akunSistemConfig.value) return
 
     const ayatSilangAkun = {
-      id: akunSistemConfig.value.id,
+      id: akunSistemConfig.value.akun_id,
       label: akunSistemConfig.value.label
     }
 
