@@ -1600,9 +1600,9 @@ const applyAkunDefault = () => {
     }
 
     const manualJurnal1 = formData.value.details[1] || createEmptyDetail()
-    const manualJurnal2 = formData.value.details_silang[0] || createEmptyDetail()
+    const manualJurnal2 = formData.value.details_silang[1] || createEmptyDetail()
     const selectedManualJurnal1 = selectedAkun.value[1]
-    const selectedManualJurnal2 = selectedAkun.value['s_0']
+    const selectedManualJurnal2 = selectedAkun.value['s_1']
 
     formData.value.details = [
       { akun_id: ayatSilangAkun.id, debit: formData.value.details[0]?.debit || 0, kredit: formData.value.details[0]?.kredit || 0 },
@@ -1622,8 +1622,8 @@ const applyAkunDefault = () => {
       searchQueries.value[1] = `${selectedManualJurnal1.kode_akun || selectedManualJurnal1.kode || ''} - ${selectedManualJurnal1.nama_akun || ''}`
     }
     if (selectedManualJurnal2) {
-      selectedAkun.value['s_0'] = selectedManualJurnal2
-      searchQueries.value['s_0'] = `${selectedManualJurnal2.kode_akun || selectedManualJurnal2.kode || ''} - ${selectedManualJurnal2.nama_akun || ''}`
+      selectedAkun.value['s_1'] = selectedManualJurnal2
+      searchQueries.value['s_1'] = `${selectedManualJurnal2.kode_akun || selectedManualJurnal2.kode || ''} - ${selectedManualJurnal2.nama_akun || ''}`
     }
   } else {
     if (!akunDefault.value) return
