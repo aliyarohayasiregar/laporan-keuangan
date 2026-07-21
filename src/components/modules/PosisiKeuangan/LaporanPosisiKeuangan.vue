@@ -189,6 +189,14 @@
                 {{ formatNumber(data.ekuitas_pemilik) }}
               </td>
             </tr>
+            <tr v-if="data.laba_ditahan" class="hover:bg-gray-50 border-b border-gray-100">
+              <td class="py-1.5 text-center text-[11px] text-gray-500 font-mono">-</td>
+              <td class="py-1.5 text-[11px] text-gray-700 font-medium pl-2">{{ getLabaDitahanName() }}</td>
+              <td class="py-1.5 text-right text-[11px] text-gray-400 pr-2 font-mono"></td>
+              <td class="py-1.5 text-right text-[11px] text-gray-900 font-bold pr-2 font-mono">
+                {{ formatNumber(data.laba_ditahan.total_laba_ditahan_akhir) }}
+              </td>
+            </tr>
 
             <!-- Total Liabilitas dan Ekuitas Footer -->
             <tr class="bg-emerald-600 text-white font-bold">
@@ -221,145 +229,6 @@
         </div> -->
       </div>
     </div>
-
-    <!-- Laba Ditahan dan Laba Tahun Berjalan (Informasi Pendukung) -->
-    <div
-      v-if="data && !loading && !error && (data.aset_lancar?.length > 0 || data.aset_tetap?.length > 0 || data.liabilitas_jangka_pendek?.length > 0)"
-      class="mt-8">
-      <div class="bg-gray-50/50 rounded-xl border border-dashed border-gray-300 p-6">
-        <div @click="showDetails = !showDetails" class="flex items-center justify-center gap-2 cursor-pointer group">
-          <h2
-            class="text-sm font-bold text-gray-500 uppercase tracking-widest group-hover:text-blue-600 transition-colors">
-            Rincian Perhitungan Laba (Informasi Pendukung)
-          </h2>
-          <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-transform duration-300"
-            :class="{ 'rotate-180': showDetails }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-
-        <div v-show="showDetails" class="mt-6 animate-fadeIn">
-          <!-- 2 Column Layout -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Kiri: Laba Tahun Berjalan -->
-            <div class="flex-1">
-              <h3 class="text-lg font-semibold text-gray-700 mb-3">Laba Tahun Berjalan</h3>
-              <table class="w-full border-collapse">
-                <thead>
-                  <tr class="border-b border-gray-300">
-                    <th class="py-2 text-left text-sm font-semibold text-gray-700">Keterangan</th>
-                    <th class="py-2 text-right text-sm font-semibold text-gray-700">Jumlah</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="py-2 text-sm text-gray-700">Pendapatan Usaha</td>
-                    <td class="py-2 text-right text-sm text-gray-900">{{
-                      formatNumber(data.laba_tahun_berjalan.pendapatan_usaha) }}</td>
-                  </tr>
-                  <tr>
-                    <td class="py-2 text-sm text-gray-700">Biaya dan Beban</td>
-                    <td class="py-2 text-right text-sm text-gray-900">
-                      <span class="inline-flex items-center">
-                        <svg class="w-4 h-4 mr-1 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                        </svg>
-                        {{ formatNumber(data.laba_tahun_berjalan.biaya_dan_beban) }}
-                      </span>
-                    </td>
-                  </tr>
-                  <tr class="border-t-2 border-gray-400">
-                    <td class="py-3 text-sm font-semibold text-gray-800">Laba Berjalan</td>
-                    <td class="py-3 text-right text-sm font-bold text-gray-900">
-                      <span class="inline-flex items-center">
-                        <svg class="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                          </path>
-                        </svg>
-                        {{ formatNumber(data.laba_tahun_berjalan.laba_berjalan) }}
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Kanan: Laba Ditahan -->
-            <div class="flex-1">
-              <h3 class="text-lg font-semibold text-gray-700 mb-3">Laba Ditahan</h3>
-              <table class="w-full border-collapse">
-                <thead>
-                  <tr class="border-b border-gray-300">
-                    <th class="py-2 text-left text-sm font-semibold text-gray-700">Keterangan</th>
-                    <th class="py-2 text-right text-sm font-semibold text-gray-700">Jumlah</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="py-2 text-sm text-gray-700">Laba Ditahan Awal</td>
-                    <td class="py-2 text-right text-sm text-gray-900">{{
-                      formatNumber(data.laba_ditahan.laba_ditahan_awal)
-                      }}</td>
-                  </tr>
-                  <tr>
-                    <td class="py-2 text-sm text-gray-700">Laba Bersih</td>
-                    <td class="py-2 text-right text-sm text-gray-900">
-                      <span class="inline-flex items-center">
-                        <svg class="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                          </path>
-                        </svg>
-                        {{ formatNumber(data.laba_ditahan.laba_bersih) }}
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="py-2 text-sm text-gray-700">Dividen</td>
-                    <td class="py-2 text-right text-sm text-gray-900">
-                      <span class="inline-flex items-center">
-                        <svg class="w-4 h-4 mr-1 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                        </svg>
-                        {{ formatNumber(data.laba_ditahan.dividen) }}
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="py-2 text-sm text-gray-700">Kenaikan</td>
-                    <td class="py-2 text-right text-sm text-gray-900">
-                      <span class="inline-flex items-center">
-                        <svg class="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                          </path>
-                        </svg>
-                        {{ formatNumber(data.laba_ditahan.kenaikan) }}
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="py-2 text-sm text-gray-700">Penurunan</td>
-                    <td class="py-2 text-right text-sm text-gray-900">{{ formatNumber(data.laba_ditahan.penurunan) }}
-                    </td>
-                  </tr>
-                  <tr class="border-t-2 border-gray-400">
-                    <td class="py-3 text-sm font-semibold text-gray-800">Total Laba Ditahan Akhir</td>
-                    <td class="py-3 text-right text-sm font-bold text-gray-900">
-                      <span class="inline-flex items-center">
-                        <svg class="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                          </path>
-                        </svg>
-                        {{ formatNumber(data.laba_ditahan.total_laba_ditahan_akhir) }}
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -375,7 +244,6 @@ export default {
     const data = ref(null)
     const loading = ref(false)
     const error = ref('')
-    const showDetails = ref(false)
     const { companyName } = useCompanyName()
 
     // Format number with thousand separator and 2 decimal places, handle negative values
@@ -468,6 +336,10 @@ export default {
     const getEkuitasPemilikName = () => {
       // Check if API provides dynamic section name, otherwise use default
       return data.value?.ekuitas_pemilik_name || 'Ekuitas Pemilik'
+    }
+
+    const getLabaDitahanName = () => {
+      return data.value?.laba_ditahan_name || 'Laba Ditahan'
     }
 
     const getTotalLiabilitasDanEkuitasPemilikName = () => {
@@ -769,6 +641,12 @@ export default {
                   <td colspan="2" class="text-center">Ekuitas Pemilik</td>
                   <td class="text-right pr-4 pl-16">${formatNumber(data.value.ekuitas_pemilik)}</td>
                 </tr>
+                ${data.value.laba_ditahan ? `
+                <tr>
+                  <td colspan="2" class="text-center">${data.value.laba_ditahan_name || 'Laba Ditahan'}</td>
+                  <td class="text-right pr-4 pl-16">${formatNumber(data.value.laba_ditahan.total_laba_ditahan_akhir)}</td>
+                </tr>
+                ` : ''}
                 
                 <tr class="grand-total">
                   <td colspan="2" class="text-center">Total Liabilitas dan Ekuitas Pemilik</td>
@@ -776,76 +654,6 @@ export default {
                 </tr>
               </tbody>
             </table>
-          </div>
-          
-          <!-- Laba Ditahan dan Laba Tahun Berjalan -->
-          <div class="section laba-section">
-            <div class="laba-title">Laba Ditahan dan Laba Tahun Berjalan</div>
-            <div class="laba-grid">
-              <!-- Kiri: Laba Tahun Berjalan -->
-              <div class="laba-column">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Keterangan</th>
-                      <th class="text-right">Jumlah</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Pendapatan Usaha</td>
-                      <td class="text-right">${formatNumber(data.value.laba_tahun_berjalan.pendapatan_usaha)}</td>
-                    </tr>
-                    <tr>
-                      <td><span class="icon red">-</span>Biaya dan Beban</td>
-                      <td class="text-right">${formatNumber(data.value.laba_tahun_berjalan.biaya_dan_beban)}</td>
-                    </tr>
-                    <tr class="grand-total">
-                      <td><span class="icon green">+</span>Laba Berjalan</td>
-                      <td class="text-right">${formatNumber(data.value.laba_tahun_berjalan.laba_berjalan)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              
-              <!-- Kanan: Laba Ditahan -->
-              <div class="laba-column">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Keterangan</th>
-                      <th class="text-right">Jumlah</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Laba Ditahan Awal</td>
-                      <td class="text-right">${formatNumber(data.value.laba_ditahan.laba_ditahan_awal)}</td>
-                    </tr>
-                    <tr>
-                      <td><span class="icon green">+</span>Laba Bersih</td>
-                      <td class="text-right">${formatNumber(data.value.laba_ditahan.laba_bersih)}</td>
-                    </tr>
-                    <tr>
-                      <td><span class="icon red">-</span>Dividen</td>
-                      <td class="text-right">${formatNumber(data.value.laba_ditahan.dividen)}</td>
-                    </tr>
-                    <tr>
-                      <td><span class="icon green">+</span>Kenaikan</td>
-                      <td class="text-right">${formatNumber(data.value.laba_ditahan.kenaikan)}</td>
-                    </tr>
-                    <tr>
-                      <td>Penurunan</td>
-                      <td class="text-right">${formatNumber(data.value.laba_ditahan.penurunan)}</td>
-                    </tr>
-                    <tr class="grand-total">
-                      <td><span class="icon green">+</span>Total Laba Ditahan Akhir</td>
-                      <td class="text-right">${formatNumber(data.value.laba_ditahan.total_laba_ditahan_akhir)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </div>
           
           <p style="margin-top: 30px; font-size: 12px; color: #666;">
@@ -873,7 +681,6 @@ export default {
       getDisplayValue,
       loadData,
       exportToPDF,
-      showDetails,
       companyName,
       // Dynamic field name functions
       getAsetSectionName,
@@ -887,6 +694,7 @@ export default {
       getTotalLiabilitasJangkaPendekName,
       getEkuitasSectionName,
       getEkuitasPemilikName,
+      getLabaDitahanName,
       getTotalLiabilitasDanEkuitasPemilikName,
       deleteLaporan
     }
