@@ -240,7 +240,7 @@
                                 class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
                                 :disabled="isLoadingBank">
                                 <option value="">{{ isLoadingBank ? 'Memuat bank...' : 'Pilih Bank' }}</option>
-                                <option v-for="bank in daftarBankAktif" :key="bank.id" :value="bank.id">
+                                <option v-for="bank in daftarBankAktif" :key="bank.nomor_voucer" :value="bank.nomor_voucer">
                                   {{ bank.kode_akun }} - {{ bank.nama_akun }} ({{ bank.nomor_voucer }})
                                 </option>
                               </select>
@@ -248,16 +248,16 @@
                           </div>
                         </td>
                         <td class="px-4 py-2">
-                          <input :value="shouldDisableDebit(index) ? '0' : formatNumberInput(detail.debit)" @input="(e) => {
-                            if (!shouldDisableDebit(index)) detail.debit = parseNumberInput(e.target.value);
-                          }" :disabled="shouldDisableDebit(index)" type="text"
+                          <input :value="getDisplayDebit(index)"
+                            @input="(e) => { if (!shouldDisableDebit(index)) detail.debit = parseNumberInput(e.target.value); }"
+                            :disabled="shouldDisableDebit(index)" type="text"
                             class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
                             placeholder="0" />
                         </td>
                         <td class="px-4 py-2">
-                          <input :value="shouldDisableKredit(index) ? '0' : formatNumberInput(detail.kredit)" @input="(e) => {
-                            if (!shouldDisableKredit(index)) detail.kredit = parseNumberInput(e.target.value);
-                          }" :disabled="shouldDisableKredit(index)" type="text"
+                          <input :value="getDisplayKredit(index)"
+                            @input="(e) => { if (!shouldDisableKredit(index)) detail.kredit = parseNumberInput(e.target.value); }"
+                            :disabled="shouldDisableKredit(index)" type="text"
                             class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
                             placeholder="0" />
                         </td>
@@ -353,7 +353,7 @@
                                 class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
                                 :disabled="isLoadingBank">
                                 <option value="">{{ isLoadingBank ? 'Memuat bank...' : 'Pilih Bank' }}</option>
-                                <option v-for="bank in daftarBankAktif" :key="bank.id" :value="bank.id">
+                                <option v-for="bank in daftarBankAktif" :key="bank.nomor_voucer" :value="bank.nomor_voucer">
                                   {{ bank.kode_akun }} - {{ bank.nama_akun }} ({{ bank.nomor_voucer }})
                                 </option>
                               </select>
@@ -361,18 +361,16 @@
                           </div>
                         </td>
                         <td class="px-4 py-2">
-                          <input :value="shouldDisableDebit(index, 's_') ? '0' : formatNumberInput(detail.debit)"
-                            @input="(e) => {
-                              if (!shouldDisableDebit(index, 's_')) detail.debit = parseNumberInput(e.target.value);
-                            }" :disabled="shouldDisableDebit(index, 's_')" type="text"
+                          <input :value="getDisplayDebit(index, 's_')"
+                            @input="(e) => { if (!shouldDisableDebit(index, 's_')) detail.debit = parseNumberInput(e.target.value); }"
+                            :disabled="shouldDisableDebit(index, 's_')" type="text"
                             class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
                             placeholder="0" />
                         </td>
                         <td class="px-4 py-2">
-                          <input :value="shouldDisableKredit(index, 's_') ? '0' : formatNumberInput(detail.kredit)"
-                            @input="(e) => {
-                              if (!shouldDisableKredit(index, 's_')) detail.kredit = parseNumberInput(e.target.value);
-                            }" :disabled="shouldDisableKredit(index, 's_')" type="text"
+                          <input :value="getDisplayKredit(index, 's_')"
+                            @input="(e) => { if (!shouldDisableKredit(index, 's_')) detail.kredit = parseNumberInput(e.target.value); }"
+                            :disabled="shouldDisableKredit(index, 's_')" type="text"
                             class="w-full px-2 py-1 border rounded text-sm text-right border-gray-300 disabled:bg-gray-100"
                             placeholder="0" />
                         </td>
@@ -449,7 +447,7 @@
                             class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
                             :disabled="isLoadingBank">
                             <option value="">{{ isLoadingBank ? 'Memuat bank...' : 'Pilih Bank' }}</option>
-                            <option v-for="bank in daftarBankAktif" :key="bank.id" :value="bank.id">
+                            <option v-for="bank in daftarBankAktif" :key="bank.nomor_voucer" :value="bank.nomor_voucer">
                               {{ bank.kode_akun }} - {{ bank.nama_akun }} ({{ bank.nomor_voucer }})
                             </option>
                           </select>
@@ -760,9 +758,25 @@ const isLoadingAkunSistemOptions = ref(false)
 
 // Bank (jenis jurnal 3, 4 & 6)
 const daftarBankAktif = ref([])
-const selectedBankId = ref('')
-const selectedBankIdJurnal2 = ref('')
+const selectedBankId = ref('') // This will now store nomor_voucer instead of id
+const selectedBankIdJurnal2 = ref('') // This will now store nomor_voucer instead of id
 const isLoadingBank = ref(false)
+
+// Watch selectedBankId for debugging
+watch(selectedBankId, (newVal, oldVal) => {
+  console.log('selectedBankId changed:', { 
+    oldVal, 
+    newVal, 
+    oldValType: typeof oldVal, 
+    newValType: typeof newVal,
+    jenisJurnal: selectedJenisJurnal.value 
+  })
+})
+
+// Log daftarBankAktif for debugging
+watch(daftarBankAktif, (newVal) => {
+  console.log('daftarBankAktif updated:', newVal.map(b => ({ id: b.id, idType: typeof b.id, kode: b.kode_akun })))
+}, { deep: true })
 
 // ===== NEW: Vendor/Customer (khusus jenis jurnal 7) =====
 // Kategori 1 = Beli Barang ke Vendor, 2 = Bayar ke Vendor -> Vendor
@@ -1005,17 +1019,33 @@ watch(
   { immediate: true }
 )
 
-const getDisplayDebit = (index) => {
-  if (index === 0 && usesDefaultAccountRow.value) {
-    return formatNumberInput(formData.value.details[0]?.debit)
+const getDisplayDebit = (index, prefix = '') => {
+  const isSilang = prefix === 's_'
+  const dataArray = isSilang ? formData.value.details_silang : formData.value.details
+  
+  // For journal type 6, index 0 should show the debit value from the array
+  if (index === 0 && selectedJenisJurnal.value == 6) {
+    return formatNumberInput(dataArray[0]?.debit)
   }
-  return shouldDisableDebit(index) ? '0' : formatNumberInput(formData.value.details[index]?.debit)
+  // For other journal types with default account row
+  if (index === 0 && usesDefaultAccountRow.value && !isSilang) {
+    return formatNumberInput(dataArray[0]?.debit)
+  }
+  return shouldDisableDebit(index, prefix) ? '0' : formatNumberInput(dataArray[index]?.debit)
 }
-const getDisplayKredit = (index) => {
-  if (index === 0 && usesDefaultAccountRow.value) {
-    return formatNumberInput(formData.value.details[0]?.kredit)
+const getDisplayKredit = (index, prefix = '') => {
+  const isSilang = prefix === 's_'
+  const dataArray = isSilang ? formData.value.details_silang : formData.value.details
+  
+  // For journal type 6, index 0 should show the kredit value from the array
+  if (index === 0 && selectedJenisJurnal.value == 6) {
+    return formatNumberInput(dataArray[0]?.kredit)
   }
-  return shouldDisableKredit(index) ? '0' : formatNumberInput(formData.value.details[index]?.kredit)
+  // For other journal types with default account row
+  if (index === 0 && usesDefaultAccountRow.value && !isSilang) {
+    return formatNumberInput(dataArray[0]?.kredit)
+  }
+  return shouldDisableKredit(index, prefix) ? '0' : formatNumberInput(dataArray[index]?.kredit)
 }
 
 const getAkunDefaultText = () => {
@@ -1144,10 +1174,18 @@ const fetchDaftarBankAktif = async () => {
 const handleBankChange = async (e, index = 0) => {
   const isSilang = typeof index === 'string' && index.startsWith('s_')
   const actualIndex = isSilang ? parseInt(index.replace('s_', '')) : index
-  const bankId = isSilang ? selectedBankIdJurnal2.value : (actualIndex === 0 ? selectedBankId.value : selectedBankId.value)
-  const bank = daftarBankAktif.value.find(b => String(b.id) === String(bankId))
+  const bankVoucer = isSilang ? selectedBankIdJurnal2.value : (actualIndex === 0 ? selectedBankId.value : selectedBankId.value)
+  const bank = daftarBankAktif.value.find(b => String(b.nomor_voucer) === String(bankVoucer))
   
-  console.log('handleBankChange called:', { isSilang, actualIndex, bankId, jenisJurnal: selectedJenisJurnal.value })
+  console.log('handleBankChange called:', { 
+    isSilang, 
+    actualIndex, 
+    bankVoucer, 
+    jenisJurnal: selectedJenisJurnal.value,
+    selectedBankId: selectedBankId.value,
+    bankFound: !!bank,
+    bankDetails: bank ? { id: bank.id, voucer: bank.nomor_voucer, kode: bank.kode_akun, nama: bank.nama_akun } : null
+  })
   
   if (!bank) {
     if (isSilang) {
@@ -1179,6 +1217,13 @@ const handleBankChange = async (e, index = 0) => {
     formData.value.details_silang[actualIndex].akun_id = bank.id
     selectedAkun.value[index] = akun
     searchQueries.value[index] = getAkunLabel(akun)
+    console.log('Updated jurnal 2 bank:', { 
+      index, 
+      actualIndex, 
+      akun_id: bank.id, 
+      selectedAkun: selectedAkun.value[index],
+      searchQuery: searchQueries.value[index]
+    })
     // Generate no bukti for jurnal 2 when bank is selected
     if (!isEdit.value && usesAutoNoBuktiGeneration.value && selectedJenisJurnal.value == 6) {
       await generateNoBuktiBySelectedAkun(true)
@@ -1187,6 +1232,13 @@ const handleBankChange = async (e, index = 0) => {
     formData.value.details[index].akun_id = bank.id
     selectedAkun.value[index] = akun
     searchQueries.value[index] = getAkunLabel(akun)
+    console.log('Updated jurnal 1 bank:', { 
+      index, 
+      actualIndex, 
+      akun_id: bank.id, 
+      selectedAkun: selectedAkun.value[index],
+      searchQuery: searchQueries.value[index]
+    })
     // Generate no bukti for jurnal 1 when bank is selected (types 3, 4, 6)
     console.log('Checking voucher generation condition:', {
       isEdit: isEdit.value,
@@ -1263,12 +1315,13 @@ const getNoBuktiPayloadByAkun = (isSilang = false) => {
   if (!jenis) return null
 
   if (jenis === 6) {
-    // For journal type 6, use the bank account ID from the selected bank
-    const akunId = isSilang ? selectedBankIdJurnal2.value : selectedBankId.value
-    if (!akunId) return null
+    // For journal type 6, use the bank account ID from the selected bank (by voucer)
+    const bankVoucer = isSilang ? selectedBankIdJurnal2.value : selectedBankId.value
+    const bank = daftarBankAktif.value.find(b => String(b.nomor_voucer) === String(bankVoucer))
+    if (!bank) return null
     return {
       no_jenis_jurnal: 6,
-      akun_id: parseInt(akunId),
+      akun_id: parseInt(bank.id),
       tanggal,
       urutan_transaksi: isSilang ? 2 : 1
     }
@@ -1277,15 +1330,16 @@ const getNoBuktiPayloadByAkun = (isSilang = false) => {
   if (jenis === 7 && !selectedKategoriJenis.value) return null
 
   if (['3', '4'].includes(String(jenis))) {
-    // For bank journal types, use selectedBankId directly
-    const bankAkunId = selectedBankId.value
-    if (!bankAkunId) {
+    // For bank journal types, use selectedBankId (voucer) to find bank, then get its id
+    const bankVoucer = selectedBankId.value
+    const bank = daftarBankAktif.value.find(b => String(b.nomor_voucer) === String(bankVoucer))
+    if (!bank) {
       console.log('No bank selected for voucher generation', { jenis, selectedBankId: selectedBankId.value })
       return null
     }
     return {
       no_jenis_jurnal: jenis,
-      akun_id: parseInt(bankAkunId),
+      akun_id: parseInt(bank.id),
       tanggal
     }
   }
