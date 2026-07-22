@@ -183,20 +183,23 @@
             </tr>
             <tr class="hover:bg-gray-50 border-b border-gray-100">
               <td class="py-1.5 text-center text-[11px] text-gray-500 font-mono">-</td>
-              <td class="py-1.5 text-[11px] text-gray-700 font-medium pl-2">{{ getEkuitasPemilikName() }}</td>
+              <td class="py-1.5 text-[11px] text-gray-700 font-medium pl-2">
+                {{ getEkuitasPemilikName() }}
+                <span v-if="data.laba_ditahan" class="text-[8px] text-gray-400 italic ml-1">termasuk laba ditahan</span>
+              </td>
               <td class="py-1.5 text-right text-[11px] text-gray-400 pr-2 font-mono"></td>
               <td class="py-1.5 text-right text-[11px] text-gray-900 font-bold pr-2 font-mono">
                 {{ formatNumber(data.ekuitas_pemilik) }}
               </td>
             </tr>
             <tr v-if="data.laba_ditahan" class="hover:bg-gray-50 border-b border-gray-100">
-              <td class="py-1.5 text-center text-[11px] text-gray-500 font-mono">-</td>
-              <td class="py-1.5 text-[11px] text-gray-700 font-medium pl-2">{{ getLabaDitahanName() }}</td>
-              <td class="py-1.5 text-right text-[11px] text-gray-400 pr-2 font-mono"></td>
-              <td class="py-1.5 text-right text-[11px] text-gray-900 font-bold pr-2 font-mono">
+              <td class="py-1.5 text-center text-[10px] text-gray-400 font-mono"></td>
+              <td class="py-1.5 text-[10px] text-gray-600 font-normal pl-4 italic">{{ getLabaDitahanName() }}</td>
+              <td class="py-1.5 text-right text-[10px] text-gray-300 pr-2 font-mono"></td>
+              <td class="py-1.5 text-right text-[9px] text-gray-700 font-normal pr-2 font-mono">
                 {{ formatNumber(data.laba_ditahan.total_laba_ditahan_akhir) }}
               </td>
-            </tr>
+            </tr>   
 
             <!-- Total Liabilitas dan Ekuitas Footer -->
             <tr class="bg-emerald-600 text-white font-bold">
