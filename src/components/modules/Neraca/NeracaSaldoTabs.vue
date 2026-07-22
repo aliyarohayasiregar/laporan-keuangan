@@ -7,7 +7,7 @@
           <div class="flex-1">
             <h2 class="text-xl sm:text-4xl font-bold text-white mb-1">{{ companyName }}</h2>
             <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">Neraca Saldo</h1>
-            <!-- <p class="text-indigo-100 text-lg">Laporan neraca saldo sebelum penyesuaian</p> -->
+            <p class="text-indigo-100 text-sm sm:text-base">Neraca saldo bisa dilihat setelah dilakukan posting</p>
           </div>
           <div class="flex items-center space-x-2">
             <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
